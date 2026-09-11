@@ -1,0 +1,768 @@
+<title>Bedside Assessment Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F3F5F7; --surface:#FFFFFF; --surface-2:#EDF1F3; --ink:#172029; --muted:#5B6B78; --line:#D6DDE2;
+  --accent:#0E6B73; --accent-ink:#0A565C; --accent-soft:#DCEEF0; --accent-line:#8CC4C9;
+  --flag:#B4392B; --flag-ink:#8F2C21; --flag-soft:#F9E4E0;
+  --amber:#8F6400; --amber-soft:#F6ECD3;
+  --figure:#B7C1C9; --figure-soft:#E4E9ED; --tissue:#F1E2D6; --tissue-2:#E6C9B5;
+  --shadow:0 1px 2px rgba(23,32,41,.06),0 10px 28px rgba(23,32,41,.07);
+  --display:'Newsreader',Georgia,'Times New Roman',serif;
+  --body:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F161C; --surface:#172029; --surface-2:#1F2A34; --ink:#E8EEF2; --muted:#9AA9B5; --line:#2B3843;
+    --accent:#5CC2C9; --accent-ink:#8ED7DC; --accent-soft:#163A3E; --accent-line:#2F7C82;
+    --flag:#F2917F; --flag-ink:#F7B0A3; --flag-soft:#3E211C;
+    --amber:#E5B85A; --amber-soft:#3A2F12;
+    --figure:#465563; --figure-soft:#232F39; --tissue:#4A3A31; --tissue-2:#5C4638;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F161C; --surface:#172029; --surface-2:#1F2A34; --ink:#E8EEF2; --muted:#9AA9B5; --line:#2B3843;
+  --accent:#5CC2C9; --accent-ink:#8ED7DC; --accent-soft:#163A3E; --accent-line:#2F7C82;
+  --flag:#F2917F; --flag-ink:#F7B0A3; --flag-soft:#3E211C;
+  --amber:#E5B85A; --amber-soft:#3A2F12;
+  --figure:#465563; --figure-soft:#232F39; --tissue:#4A3A31; --tissue-2:#5C4638;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+a{color:var(--accent-ink)}
+.app{display:grid;grid-template-columns:372px minmax(0,1fr);min-height:100vh}
+
+/* ---------- Atlas column ---------- */
+.atlas{position:sticky;top:0;height:100vh;overflow:auto;background:var(--surface);border-right:1px solid var(--line);padding:18px 18px 22px;display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.brand h1{font-family:var(--display);font-weight:600;font-size:23px;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.brand small{white-space:nowrap;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.figwrap{position:relative;background:var(--surface-2);border-radius:14px;padding:10px 8px 6px}
+.figwrap svg{display:block;width:100%;height:auto;max-height:420px;margin:0 auto}
+.figwrap .side{position:absolute;top:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.figwrap .side.l{left:12px}.figwrap .side.r{right:12px}
+.body{fill:var(--figure);stroke:var(--figure)}
+.body .limb{stroke-width:20;stroke-linecap:round}
+.body .l2{stroke-width:26}
+.hl{fill:var(--accent);stroke:var(--accent);fill-opacity:0;stroke-opacity:0;stroke-width:2;transition:fill-opacity .25s,stroke-opacity .25s}
+.hl.dash{stroke-dasharray:4 4;fill-opacity:0!important}
+.hl.on{fill-opacity:.32;stroke-opacity:1}
+.hl.on.dash{stroke-opacity:.9}
+.leader{stroke:var(--muted);stroke-width:1;fill:none;stroke-opacity:.7}
+.pin{cursor:pointer}
+.pin circle{fill:var(--surface);stroke:var(--muted);stroke-width:1.5;transition:fill .2s,stroke .2s}
+.pin text{fill:var(--ink);font-family:var(--mono);font-size:10.5px;font-weight:500;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.pin:hover circle,.pin:focus-visible circle{stroke:var(--accent);stroke-width:2}
+.pin.on circle{fill:var(--accent);stroke:var(--accent)}
+.pin.on text{fill:#fff}
+.pin:focus{outline:none}
+.pin:focus-visible circle{stroke-width:3}
+.figcap{display:flex;justify-content:space-between;align-items:center;padding:6px 6px 0;font-size:12.5px;color:var(--muted)}
+.figcap b{color:var(--ink);font-weight:700}
+
+.list{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.row{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:9px;padding:7px 8px;cursor:pointer;color:var(--ink)}
+.row:hover{background:var(--surface-2)}
+.row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.row.on{background:var(--accent-soft)}
+.row .num{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted);background:var(--surface)}
+.row.on .num{background:var(--accent);border-color:var(--accent);color:#fff}
+.row.done .num{border-color:var(--accent);color:var(--accent)}
+.row .name{font-size:14.5px;line-height:1.25}
+.row .name small{display:block;font-size:11.5px;color:var(--muted);font-family:var(--mono);letter-spacing:.02em}
+.row .prog{font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.row.done .prog{color:var(--accent-ink)}
+.atlas-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-top:auto;padding-top:6px}
+.linkbtn{background:none;border:0;padding:4px 6px;color:var(--accent-ink);cursor:pointer;border-radius:6px;font-size:12.5px}
+.linkbtn:hover{background:var(--surface-2)}
+
+/* ---------- Detail pane ---------- */
+.detail{padding:30px clamp(16px,4vw,60px) 110px;max-width:900px;width:100%}
+.eyebrow{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.eyebrow .loc{padding:2px 8px;border:1px solid var(--line);border-radius:999px;letter-spacing:.04em;text-transform:none;font-size:11.5px}
+h2.title{font-family:var(--display);font-weight:500;font-size:clamp(30px,4vw,40px);line-height:1.08;letter-spacing:-.015em;margin:8px 0 12px;text-wrap:balance}
+.lede{font-size:16px;max-width:66ch;margin:0 0 6px}
+.lede b{font-weight:700}
+.nerves{font-size:14px;color:var(--muted);max-width:66ch;margin:4px 0 0}
+.nerves b{color:var(--ink);font-family:var(--mono);font-weight:500;font-size:12.5px}
+section.blk{margin-top:30px}
+.blk h3{font-family:var(--mono);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;display:flex;align-items:center;gap:10px}
+.blk h3::after{content:"";flex:1;height:1px;background:var(--line)}
+figure.fig{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 16px 12px;box-shadow:var(--shadow)}
+figure.fig .scroll{overflow-x:auto}
+figure.fig svg.dg{display:block;width:100%;height:auto;min-width:300px;max-width:100%;margin:0 auto;color:var(--ink);font-family:var(--mono);font-size:11px}
+figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-width:70ch}
+.dg *{vector-effect:non-scaling-stroke}
+.dg text{fill:currentColor;stroke:none;font-family:var(--mono)}
+.dg .t10{font-size:10px}.dg .t12{font-size:12px}.dg .t13{font-size:13px;font-weight:500}
+.dg .b{font-weight:500}
+.dg .mu{color:var(--muted)}
+.dg .ln{stroke:currentColor;fill:none;stroke-width:1.5}
+.dg .th{stroke:currentColor;fill:none;stroke-width:1}
+.dg .lt{stroke:var(--line);fill:none;stroke-width:1}
+.dg .dash{stroke-dasharray:4 3}
+.dg .sil{fill:var(--figure-soft);stroke:var(--figure);stroke-width:1.2}
+.dg .sil .limb{stroke:var(--figure-soft);stroke-width:20;stroke-linecap:round}
+.dg .sil .l2{stroke-width:26}
+.dg .ac{stroke:var(--accent);fill:none;stroke-width:1.8}
+.dg .acf{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.dg .acd{fill:var(--accent);stroke:none}
+.dg .act{fill:var(--accent-ink)}
+.dg .fl{stroke:var(--flag);fill:none;stroke-width:1.8}
+.dg .flf{fill:var(--flag-soft);stroke:var(--flag);stroke-width:1.5}
+.dg .fld{fill:var(--flag);stroke:none}
+.dg .flt{fill:var(--flag-ink)}
+.dg .am{fill:var(--amber-soft);stroke:var(--amber);stroke-width:1.5}
+.dg .amt{fill:var(--amber)}
+.dg .gr{fill:var(--surface-2);stroke:var(--line);stroke-width:1}
+.dg .grf{fill:var(--figure-soft);stroke:var(--figure);stroke-width:1}
+.dg .tis{fill:var(--tissue);stroke:var(--tissue-2);stroke-width:1}
+.dg .tis2{fill:var(--tissue-2);stroke:none}
+.dg .white{fill:var(--surface)}
+.dg .pupil{fill:var(--ink)}
+.dg .mark{fill:var(--flag);fill-opacity:.85;stroke:var(--surface);stroke-width:1.5;cursor:pointer}
+.dg .clickable{cursor:crosshair}
+
+.landmarks{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 22px;margin:0;padding:0;list-style:none;font-size:14.5px}
+.landmarks li{padding:6px 0;border-bottom:1px solid var(--line)}
+.landmarks b{font-weight:700}
+
+.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.check li{display:grid;grid-template-columns:24px 1fr;gap:12px;align-items:start;padding:9px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.check li:has(input:checked){background:var(--accent-soft);border-color:var(--accent-line)}
+.check input{appearance:none;-webkit-appearance:none;width:20px;height:20px;margin:2px 0 0;border:1.5px solid var(--muted);border-radius:6px;background:var(--surface);cursor:pointer;display:grid;place-items:center}
+.check input:checked{background:var(--accent);border-color:var(--accent)}
+.check input:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.check input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.check label{cursor:pointer;font-size:15px;line-height:1.45}
+.check label b{font-weight:700}
+.check label span{color:var(--muted)}
+.check li:has(input:checked) label span{color:var(--ink)}
+.check label mark{background:var(--flag-soft);color:var(--flag-ink);padding:0 3px;border-radius:3px}
+.check label em{font-style:normal;font-family:var(--mono);font-size:13px}
+
+.how{background:var(--surface-2);border-radius:12px;padding:14px 16px;font-size:15px;max-width:72ch}
+.how b{font-weight:700}
+.callout{border-left:4px solid var(--flag);background:var(--flag-soft);border-radius:0 12px 12px 0;padding:14px 18px;max-width:72ch}
+.callout h4{margin:0 0 6px;font-family:var(--mono);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--flag-ink)}
+.callout p{margin:0 0 6px;font-size:15px}
+.callout ul{margin:6px 0 0;padding-left:18px;font-size:15px}
+.callout li{margin:3px 0}
+.callout b{font-weight:700}
+.scale{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14.5px;align-items:baseline;margin:0;max-width:70ch}
+.scale dt{font-family:var(--mono);font-size:13px;font-weight:500;padding:2px 8px;border-radius:6px;background:var(--surface-2);text-align:center;white-space:nowrap}
+.scale dt.ok{background:var(--accent-soft);color:var(--accent-ink)}
+.scale dt.bad{background:var(--flag-soft);color:var(--flag-ink)}
+.scale dd{margin:0}
+.scales{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px}
+.scales h5{margin:0 0 8px;font-size:14px;font-weight:700}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 14px;cursor:pointer;font-size:14px}
+.btn:hover{border-color:var(--accent);color:var(--accent-ink)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{color:#fff;filter:brightness(1.05)}
+.btn[disabled]{opacity:.45;cursor:default}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}
+.pager .btn{max-width:46%;text-align:left;line-height:1.3}
+.pager .btn small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pager .btn.primary small{color:rgba(255,255,255,.75)}
+.pager .btn.primary{text-align:right}
+
+/* mobile bar */
+.mbar{display:none}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .atlas{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:14px 16px 12px}
+  .figwrap svg{max-height:300px}
+  .list{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px;scrollbar-width:thin}
+  .row{grid-template-columns:24px auto;padding:6px 10px 6px 6px;border:1px solid var(--line);border-radius:999px;white-space:nowrap;flex:0 0 auto}
+  .row .num{width:22px;height:22px;font-size:10px}
+  .row .name{font-size:13.5px}.row .name small{display:none}.row .prog{display:none}
+  .atlas-foot{margin-top:0}
+  .detail{padding-bottom:120px}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));justify-content:space-between;align-items:center;gap:10px}
+  .mbar .pos{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+</style>
+
+<div class="app">
+  <aside class="atlas" aria-label="Body atlas navigation">
+    <div class="brand"><h1>Bedside Assessment Atlas</h1><small>RN · head to toe</small></div>
+    <div class="figwrap">
+      <span class="side l">Patient's R</span><span class="side r">Patient's L</span>
+      <svg id="bodyfig" viewBox="0 0 250 446" role="group" aria-label="Whole-body figure with numbered assessment regions"></svg>
+      <div class="figcap"><span>Tap a number or a region below</span><span id="figstate"></span></div>
+    </div>
+    <ol class="list" id="list"></ol>
+    <div class="atlas-foot"><span id="overall"></span><button class="linkbtn" id="reset" type="button">Reset all ticks</button></div>
+  </aside>
+  <main class="detail" id="detail" aria-live="polite"></main>
+</div>
+<div class="mbar" id="mbar">
+  <button class="btn" id="mprev" type="button">← Previous</button>
+  <span class="pos" id="mpos"></span>
+  <button class="btn primary" id="mnext" type="button">Next →</button>
+</div>
+
+<script>
+/* ---------- shared drawing helpers ---------- */
+const SVG=(w,h,label,inner)=>`<svg class="dg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}">${inner}</svg>`;
+const ARROW=id=>`<defs><marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>`;
+const BODY=`<ellipse cx="100" cy="36" rx="26" ry="32"/><rect x="90" y="62" width="20" height="22" rx="5"/><path d="M62 86 Q100 76 138 86 L134 212 Q100 224 66 212 Z"/><path d="M64 92 L36 206" class="limb"/><path d="M136 92 L164 206" class="limb"/><path d="M84 214 L78 412" class="limb l2"/><path d="M116 214 L122 412" class="limb l2"/><ellipse cx="76" cy="422" rx="14" ry="7"/><ellipse cx="124" cy="422" rx="14" ry="7"/>`;
+const sil=(x,y,s)=>`<g class="sil" transform="translate(${x} ${y}) scale(${s})">${BODY}</g>`;
+const dot=(x,y,cls='acd',r=4)=>`<circle cx="${x}" cy="${y}" r="${r}" class="${cls}"/>`;
+const lbl=(x,y,t,cls='',anchor='start')=>`<text x="${x}" y="${y}" class="${cls}" text-anchor="${anchor}">${t}</text>`;
+const lead=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="th mu"/>`;
+const num=(x,y,n,cls='acf')=>`<circle cx="${x}" cy="${y}" r="8" class="${cls}"/><text x="${x}" y="${y+0.5}" text-anchor="middle" dominant-baseline="central" class="t10 b">${n}</text>`;
+
+/* ---------- diagrams ---------- */
+const D={};
+D.vitals=()=>{
+  const s=0.6,ox=16,oy=12,p=(x,y)=>[ox+x*s,oy+y*s];
+  const pts=[['Temporal',80,26,24],['Carotid',92,72,50],['Apex · 5th ICS MCL',112,124,78],['Brachial · antecubital',54,150,104],['Radial · lateral wrist',40,196,130],['Femoral · groin',88,222,152],['Popliteal · behind knee',80,318,204],['Posterior tibial · behind medial malleolus',86,404,250],['Dorsalis pedis · dorsum of foot',76,420,272]];
+  let g=sil(ox,oy,s);
+  pts.forEach(([n,x,y,ly])=>{const [px,py]=p(x,y);g+=lead(px,py,150,ly)+dot(px,py)+lbl(154,ly+4,n);});
+  g+=lbl(16,296,"Patient's R",'t10 mu')+lbl(100,296,"Patient's L",'t10 mu');
+  // chest auscultation
+  const cx=330;
+  let c=`<g transform="translate(${cx} 18)">`;
+  c+=`<path d="M30 30 Q30 8 60 8 L85 14 L95 0 L105 14 L130 8 Q160 8 160 30 L166 190 Q95 215 24 190 Z" class="grf"/>`;
+  c+=`<rect x="84" y="16" width="22" height="150" rx="6" class="gr"/>`;
+  [40,70,100,130,160].forEach((y,i)=>{c+=`<line x1="40" y1="${y}" x2="84" y2="${y+6}" class="lt"/><line x1="106" y1="${y+6}" x2="150" y2="${y}" class="lt"/>`;});
+  c+=lbl(95,45,'2',"t10 mu",'middle')+lbl(95,75,'3','t10 mu','middle')+lbl(95,105,'4','t10 mu','middle')+lbl(95,135,'5','t10 mu','middle');
+  c+=`<line x1="140" y1="0" x2="140" y2="200" class="lt dash"/>`+lbl(140,214,'mid-clavicular','t10 mu','middle');
+  const areas=[['A',72,44,'Aortic · R 2nd ICS'],['P',118,44,'Pulmonic · L 2nd ICS'],['T',118,120,'Tricuspid · L lower sternal border'],['M',146,140,'Mitral / apex · L 5th ICS MCL']];
+  areas.forEach(([k,x,y])=>{c+=`<circle cx="${x}" cy="${y}" r="11" class="acf"/>`+lbl(x,y+4,k,'t12 b act','middle');});
+  c+=lbl(20,-4,"Patient's R",'t10 mu')+lbl(170,-4,"Patient's L",'t10 mu','end');
+  c+=`</g>`;
+  c+=lbl(16,322,'A  Aortic · R 2nd ICS, sternal edge')+lbl(16,338,'P  Pulmonic · L 2nd ICS, sternal edge')+lbl(300,322,'T  Tricuspid · L 4th–5th ICS, sternal edge')+lbl(300,338,'M  Mitral (apex) · L 5th ICS, mid-clavicular');
+  return SVG(560,350,'Pulse points on a whole-body figure and the four cardiac auscultation areas on the anterior chest',g+c);
+};
+D.brain=()=>{
+  let g=ARROW('ab');
+  g+=`<path d="M40 122 C40 62 100 28 172 28 C252 28 322 60 322 112 C322 152 282 172 242 176 C224 200 182 200 160 182 C122 182 100 172 90 156 C60 152 40 142 40 122 Z" class="grf"/>`;
+  g+=`<ellipse cx="256" cy="188" rx="46" ry="22" class="gr"/><rect x="196" y="170" width="22" height="46" rx="6" class="gr"/>`;
+  g+=`<path d="M92 146 L228 116" class="ln"/><path d="M178 30 L206 118" class="ln"/><path d="M272 44 L298 134" class="ln dash"/>`;
+  g+=lbl(110,80,'FRONTAL','t12 b')+lbl(110,96,'executive function,','t10 mu')+lbl(110,108,'behaviour, movement','t10 mu');
+  g+=lbl(238,66,'PARIETAL','t12 b')+lbl(238,82,'sensation, neglect','t10 mu');
+  g+=lbl(150,168,'TEMPORAL','t12 b')+lbl(150,180,'memory, receptive language','t10 mu');
+  g+=lbl(292,152,'OCCIPITAL','t12 b')+lbl(292,164,'vision','t10 mu');
+  g+=lbl(256,192,'cerebellum','t10 mu','middle');
+  g+=`<circle cx="148" cy="128" r="12" class="acf"/>`+lbl(148,132,'B','t12 b act','middle');
+  g+=`<circle cx="232" cy="140" r="12" class="acf"/>`+lbl(232,144,'W','t12 b act','middle');
+  g+=lbl(20,236,"B  Broca's · expressive: knows the word, can't get it out",'')+lbl(20,252,"W  Wernicke's · receptive: fluent but doesn't follow",'');
+  g+=lbl(40,20,'anterior','t10 mu')+lbl(322,20,'posterior','t10 mu','end');
+  g+=`<line x1="150" y1="40" x2="176" y2="40" class="th mu"/>`+lbl(160,52,'central sulcus','t10 mu','middle');
+  return SVG(360,262,'Lateral view of the brain with the four lobes and Broca and Wernicke areas marked',g);
+};
+D.eyes=()=>{
+  let g=ARROW('ae');
+  const eye=(cx,cy,nasal)=>{ // nasal = +1 if nasal side is +x
+    let e=`<ellipse cx="${cx}" cy="${cy}" rx="46" ry="26" class="white gr"/><circle cx="${cx}" cy="${cy}" r="17" class="acf"/><circle cx="${cx}" cy="${cy}" r="7" class="pupil"/>`;
+    const dirs=[[-nasal,-1,'Superior rectus','III','up & out'],[nasal,-1,'Inferior oblique','III','up & in'],[-nasal,0,'Lateral rectus','VI','out'],[nasal,0,'Medial rectus','III','in'],[-nasal,1,'Inferior rectus','III','down & out'],[nasal,1,'Superior oblique','IV','down & in']];
+    dirs.forEach(([dx,dy,m,n,d])=>{
+      const x1=cx+dx*(dy?36:50), y1=cy+dy*22, x2=cx+dx*(dy?58:74), y2=cy+dy*54;
+      e+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="ac" marker-end="url(#ae)"/>`;
+      if(dy===0){const tx=cx+dx*80,anc=dx<0?'end':'start';e+=lbl(tx,cy-2,m,'t10 b',anc)+lbl(tx,cy+10,`CN ${n} · ${d}`,'t10 mu',anc);}
+      else{const tx=cx+dx*62,ty=dy<0?cy-72:cy+72;e+=lbl(tx,ty,m,'t10 b','middle')+lbl(tx,ty+11,`CN ${n} · ${d}`,'t10 mu','middle');}
+    });
+    return e;
+  };
+  g+=lbl(160,14,"Patient's RIGHT eye",'t12 b','middle')+lbl(480,14,"Patient's LEFT eye",'t12 b','middle');
+  g+=lbl(320,14,'nose','t10 mu','middle')+`<line x1="320" y1="24" x2="320" y2="200" class="lt dash"/>`;
+  g+=eye(160,112,1)+eye(480,112,-1);
+  g+=lbl(20,238,'Pupil size (mm)','t12 b');
+  [1,2,3,4,5,6,7,8].forEach((mm,i)=>{const x=80+i*70;g+=`<circle cx="${x}" cy="270" r="${mm*2.4}" class="pupil"/>`+lbl(x,302,mm,'t12','middle');});
+  g+=lbl(620,238,'normal 2–4 mm in room light','t10 mu','end');
+  return SVG(640,314,'The six cardinal positions of gaze for each eye with the muscle and cranial nerve tested, and a pupil size chart in millimetres',g);
+};
+D.ear=()=>{
+  let g=ARROW('aa');
+  g+=`<circle cx="120" cy="120" r="84" class="grf"/>`;
+  g+=`<path d="M90 48 Q120 36 150 48 L142 66 Q120 58 98 66 Z" class="am"/>`;
+  g+=`<line x1="104" y1="58" x2="120" y2="120" class="ln" stroke-width="3"/><circle cx="120" cy="120" r="4" class="acd"/>`;
+  g+=`<path d="M120 120 L150 192 L176 168 Z" class="acf"/>`;
+  g+=lead(120,42,232,40)+lbl(236,44,'pars flaccida')+lead(112,86,232,70)+lbl(236,74,'handle of malleus')+lead(120,120,232,100)+lbl(236,104,'umbo (centre)')+lead(160,176,232,150)+lbl(236,154,'cone of light')+lbl(236,166,'right ear ≈ 5 o’clock · left ≈ 7 o’clock','t10 mu')+lead(70,150,232,196)+lbl(236,200,'pars tensa · pearly grey,')+lbl(236,212,'translucent, intact','t10 mu');
+  g+=lbl(120,226,'Right tympanic membrane, otoscope view','t10 mu','middle');
+  // pinna pull
+  g+=`<g transform="translate(400 30)">`;
+  g+=`<path d="M40 30 C10 40 8 120 40 130 C60 136 70 110 62 92 C56 78 66 60 60 46 C54 32 46 28 40 30 Z" class="grf"/>`;
+  g+=`<path d="M50 90 C70 92 84 104 100 100" class="ln dash"/>`+lbl(104,104,'canal','t10 mu');
+  g+=`<line x1="46" y1="48" x2="92" y2="10" class="ac" stroke-width="2.5" marker-end="url(#aa)"/>`+lbl(60,-2,'Adult: pull pinna UP and BACK','t10 b');
+  g+=`<line x1="46" y1="112" x2="92" y2="150" class="ac dash" stroke-width="2" marker-end="url(#aa)"/>`+lbl(30,172,'Child under 3: DOWN and back','t10 mu');
+  g+=lbl(0,196,'Brace the otoscope hand on the head.','t10 mu');
+  g+=`</g>`;
+  return SVG(560,240,'A normal right tympanic membrane with its landmarks, and the direction to pull the pinna to straighten the canal',g);
+};
+D.nose=()=>{
+  let g=ARROW('an');
+  g+=`<ellipse cx="150" cy="152" rx="102" ry="132" class="grf"/>`;
+  g+=`<ellipse cx="110" cy="128" rx="19" ry="9" class="white gr"/><ellipse cx="190" cy="128" rx="19" ry="9" class="white gr"/><circle cx="110" cy="128" r="4" class="pupil"/><circle cx="190" cy="128" r="4" class="pupil"/>`;
+  g+=`<path d="M92 112 Q110 104 128 110" class="th"/><path d="M172 110 Q190 104 208 112" class="th"/>`;
+  g+=`<path d="M150 124 L140 190 Q150 200 160 190 Z" class="th"/><path d="M118 238 Q150 252 182 238" class="th"/>`;
+  g+=`<ellipse cx="118" cy="92" rx="24" ry="14" class="acf"/><ellipse cx="182" cy="92" rx="24" ry="14" class="acf"/>`;
+  g+=`<ellipse cx="108" cy="178" rx="26" ry="24" class="acf"/><ellipse cx="192" cy="178" rx="26" ry="24" class="acf"/>`;
+  g+=`<rect x="140" y="126" width="20" height="30" rx="4" class="gr dash"/><circle cx="150" cy="172" r="9" class="gr dash"/>`;
+  g+=`<line x1="118" y1="128" x2="118" y2="106" class="ac" stroke-width="2.5" marker-end="url(#an)"/><line x1="108" y1="222" x2="108" y2="202" class="ac" stroke-width="2.5" marker-end="url(#an)"/>`;
+  g+=lead(142,92,268,60)+lbl(272,58,'Frontal sinus','t12 b')+lbl(272,70,'palpate under the brow,','t10')+lbl(272,81,'press upward','t10');
+  g+=lead(160,140,268,120)+lbl(272,118,'Ethmoid','t12 b mu')+lbl(272,130,'deep · not palpable','t10 mu');
+  g+=lead(159,172,268,158)+lbl(272,156,'Sphenoid','t12 b mu')+lbl(272,168,'deep · not palpable','t10 mu');
+  g+=lead(218,178,268,204)+lbl(272,202,'Maxillary sinus','t12 b')+lbl(272,214,'palpate over the cheekbone,','t10')+lbl(272,225,'press upward','t10');
+  g+=lbl(150,300,'Shaded = palpable · dashed = not accessible','t10 mu','middle');
+  return SVG(430,312,'Front view of the face showing the paranasal sinuses, which are palpable and the direction of pressure',g);
+};
+D.mouth=()=>{
+  let g='';
+  g+=`<ellipse cx="160" cy="132" rx="132" ry="98" class="grf"/>`;
+  g+=`<path d="M56 108 Q160 34 264 108" class="th" stroke-width="11" stroke="var(--surface)"/><path d="M56 108 Q160 34 264 108" class="th"/>`;
+  g+=`<path d="M62 160 Q160 236 258 160" class="th" stroke-width="11" stroke="var(--surface)"/><path d="M62 160 Q160 236 258 160" class="th"/>`;
+  g+=`<ellipse cx="160" cy="98" rx="66" ry="24" class="gr"/>`;
+  g+=`<path d="M104 118 Q160 142 216 118" class="ac"/>`;
+  g+=`<rect x="128" y="120" width="64" height="58" rx="8" class="am"/>`;
+  g+=`<path d="M160 132 L154 148 Q160 158 166 148 Z" class="acf"/>`;
+  g+=`<path d="M112 116 Q104 140 118 166" class="ln"/><path d="M208 116 Q216 140 202 166" class="ln"/>`;
+  g+=`<ellipse cx="122" cy="146" rx="6" ry="9" class="acf"/><ellipse cx="198" cy="146" rx="6" ry="9" class="acf"/>`;
+  g+=`<ellipse cx="160" cy="190" rx="72" ry="30" class="tis"/><line x1="160" y1="166" x2="160" y2="214" class="th dash"/>`;
+  g+=lead(160,86,300,40)+lbl(304,44,'hard palate')+lead(170,126,300,70)+lbl(304,74,'soft palate · rises symmetrically')+lead(166,146,300,100)+lbl(304,104,'uvula · midline')+lead(198,146,300,130)+lbl(304,134,'tonsil')+lead(206,160,300,160)+lbl(304,164,'tonsillar pillar')+lead(180,170,300,190)+lbl(304,194,'posterior pharyngeal wall')+lbl(304,206,'touch here for gag reflex','t10 mu')+lead(200,196,300,226)+lbl(304,230,'tongue · protrudes midline')+lbl(304,242,'deviates TOWARD the weak side','t10 mu');
+  g+=lead(60,130,20,20)+lbl(16,16,'buccal mucosa','t10 mu')+lead(90,84,20,58)+lbl(16,54,'gums','t10 mu');
+  return SVG(470,250,'Open-mouth view with palate, uvula, tonsillar pillars, posterior pharyngeal wall and tongue labelled',g);
+};
+D.neck=()=>{
+  let g=ARROW('ak');
+  // lateral view
+  g+=`<circle cx="112" cy="70" r="56" class="grf"/><path d="M62 96 L110 128 L150 118" class="th"/><ellipse cx="138" cy="72" rx="8" ry="13" class="gr"/>`;
+  g+=`<path d="M106 128 L104 232" class="th"/><path d="M162 112 L166 232" class="th"/><line x1="80" y1="234" x2="196" y2="234" class="th"/>`;
+  g+=`<path d="M144 116 L100 228" class="ln mu"/>`+lbl(94,206,'SCM','t10 mu','end');
+  const nodes=[['Pre-auricular',128,66],['Post-auricular',152,58],['Occipital',168,94],['Tonsillar',132,124],['Submandibular',96,132],['Submental',66,124],['Superficial cervical',118,160],['Deep cervical',134,176],['Posterior cervical',160,184],['Supraclavicular',122,228,true]];
+  nodes.forEach(([n,x,y,flag],i)=>{const ly=30+i*21;g+=lead(x,y,214,ly)+dot(x,y,flag?'fld':'acd',5)+lbl(218,ly+4,n,flag?'flt b':'')+(flag?lbl(218,ly+15,'hard, fixed, painless = red flag','t10 flt'):'');});
+  g+=lbl(20,256,'Lateral view · face to the left','t10 mu');
+  // anterior neck
+  g+=`<g transform="translate(400 20)">`;
+  g+=`<rect x="70" y="0" width="30" height="190" rx="6" class="gr"/>`;
+  for(let y=14;y<190;y+=14)g+=`<line x1="70" y1="${y}" x2="100" y2="${y}" class="lt"/>`;
+  g+=`<ellipse cx="56" cy="90" rx="20" ry="30" class="acf"/><ellipse cx="114" cy="90" rx="20" ry="30" class="acf"/><rect x="70" y="80" width="30" height="16" class="acf"/>`;
+  g+=`<line x1="30" y1="0" x2="30" y2="200" class="fl"/><circle cx="30" cy="112" r="10" class="flf"/>`;
+  g+=`<line x1="10" y1="212" x2="160" y2="212" class="ln dash"/>`;
+  g+=`<line x1="150" y1="212" x2="150" y2="164" class="ac" stroke-width="2" marker-end="url(#ak)"/>`;
+  g+=lbl(85,-8,'trachea','t10 mu','middle')+lbl(150,222,'sternal angle','t10 mu','end')+lbl(146,160,'JVP: vertical height','t10','end')+lbl(146,171,'above the angle, at 45°','t10','end')+lbl(146,182,'> 3–4 cm = raised','t10 b','end');
+  g+=lbl(44,124,'carotid: bell,','t10','end')+lbl(44,135,'breath held','t10','end')+lbl(44,146,'one side at a time','t10 flt','end');
+  g+=lbl(56,48,'thyroid','t10 act','middle')+lbl(56,59,'rises on swallow','t10 mu','middle');
+  g+=lbl(85,100,'isthmus','t10 mu','middle');
+  g+=`</g>`;
+  return SVG(580,270,'Cervical lymph node chains on a lateral neck, and the thyroid, trachea, carotid auscultation point and sternal angle on the anterior neck',g);
+};
+D.chest=()=>{
+  let g='';
+  const thorax=`<path d="M14 30 Q14 6 44 6 L84 14 L100 0 L116 14 L156 6 Q186 6 186 30 L192 236 Q100 262 8 236 Z" class="grf"/>`;
+  // anterior
+  g+=`<g transform="translate(22 44)">`+thorax;
+  g+=`<rect x="90" y="18" width="20" height="150" rx="6" class="gr"/>`;
+  g+=`<path d="M26 44 Q26 22 56 20 L88 28 L88 200 Q26 200 26 150 Z" class="acf"/>`;
+  g+=`<path d="M26 104 L88 108 L88 200 Q56 204 40 186 Z" class="am"/>`;
+  g+=`<path d="M26 150 L40 186 Q56 204 72 200 L88 200 L88 108 L26 104 Z" class="gr"/><path d="M26 150 L70 200" class="ln"/><path d="M26 104 L88 108" class="ln"/>`;
+  g+=`<path d="M174 44 Q174 22 144 20 L112 28 L112 200 Q174 200 174 150 Z" class="acf"/>`;
+  g+=`<path d="M174 150 L130 200 L112 200 L112 200 Q174 200 174 150 Z" class="gr"/><path d="M174 150 L130 200" class="ln"/>`;
+  g+=lbl(66,64,'RUL','t12 b','middle')+lbl(66,146,'RML','t12 b amt','middle')+lbl(64,192,'RLL','t10','middle')+lbl(136,70,'LUL','t12 b','middle')+lbl(130,172,'lingula','t10 mu','middle')+lbl(152,192,'LLL','t10','middle');
+  [[1,52],[2,104],[3,156]].forEach(([n,y])=>{g+=num(40,y,n)+num(160,y,n);});
+  g+=lbl(6,-8,"Patient's R",'t10 mu')+lbl(194,-8,"Patient's L",'t10 mu','end')+lbl(100,-26,'ANTERIOR','t12 b','middle');
+  g+=`</g>`;
+  // posterior
+  g+=`<g transform="translate(300 44)">`+thorax;
+  g+=`<line x1="100" y1="10" x2="100" y2="240" class="th dash"/>`;
+  // left lung (patient's L on viewer's left)
+  g+=`<path d="M26 44 Q26 22 56 20 L88 28 L88 210 Q26 210 26 150 Z" class="gr"/><path d="M88 28 L88 78 L26 150 Q26 22 56 20 Z" class="acf"/><path d="M88 78 L26 150" class="ln"/>`;
+  g+=`<path d="M174 44 Q174 22 144 20 L112 28 L112 210 Q174 210 174 150 Z" class="gr"/><path d="M112 28 L112 78 L174 150 Q174 22 144 20 Z" class="acf"/><path d="M112 78 L174 150" class="ln"/>`;
+  g+=lbl(70,58,'LUL','t12 b','middle')+lbl(70,170,'LLL','t12 b','middle')+lbl(130,58,'RUL','t12 b','middle')+lbl(130,170,'RLL','t12 b','middle');
+  [[4,44],[5,88],[6,132],[7,176],[8,210]].forEach(([n,y])=>{g+=num(44,y,n)+num(156,y,n);});
+  g+=num(14,196,9)+num(186,196,9);
+  g+=lbl(6,-8,"Patient's L",'t10 mu')+lbl(194,-8,"Patient's R",'t10 mu','end')+lbl(100,-26,'POSTERIOR','t12 b','middle');
+  g+=lbl(100,232,'C7','t10 mu','middle');
+  g+=`</g>`;
+  g+=lbl(22,326,'Teal = upper lobes · amber = right middle lobe (anterior only)','t10 mu');
+  g+=lbl(22,340,'grey = lower lobes (mostly posterior) · C7 = most prominent spinous process','t10 mu');
+  g+=lbl(22,354,'Numbers = auscultation levels. At each number listen one side, then the other.','t10 mu');
+  return SVG(540,362,'Anterior and posterior chest with lung lobes shaded and the auscultation sequence numbered, left and right marked on both views',g);
+};
+D.abdomen=()=>{
+  let g='';
+  g+=`<rect x="60" y="30" width="240" height="240" rx="42" class="grf"/>`;
+  g+=`<line x1="140" y1="30" x2="140" y2="270" class="lt"/><line x1="220" y1="30" x2="220" y2="270" class="lt"/><line x1="60" y1="110" x2="300" y2="110" class="lt"/><line x1="60" y1="190" x2="300" y2="190" class="lt"/>`;
+  g+=`<line x1="180" y1="30" x2="180" y2="270" class="ac"/><line x1="60" y1="150" x2="300" y2="150" class="ac"/><circle cx="180" cy="150" r="5" class="acf"/>`;
+  const R=(x,y,n)=>lbl(x,y,n,'t10 mu');
+  g+=R(66,44,'R hypochondriac')+R(146,44,'epigastric')+R(226,44,'L hypochondriac')+R(66,124,'R lumbar')+R(146,124,'umbilical')+R(226,124,'L lumbar')+R(66,204,'R iliac')+R(146,204,'hypogastric')+R(226,204,'L iliac');
+  const O=(x,y,lines,cls='t12 b')=>lines.map((t,i)=>lbl(x,y+i*13,t,i?'t10':cls)).join('');
+  g+=O(68,72,['RUQ','liver, gallbladder','hepatic flexure'])+O(228,72,['LUQ','stomach, spleen','pancreas tail'])+O(68,232,['RLQ','caecum, appendix','right ovary'])+O(228,232,['LLQ','sigmoid colon','left ovary']);
+  g+=O(146,72,['','stomach, duodenum'],'t10')+O(146,166,['','small bowel, aorta'],'t10')+O(146,232,['','bladder, uterus'],'t10');
+  g+=lbl(60,20,"Patient's R",'t10 mu')+lbl(300,20,"Patient's L",'t10 mu','end');
+  g+=lbl(320,60,'Order','t12 b')+lbl(320,78,'1  Inspect')+lbl(320,94,'2  Auscultate')+lbl(320,110,'3  Percuss')+lbl(320,126,'4  Palpate · light, then deep')+lbl(320,150,'Painful quadrant last.','t10 b')+lbl(320,164,'Watch the face, not the hand.','t10 mu');
+  g+=lbl(320,200,'Thick teal cross = quadrants','t10 mu')+lbl(320,214,'thin grid = nine regions','t10 mu');
+  return SVG(500,290,'Abdominal outline showing four quadrants and nine regions with the organ under each, and the examination order',g);
+};
+D.colon=()=>{
+  let g='';
+  g+=`<g transform="translate(16 16)">`;
+  g+=`<rect x="0" y="0" width="200" height="220" rx="40" class="grf"/>`;
+  g+=`<ellipse cx="100" cy="128" rx="46" ry="40" class="gr dash"/>`+lbl(100,132,'small bowel','t10 mu','middle');
+  g+=`<path d="M46 186 L46 60 Q46 46 60 46 L140 46 Q154 46 154 60 L154 176 Q154 192 136 194 L114 196 Q100 198 100 214" class="th" stroke-width="16" stroke="var(--tissue-2)" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g+=`<path d="M46 186 L46 60 Q46 46 60 46 L140 46 Q154 46 154 60 L154 176 Q154 192 136 194 L114 196 Q100 198 100 214" class="th" stroke-width="8" stroke="var(--tissue)" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g+=lbl(36,120,'ascending','t10 mu','end')+lbl(100,38,'transverse','t10 mu','middle')+lbl(164,120,'descending','t10 mu')+lbl(160,204,'sigmoid','t10 mu');
+  const st=[['Ileostomy',56,168,'RIF · terminal ileum · liquid'],['Urostomy',68,200,'RIF · ileal conduit · urine'],['Transverse loop',100,52,'upper abdomen · colostomy'],['End colostomy',144,170,'LIF · sigmoid/descending · formed']];
+  st.forEach(([n,x,y])=>{g+=`<circle cx="${x}" cy="${y}" r="7" class="flf"/>`;});
+  g+=lbl(0,-4,"Patient's R",'t10 mu')+lbl(200,-4,"Patient's L",'t10 mu','end');
+  g+=`</g>`;
+  g+=lbl(16,258,'Stoma sites','t12 b');
+  const st2=[['Ileostomy','RIF · terminal ileum · liquid, high output'],['Urostomy','RIF · ileal conduit · urine'],['Transverse loop colostomy','upper abdomen · soft output'],['End colostomy','LIF · sigmoid or descending · formed']];
+  st2.forEach(([n,d],i)=>{g+=`<circle cx="22" cy="${272+i*15}" r="4" class="flf"/>`+lbl(32,276+i*15,n,'t10 b')+lbl(32,286+i*15,'','t10 mu');});
+  const st3=['RIF · terminal ileum · liquid','RIF · ileal conduit · urine','upper abdomen · soft','LIF · sigmoid · formed'];
+  st3.forEach((d,i)=>{g+=lbl(196,276+i*15,d,'t10 mu');});
+  // Bristol
+  g+=`<g transform="translate(350 10)">`+lbl(0,8,'Bristol Stool Chart','t12 b');
+  const pic=[
+    `<circle cx="10" cy="14" r="4" class="tis"/><circle cx="22" cy="10" r="4" class="tis"/><circle cx="34" cy="16" r="4" class="tis"/><circle cx="46" cy="10" r="4" class="tis"/><circle cx="58" cy="14" r="4" class="tis"/>`,
+    `<rect x="4" y="6" width="60" height="16" rx="8" class="tis"/><circle cx="16" cy="14" r="7" class="tis"/><circle cx="32" cy="14" r="7" class="tis"/><circle cx="48" cy="14" r="7" class="tis"/>`,
+    `<rect x="4" y="6" width="60" height="16" rx="8" class="tis"/><line x1="18" y1="8" x2="18" y2="14" class="th"/><line x1="32" y1="14" x2="32" y2="20" class="th"/><line x1="46" y1="8" x2="46" y2="14" class="th"/>`,
+    `<rect x="4" y="6" width="60" height="16" rx="8" class="tis"/>`,
+    `<ellipse cx="14" cy="14" rx="9" ry="6" class="tis"/><ellipse cx="34" cy="12" rx="9" ry="6" class="tis"/><ellipse cx="54" cy="15" rx="9" ry="6" class="tis"/>`,
+    `<path d="M6 16 Q12 4 22 12 Q30 2 40 12 Q48 4 58 12 Q64 20 54 22 L12 22 Q2 22 6 16 Z" class="tis"/>`,
+    `<path d="M4 10 Q14 2 24 10 T44 10 T64 10" class="th"/><path d="M4 18 Q14 10 24 18 T44 18 T64 18" class="th"/>`
+  ];
+  const des=['Separate hard lumps','Lumpy sausage','Sausage with cracks','Smooth, soft sausage','Soft blobs, clear edges','Mushy, ragged edges','Watery, no solid pieces'];
+  des.forEach((d,i)=>{const y=20+i*36;const ok=i===2||i===3;g+=`<g transform="translate(0 ${y})"><rect x="-4" y="0" width="290" height="30" rx="6" class="${ok?'acf':'gr'}" fill-opacity="${ok?1:0.5}"/><text x="4" y="20" class="t12 b">${i+1}</text>${`<g transform="translate(20 1)">`+pic[i]+`</g>`}${lbl(96,20,d,'t10')}${ok?lbl(282,20,'target','t10 b act','end'):''}</g>`;});
+  g+=`</g>`;
+  // stoma colour
+  g+=`<g transform="translate(350 286)">`+lbl(0,8,'Stoma colour','t12 b');
+  [['#D9535E','pink–red','healthy'],['#EBBFB8','pale','review'],['#6B3E57','dusky','urgent'],['#2A2323','black','urgent']].forEach(([c,n,s],i)=>{const x=i*74;g+=`<rect x="${x}" y="16" width="64" height="22" rx="5" fill="${c}" stroke="var(--line)"/>`+lbl(x,52,n,'t10')+lbl(x,64,s,i?'t10 flt':'t10 act');});
+  g+=`</g>`;
+  return SVG(650,356,'The colon with common stoma sites marked, the Bristol Stool Chart, and healthy versus compromised stoma colours',g);
+};
+D.continence=()=>{
+  let g='';
+  const pelvis=(x,label,male)=>{
+    let p=`<g transform="translate(${x} 20)">`;
+    p+=`<path d="M10 150 Q100 200 190 150" class="ac" stroke-width="3"/>`+lbl(100,192,'pelvic floor · hammock','t10 act','middle');
+    p+=`<ellipse cx="80" cy="90" rx="42" ry="34" class="acf"/>`+lbl(80,94,'bladder','t10 act','middle');
+    p+=`<ellipse cx="150" cy="96" rx="20" ry="36" class="gr"/>`+lbl(150,100,'rectum','t10 mu','middle');
+    if(male){
+      p+=`<ellipse cx="80" cy="134" rx="16" ry="12" class="am"/>`+lbl(104,138,'prostate','t10 amt');
+      p+=`<path d="M80 124 L80 146 Q80 168 40 172 L10 170" class="ln"/>`+lbl(8,160,'urethra ~20 cm','t10','start');
+    } else {
+      p+=`<ellipse cx="120" cy="70" rx="14" ry="22" class="gr"/>`+lbl(120,44,'uterus','t10 mu','middle');
+      p+=`<path d="M80 124 L78 160" class="ln"/>`+lbl(70,174,'urethra ~4 cm','t10','end');
+    }
+    p+=lbl(100,-2,label,'t12 b','middle')+`</g>`;
+    return p;
+  };
+  g+=pelvis(10,'Female',false)+pelvis(280,'Male',true);
+  g+=lbl(10,232,'Side view · front of the body to the left. Short female urethra = stress leaks are common; the male urethra passes through the prostate = obstruction and overflow are common.','t10 mu');
+  return SVG(500,244,'Sagittal view of the female and male pelvis showing bladder, urethra, pelvic floor and prostate',g);
+};
+D.limbs=()=>{
+  let g='';
+  // leg arterial tree
+  g+=`<g transform="translate(14 10)">`;
+  g+=`<path d="M40 0 L96 0 L100 120 L92 128 L92 250 Q92 262 118 268 L118 280 L60 280 L64 130 L54 122 Z" class="grf"/>`;
+  g+=`<path d="M70 4 L72 90 L62 128 L66 140" class="fl"/><path d="M66 140 L74 250 L100 268" class="fl"/><path d="M66 140 L60 250 L58 262" class="fl dash"/>`;
+  [['Femoral · mid-inguinal',70,12],['Popliteal · behind the knee',64,128],['Post. tibial · behind med. malleolus',58,258],['Dorsalis pedis · dorsum of foot',100,268]].forEach(([n,x,y],i)=>{const ly=[12,128,246,272][i];g+=dot(x,y,'fld',4.5)+lead(x,y,130,ly)+lbl(134,ly+4,n,'t10');});
+  g+=lbl(80,296,'Right leg, anterior','t10 mu','middle');
+  g+=`</g>`;
+  // pitting oedema
+  g+=`<g transform="translate(330 10)">`+lbl(0,8,'Pitting oedema · depth of pit','t12 b');
+  [[1,2,'rebounds at once'],[2,4,'seconds'],[3,6,'> 1 min, leg swollen'],[4,8,'2–5 min, gross']].forEach(([gr,mm,d],i)=>{
+    const y=22+i*54, depth=mm*3;
+    g+=`<rect x="0" y="${y+8}" width="90" height="32" rx="4" class="tis"/><path d="M28 ${y+8} L34 ${y+8+depth} L56 ${y+8+depth} L62 ${y+8} Z" class="white" stroke="var(--tissue-2)"/>`;
+    g+=`<line x1="66" y1="${y+8}" x2="66" y2="${y+8+depth}" class="th"/>`;
+    g+=lbl(100,y+20,`${gr}+  ${mm} mm`,'t12 b')+lbl(100,y+34,d,'t10 mu');
+  });
+  g+=`</g>`;
+  // clubbing
+  g+=`<g transform="translate(330 262)">`+lbl(0,8,'Nail-fold (Lovibond) angle','t12 b');
+  g+=`<path d="M0 50 L60 50 Q86 50 90 40 L90 30 L70 24 L0 24 Z" class="tis"/><path d="M52 24 L86 30" class="ln"/>`+lbl(0,68,'normal · about 160°','t10');
+  g+=`<path d="M110 50 L170 50 Q204 50 204 34 Q204 18 176 20 L110 24 Z" class="tis"/><path d="M160 22 Q186 14 204 30" class="fl"/>`+lbl(110,68,'clubbed · > 180°','t10 flt');
+  g+=`</g>`;
+  return SVG(560,344,'The arterial tree of the leg with pulse points, pitting oedema grades by depth, and normal versus clubbed nail angle',g);
+};
+D.skin=()=>{
+  let g='';
+  const s=0.5;
+  g+=sil(10,14,s)+lbl(60,240,'Front','t12 b','middle');
+  g+=sil(130,14,s)+lbl(180,240,'Back','t12 b','middle');
+  const F=[[50,148,'elbow'],[150,148,'elbow'],[80,312,'knee'],[120,312,'knee'],[78,404,'malleolus'],[122,404,'malleolus'],[76,428,'toes'],[124,428,'toes']];
+  const B=[[100,10,'occiput'],[76,36,'ear'],[124,36,'ear'],[82,106,'scapula'],[118,106,'scapula'],[50,148,'elbow'],[150,148,'elbow'],[100,196,'sacrum'],[100,212,'coccyx'],[66,214,'trochanter'],[134,214,'trochanter'],[88,226,'ischial tub.'],[112,226,'ischial tub.'],[78,424,'heel'],[122,424,'heel']];
+  F.forEach(([x,y])=>{g+=dot(10+x*s,14+y*s,'fld',3.5);});
+  B.forEach(([x,y])=>{g+=dot(130+x*s,14+y*s,'fld',3.5);});
+  g+=lbl(10,262,'Front: elbows, knees, malleoli, toes','t10 mu')+lbl(10,275,'Back: occiput, ears, scapulae, elbows, sacrum, coccyx,','t10 mu')+lbl(10,288,'ischial tuberosities, trochanters, heels','t10 mu');
+  // cross-section
+  g+=`<g transform="translate(260 10)">`+lbl(0,8,'Pressure injury depth','t12 b');
+  const Y=18;
+  const layers=[['epidermis',18,14],['dermis',32,44],['subcutaneous fat',76,50],['muscle · fascia',126,36],['bone',162,24]];
+  layers.forEach(([n,y,h],i)=>{g+=`<rect x="0" y="${y+Y}" width="290" height="${h}" class="${['tis','tis2','gr','grf','white'][i]}" stroke="var(--line)"/>`+lbl(286,y+Y+h/2+4,n,'t10 mu','end');});
+  const cols=[['1',18],['2',60],['3',120],['4',180]];
+  cols.forEach(([n,d],i)=>{const x=10+i*46;const path=i===0?`<rect x="${x}" y="${18+Y}" width="34" height="14" class="flf"/>`:`<path d="M${x} ${18+Y} L${x+34} ${18+Y} L${x+24} ${d+Y} L${x+10} ${d+Y} Z" class="flf"/>`;g+=path+lbl(x+17,Y+12,n,'t12 b flt','middle');});
+  g+=`<path d="M196 ${18+Y} L228 ${18+Y} L222 ${60+Y} L202 ${60+Y} Z" class="am"/><line x1="198" y1="${24+Y}" x2="226" y2="${54+Y}" class="th"/><line x1="226" y1="${24+Y}" x2="198" y2="${54+Y}" class="th"/>`+lbl(212,Y+12,'U','t12 b amt','middle');
+  const L=Y+206;
+  g+=lbl(0,L,'1  Non-blanching redness, skin intact','t10')+lbl(0,L+14,'2  Partial thickness · shallow, or blister','t10')+lbl(0,L+28,'3  Full thickness · fat visible','t10')+lbl(0,L+42,'4  Bone, tendon or muscle exposed','t10')+lbl(0,L+56,'U  Unstageable · slough or eschar','t10')+lbl(0,L+70,'DTI  Intact, purple/maroon, boggy','t10');
+  g+=`</g>`;
+  return SVG(560,316,'Pressure points marked on front and back body figures, and a skin cross-section showing pressure injury depth by stage',g);
+};
+D.msk=()=>{
+  let g='';
+  const s=0.62,ox=20,oy=8;
+  g+=sil(ox,oy,s);
+  const J=[[100,66,'C-spine'],[66,90,'shoulder'],[134,90,'shoulder'],[52,146,'elbow'],[148,146,'elbow'],[38,198,'wrist'],[162,198,'wrist'],[84,216,'hip'],[116,216,'hip'],[80,312,'knee'],[120,312,'knee'],[78,408,'ankle'],[122,408,'ankle']];
+  J.forEach(([x,y])=>{g+=`<circle cx="${ox+x*s}" cy="${oy+y*s}" r="5" class="acf"/>`;});
+  g+=lbl(20,290,'Assess each joint both sides:','t10 mu')+lbl(20,303,'crepitus, heat, redness, swelling, pain, deformity','t10 mu');
+  // spine
+  g+=`<g transform="translate(240 10)">`+lbl(0,8,'Spinal curves · side view','t12 b')+lbl(0,22,'front of body to the left','t10 mu');
+  g+=`<path d="M60 36 C42 60 42 84 60 108 C86 142 86 190 60 226 C46 246 46 262 58 280" class="ln" stroke-width="3"/>`;
+  [[36,108,'cervical lordosis','7 vertebrae'],[108,226,'thoracic kyphosis','12'],[226,280,'lumbar lordosis','5']].forEach(([y1,y2,n,c],i)=>{g+=`<line x1="100" y1="${y1}" x2="100" y2="${y2}" class="lt"/>`+lbl(106,(y1+y2)/2+2,n,'t10 b')+lbl(106,(y1+y2)/2+14,c,'t10 mu');});
+  g+=`<path d="M58 280 Q64 300 52 316" class="ln mu" stroke-width="3"/>`+lbl(66,308,'sacrum','t10 mu');
+  g+=`</g>`;
+  // Romberg
+  g+=`<g transform="translate(420 10)">`+lbl(0,8,"Romberg's","t12 b")+lbl(0,26,'feet together, arms by sides','t10')+lbl(0,40,'eyes open 20 s → eyes closed 20 s','t10')+lbl(0,62,'sways only with eyes closed','t10 b')+lbl(0,76,'= proprioceptive or vestibular','t10')+lbl(0,96,'sways with eyes open too','t10 b')+lbl(0,110,'= cerebellar','t10')+lbl(0,130,'Stand close enough to catch.','t10 flt')+`</g>`;
+  return SVG(560,330,'A skeleton figure with the assessed joints marked, the three spinal curves labelled, and the Romberg test',g);
+};
+D.pain=()=>{
+  const s=0.62;
+  let g=`<g id="painmap" class="clickable">`;
+  g+=`<rect x="0" y="0" width="560" height="300" fill="transparent" stroke="none"/>`;
+  for(let x=0;x<=560;x+=40)g+=`<line x1="${x}" y1="0" x2="${x}" y2="290" class="lt"/>`;
+  for(let y=0;y<=290;y+=40)g+=`<line x1="0" y1="${y}" x2="560" y2="${y}" class="lt"/>`;
+  g+=sil(80,8,s)+sil(340,8,s);
+  g+=lbl(142,296,'FRONT','t12 b','middle')+lbl(402,296,'BACK','t12 b','middle');
+  g+=lbl(70,296,"Patient's R",'t10 mu','end')+lbl(216,296,"Patient's L",'t10 mu')+lbl(330,296,"Patient's L",'t10 mu','end')+lbl(476,296,"Patient's R",'t10 mu');
+  g+=`<g id="painmarks"></g></g>`;
+  return SVG(560,304,'Front and back body outlines for marking the site of pain and where it radiates',g);
+};
+
+/* ---------- region content ---------- */
+const REGIONS=[
+{id:'vitals',n:1,name:'Vital signs & general observation',short:'Vitals',loc:'Whole body',
+ structures:'Skin surface and superficial arteries (temporal, carotid, brachial, radial, femoral, popliteal, dorsalis pedis, posterior tibial), heart, lungs, peripheral capillary beds.',
+ diagram:D.vitals,caption:'Where to find each pulse, and the four places to put the stethoscope for heart sounds. Read the chest as if facing the patient: their right is on your left.',
+ landmarks:[['Radial','lateral (thumb-side) volar wrist, over the distal radius'],['Brachial','medial antecubital fossa, just medial to the biceps tendon. The BP auscultation point; line the cuff arrow up with it'],['Apex / PMI','5th intercostal space, mid-clavicular line'],['Dorsalis pedis','dorsum of the foot, lateral to the extensor hallucis longus tendon'],['Posterior tibial','behind and below the medial malleolus'],['Sternal angle','the ridge where manubrium meets body; the 2nd rib sits beside it, so count spaces from there']],
+ assess:[['Temperature','and the site used. Tympanic, oral and axillary are not interchangeable.'],['Pulse','rate, rhythm (regular / irregular), character (thready / normal / bounding).'],['Apical rate','counted at the apex with the stethoscope, then compared with the radial. A gap between the two is a <mark>pulse deficit</mark>, seen in atrial fibrillation and ectopics. That gap is the reason both are counted.'],['Heart sounds','S1 (mitral and tricuspid close, start of systole), S2 (aortic and pulmonic close, end of systole), plus any added sound or murmur.'],['Respiratory rate, rhythm, depth','counted without the person knowing, or the rate changes.'],['Blood pressure sitting and standing','a <mark>postural drop</mark> is a fall of <em>≥ 20 systolic</em> or <em>≥ 10 diastolic</em> within 3 minutes of standing. It is a falls risk and a medication review trigger.'],['Oxygen saturation','and whether on room air or oxygen, and whether the reading is reliable. Cold hands, poor perfusion and painted nails all give false readings.'],['Height, weight, BMI','and whether weight has changed since last seen.']],
+ how:'<b>Why it is done this way.</b> Vital signs are the baseline everything else is read against. A single set is nearly meaningless; the trend is the finding. Record the conditions (position, oxygen, activity) with the numbers.',
+ flags:['Postural drop of 20 systolic or 10 diastolic within 3 minutes of standing.','Apical and radial rates that disagree: count both for a full minute.','A saturation reading that does not match the person in front of you: treat the person, not the number.']},
+
+{id:'neuro',n:2,name:'Neurological · cognition, mood, speech',short:'Neuro',loc:'Head',
+ structures:'Cerebral cortex: frontal lobe (executive function and behaviour), temporal (memory and receptive language), parietal (sensation and neglect), occipital (vision). Broca’s area in the dominant frontal lobe for expressive speech; Wernicke’s area in the dominant temporal lobe for comprehension.',
+ diagram:D.brain,caption:'Lateral view of the left hemisphere. Knowing which lobe does what tells you what a change in speech or behaviour is pointing at.',
+ assess:[['Orientation','person, place, time, date. Deterioration over <em>days</em> suggests delirium; over <em>months</em> suggests dementia.'],['Cognition','normal, impaired, or formally screened. Tools in common use: Mini-Cog, MMSE, MoCA, RUDAS (designed for culturally and linguistically diverse populations), KICA-Cog (validated for Aboriginal and Torres Strait Islander people). Record <b>which tool and the score</b>; scores are not comparable between tools.'],['Speech','nil deficit; slurred (dysarthria, a motor problem with the muscles of articulation); word-finding difficulty (expressive / Broca’s: knows what they mean, can’t retrieve it); comprehension difficulty (receptive / Wernicke’s: fluent but doesn’t follow); mixed; non-verbal.'],['Mood and affect','normal, depressed, or described: content, calm, flat, labile, irritable, tearful, apathetic, withdrawn, anxious, restless, angry, hostile. <b>Affect is what you observe; mood is what they report.</b>'],['Decision-making capacity','can they make a day-to-day decision, and what is the reasoning behind your judgement. Capacity is decision-specific and can fluctuate. Record the reasoning, not just the verdict.']],
+ how:'<b>Why it matters.</b> Acute change in cognition is the single most useful early sign of infection, dehydration, hypoxia, pain, urinary retention or a medication effect in an older adult. It is often the only sign.',
+ flags:['New confusion over hours or days is delirium until proven otherwise. Look for the cause: infection, dehydration, hypoxia, pain, retention, constipation, a new drug.','New speech deficit or one-sided weakness: stroke pathway, note the time last seen well.']},
+
+{id:'eyes',n:3,name:'Eyes & vision',short:'Eyes',loc:'Head',
+ structures:'Eyelids, conjunctiva (palpebral lining the lid, bulbar over the sclera), sclera, cornea, iris, pupil, lens, and the six extraocular muscles.',
+ nerves:'<b>CN II</b> optic (vision) · <b>CN III</b> oculomotor (pupil constriction, most eye movement, lid elevation) · <b>CN IV</b> trochlear (superior oblique) · <b>CN VI</b> abducens (lateral rectus)',
+ diagram:D.eyes,caption:'Each arrow is one of the six cardinal positions, labelled with the muscle and nerve it tests. The two obliques are the counter-intuitive pair: superior oblique takes the eye down and in, inferior oblique up and in. Pupil chart is to scale in millimetres.',
+ assess:[['Glasses, near or far sighted, cataract surgery','history that changes what you expect to find. A replaced lens does not accommodate.'],['Pupils','size in millimetres each side, equal or unequal, round or irregular, reaction to light (brisk / sluggish / fixed) and accommodation (present / sluggish / absent). Together this is <em>PERLA</em>.'],['Conjunctiva and inner eyelids','redness, swelling, discharge, lesions, and where.'],['Extraocular movement','the six cardinal positions of gaze, each side. Watch for lag, nystagmus, or a complaint of double vision.']],
+ how:'<b>How.</b> Hold the head still, ask them to follow your finger through an H pattern about 30 cm away. Test each eye and compare. Asymmetry is the finding.',
+ flags:['A newly unequal or unreactive pupil is a neurological emergency until proven otherwise.','Fixed dilated pupil + drooping lid + eye turned down-and-out = third-nerve palsy.','Sudden painless vision loss, or a red painful eye with visual change: same-day review.']},
+
+{id:'ears',n:4,name:'Ears & hearing',short:'Ears',loc:'Head',
+ structures:'Pinna, external auditory canal, tympanic membrane, middle ear ossicles, cochlea, vestibular apparatus.',
+ nerves:'<b>CN VIII</b> vestibulocochlear',
+ diagram:D.ear,caption:'A normal right drum, so the abnormal one has something to be compared against. The cone of light sits antero-inferiorly: about 5 o’clock on the right, 7 o’clock on the left.',
+ assess:[['Hearing, each side','many people have asymmetric loss and compensate for it.'],['Hearing aids','worn, working, and with batteries. An unworn aid in a drawer is a very common finding and a very common cause of apparent confusion.'],['Ear canal','clear, or occluded with wax. Impacted cerumen is a reversible cause of hearing loss and worth checking before anything else is concluded.'],['Tympanic membrane','should be <b>pearly grey, translucent, intact</b> with a visible cone of light. Record redness, bulging, retraction, perforation, fluid, or that it could not be visualised.']],
+ how:'<b>How.</b> Straighten the canal by pulling the pinna up and back in an adult (down and back in a young child). Brace the otoscope hand against the head so a sudden movement does not drive the speculum in.',
+ flags:['Sudden unilateral hearing loss needs urgent review.','Unaddressed hearing loss is strongly associated with social withdrawal, low mood and accelerated cognitive decline. It is not a minor finding in an older adult.']},
+
+{id:'nose',n:5,name:'Nose & sinuses',short:'Nose',loc:'Head',
+ structures:'External nose, nasal septum, turbinates, nasal mucosa, olfactory epithelium, and the paranasal sinuses: frontal (above the orbit), maxillary (over the cheek), ethmoid and sphenoid (deep, not palpable).',
+ nerves:'<b>CN I</b> olfactory',
+ diagram:D.nose,caption:'Only the frontal and maxillary sinuses can be reached. Press upward, under the brow ridge and over the cheekbone, and compare sides.',
+ assess:[['Smell','can they identify a familiar scent held under the nose. Loss may be age-related, post-viral, or an early neurodegenerative sign.'],['Patency','occlude one nostril at a time and ask them to sniff.'],['Symmetry','of the external nose and the septum.'],['Nasal flaring','a sign of increased work of breathing, not a nose finding.'],['Discharge','clear, purulent, bloody; unilateral or bilateral. Persistent <b>unilateral</b> discharge in an adult warrants investigation.'],['Epistaxis','frequency, which side, and what they take: anticoagulants, antiplatelets and nasal steroids all matter here.'],['Sinus tenderness','palpate and gently percuss the frontal sinuses (under the brow ridge, pressing upward) and maxillary sinuses (over the cheekbones, pressing upward).']],
+ flags:['Persistent unilateral discharge or bleeding in an adult.','Recurrent epistaxis on an anticoagulant: check the INR or dose and the reason.']},
+
+{id:'mouth',n:6,name:'Mouth, throat & swallowing',short:'Mouth',loc:'Head',
+ structures:'Lips, buccal mucosa, gums, teeth, tongue, hard and soft palate, uvula, tonsils, oropharynx, epiglottis.',
+ nerves:'<b>CN V</b> trigeminal (chewing, facial sensation) · <b>CN VII</b> facial (taste, anterior two-thirds of tongue) · <b>CN IX</b> glossopharyngeal and <b>CN X</b> vagus (gag, swallow, palate elevation) · <b>CN XII</b> hypoglossal (tongue movement)',
+ diagram:D.mouth,caption:'Open-mouth view. Say “ah” and watch the soft palate rise evenly with the uvula staying midline; ask for the tongue out and watch for deviation.',
+ assess:[['Teeth','own, dentures, or both; broken, decayed; and whether dentures actually fit. Weight loss in an older adult is very often a dental problem.'],['Gums, buccal mucosa','pink and moist. Record lesions, ulceration, white plaques (candida, common on inhaled steroids), coating.'],['Lips','moist, lesion-free. Check the corners for angular cheilitis.'],['Tongue','pink and moist, dry, coated, fissured, red and beefy, ulcerated. Protrudes midline without deviation, full movement. <b>Deviation points toward the side of a hypoglossal lesion.</b>'],['Oropharynx','soft palate rises symmetrically, uvula midline.'],['Taste','sweet versus salty discrimination.'],['Gag reflex','touch the posterior pharyngeal wall and grade it (scale below). An absent gag does not by itself predict aspiration and a present gag does not rule it out. It is one datum, not a swallow screen.'],['Swallowing','difficulty with food, fluids, or both; coughing or a wet voice during or after eating or drinking; whether a modified diet or thickened fluids are already in place, and whether that is being followed.']],
+ scales:[['Gag reflex',[['0','Absent · always abnormal','bad'],['1+','Slight'],['2+','Brisk · normal','ok'],['3+','Very brisk'],['4+','Repeating / clonus · always abnormal','bad']]]],
+ flags:['Coughing on fluids, a wet gurgly voice after swallowing, food pocketing in the cheek, prolonged mealtimes and recurrent chest infections together point to aspiration risk. Refer to speech pathology.','A white plaque that wipes off is candida; one that does not needs review.']},
+
+{id:'neck',n:7,name:'Neck',short:'Neck',loc:'Neck',
+ structures:'Trachea, thyroid gland (isthmus over the 2nd to 4th tracheal rings, a lobe either side), carotid arteries, internal jugular veins, cervical lymph node chains, cervical spine.',
+ diagram:D.neck,caption:'Left: the lymph node chains to walk through in order, with the supraclavicular node marked in red. Right: the anterior neck with the thyroid over the tracheal rings, the carotid auscultation point, and the sternal angle from which the JVP is measured.',
+ assess:[['Trachea midline','palpate in the suprasternal notch, a finger either side of the trachea, comparing the gap. Pushed <b>away</b> by a tension pneumothorax or large effusion; pulled <b>toward</b> collapse or fibrosis.'],['Range of movement','full, reduced, painful, rigid. Neck rigidity with headache and fever is meningism.'],['Lymph nodes','palpate the chains systematically: pre- and post-auricular, occipital, tonsillar, submandibular, submental, superficial and deep cervical, posterior cervical, supraclavicular. Record site, size, consistency, mobility and tenderness.'],['Thyroid','enlargement, symmetry, nodules. Ask them to swallow and watch the gland rise.'],['JVP','patient at 45°, measure the vertical height of the venous pulsation above the sternal angle. <em>More than 3–4 cm</em> suggests raised right atrial pressure and fluid overload.'],['Carotid bruit','listen with the bell over each carotid while they hold their breath.']],
+ flags:['A hard, fixed, painless supraclavicular node is a red flag for malignancy.','Never palpate both carotids at once, and palpate gently: carotid sinus massage can drop the heart rate.','Tracheal deviation with acute breathlessness is an emergency.']},
+
+{id:'chest',n:8,name:'Respiratory · chest & lungs',short:'Chest',loc:'Thorax',
+ structures:'Chest wall, ribs, intercostal muscles, accessory muscles (sternocleidomastoid, scalenes, trapezius), diaphragm, pleura, and the lung lobes. The right lung has three (upper, middle, lower); the left has two (upper and lower), with the lingula as part of the left upper lobe.',
+ diagram:D.chest,caption:'The right middle lobe can only be heard from the front, low on the right. The lower lobes occupy most of the back, which is why a chest listened to only from the front misses most basal pathology.',
+ landmarks:[['Anterior lines','mid-sternal, mid-clavicular, anterior axillary. Count ribs from the sternal angle (2nd rib).'],['Posterior lines','vertebral, scapular, posterior axillary. C7 is the most prominent spinous process.'],['Right middle lobe','anterior only, between the 4th and 6th ribs on the right.'],['Lower lobes','mostly posterior, from about T3 down to T10 on expiration.']],
+ assess:[['Smoking','current, past, pack-years.'],['Respiratory effort','at rest versus on activity. Ask what they can do before becoming short of breath.'],['Colour of lips and mucous membranes','pink, cyanosed (central cyanosis in the lips and tongue means hypoxaemia), pale, jaundiced.'],['Posture','tripod position, leaning forward on the arms, indicates significant effort.'],['Shape of chest','normal, barrel (increased AP diameter, chronic air trapping), pectus excavatum or carinatum, kyphoscoliosis.'],['Symmetry and expansion','hands flat on the posterior chest, thumbs meeting at the spine; watch the thumbs separate equally on inspiration.'],['Accessory muscle use','a sign of work, visible at the neck.'],['Palpation of the thorax','tenderness (suggests a musculoskeletal or rib cause rather than a lung one), crepitus, masses.'],['Auscultation','compare side to side at each level, never down one side then the other. Nine levels is the usual sequence: three anterior, six posterior.'],['Wheeze','musical, usually expiratory, from narrowed airways. Note where.'],['Crackles','discontinuous. Fine late-inspiratory basal crackles suggest fluid or fibrosis; coarse crackles that clear with coughing suggest secretions. Note where, and whether dry, moist or productive.'],['Cough and sputum','colour, amount, consistency, odour, and whether it is new.'],['Clubbing','loss of the nail-bed angle. Suggests chronic hypoxia, bronchiectasis or malignancy.']],
+ flags:['Central cyanosis, tripod posture, accessory muscle use, or a respiratory rate above 24 at rest: escalate.','New unilateral reduced breath sounds with tracheal deviation.','New fine basal crackles with ankle oedema and weight gain: think fluid overload.']},
+
+{id:'abdomen',n:9,name:'Abdomen · gastrointestinal',short:'Abdomen',loc:'Abdomen',
+ structures:'By quadrant: right upper (liver, gallbladder, hepatic flexure), left upper (stomach, spleen, splenic flexure, pancreas tail), right lower (caecum, appendix, right ovary), left lower (sigmoid colon, left ovary). Epigastric, umbilical and suprapubic regions centrally.',
+ diagram:D.abdomen,caption:'Facing the patient, their right is on your left. Record tenderness by quadrant, and by the nine regions if you need to be more precise.',
+ assess:[['Inspection','soft, distended, scars, hernia, stoma, bruising. Flank or periumbilical bruising is a late sign of retroperitoneal bleeding.'],['Bowel sounds','present and normal; hyperactive (early obstruction, gastroenteritis); hypoactive or absent (ileus, late obstruction, peritonitis). Listen in one place for long enough before calling them absent.'],['Palpation','light first across all quadrants, then deep, watching the face not the hand. Soft and non-tender; tender; guarding (involuntary muscle tensing); rigid. <b>Painful quadrant last.</b>'],['Site of tenderness','record by quadrant.'],['Masses','site, size, mobility, pulsatility.'],['Reflux and heartburn','frequency, night-time symptoms, what relieves it.'],['History of ulcer or gastritis','and current NSAID or anticoagulant use.'],['Nausea, vomiting, epigastric pain','onset, pattern, relation to food.']],
+ how:'<b>Order matters: inspect, auscultate, percuss, palpate.</b> Palpating first changes the bowel sounds you then hear.',
+ flags:['A pulsatile, expansile central mass is an abdominal aortic aneurysm until excluded. Do not press on it.','Rigid abdomen with guarding and absent bowel sounds: peritonitis until proven otherwise.','Flank or periumbilical bruising in someone on anticoagulants.']},
+
+{id:'bowel',n:10,name:'Bowel & stoma',short:'Bowel',loc:'Abdomen',
+ structures:'Colon (caecum, ascending, transverse, descending, sigmoid, rectum), terminal ileum, and the abdominal wall where a stoma is brought out.',
+ diagram:D.colon,caption:'Where a stoma sits tells you what to expect from it: an ileostomy in the right iliac fossa puts out liquid all day, an end colostomy in the left iliac fossa puts out formed stool. Bristol types 3 and 4 are the target.',
+ assess:[['Usual bowel habit','their normal, not a textbook normal.'],['Continence of faeces','continent, occasional, regular; and whether it is overflow.'],['Stool type','Bristol Stool Chart, 1 to 7. <em>Types 3 and 4</em> are the target.'],['Aperients','what, how often, and whether effective. Opioids, anticholinergics, iron and calcium channel blockers all constipate.'],['Stoma type','colostomy, ileostomy, urostomy, jejunostomy; end or loop.'],['Stoma colour','should be pink to red and moist. <mark>Pale, dusky or black</mark> indicates compromised blood supply and is urgent.'],['Peristomal skin','intact, red, excoriated, leaking under the flange.'],['Output','type and volume; bag change due or completed.'],['Symptoms','pain, bleeding, pus, bloating.']],
+ flags:['A dusky or black stoma is a surgical emergency.','Overflow diarrhoea around a faecal impaction presents as incontinence of liquid stool in someone who “has diarrhoea”. Examine before treating the diarrhoea.','New change in bowel habit, blood in the stool, or unexplained weight loss needs investigation.']},
+
+{id:'urinary',n:11,name:'Continence & urinary',short:'Continence',loc:'Pelvis',
+ structures:'Bladder, urethra, pelvic floor, prostate (male), and the route to the toilet.',
+ diagram:D.continence,caption:'The mechanism differs by anatomy: a short urethra and a weakened pelvic floor leak on effort; a urethra passing through an enlarged prostate obstructs, retains and then overflows.',
+ assess:[['Continence','continent, or the pattern of incontinence (types below).'],['Aids used','type, size, how many per day, who funds them.'],['Toilet access','can they get there independently, and is the path safe at night. Toileting at night is a leading falls scenario.'],['Nocturia','how many times overnight.'],['Catheter or other drainage','type, size, date last changed, drainage, and the plan for removal.'],['Urinalysis','only with symptoms. <b>Asymptomatic bacteriuria is common in older adults and should not be treated on a dipstick alone.</b>']],
+ scales:[['Incontinence type',[['Stress','on cough, laugh, lift · pelvic floor weakness'],['Urge','sudden, can’t defer · overactive detrusor'],['Mixed','both of the above'],['Overflow','constant dribble, poor stream · retention, obstruction'],['Functional','can’t get there in time · mobility, cognition, environment']]]],
+ flags:['New retention, especially with confusion or a new anticholinergic or opioid: bladder scan.','Haematuria that is not explained by a catheter change.','Nocturia plus an unsafe route to the toilet is a falls plan, not a continence plan.']},
+
+{id:'limbs',n:12,name:'Extremities & peripheral circulation',short:'Limbs',loc:'Arms & legs',
+ structures:'Limbs, peripheral arteries and veins, nails, joints, and the lymphatic drainage.',
+ diagram:D.limbs,caption:'Left: the leg arterial tree and where to feel each pulse. Middle: pitting depth, to scale. Right: the nail-fold angle, normal versus clubbed.',
+ assess:[['Colour of limbs','pallor, redness, mottling, cyanosis; and whether it changes with elevation or dependency.'],['Temperature','compare side to side with the back of your hand.'],['Capillary refill','press the nail bed for 5 seconds and release. <em>Under 2 s</em> normal, <em>over 3 s</em> delayed.'],['Peripheral pulses','radial and pedal, each side: present, weak, absent.'],['Oedema','location, and pitting depth graded 1+ to 4+ (see figure). Bilateral ankle oedema is usually cardiac, venous or drug-related. <mark>Unilateral, warm, tender swelling suggests DVT.</mark>'],['Compression stockings or leg elevation','in use, correctly fitted, tolerated. Compression on an arterial leg causes harm; the ABPI matters.'],['Varicose veins','site, skin changes, ulceration.'],['Nails','colour (pinkish normal; blue, black, white, yellow, green each mean something different), shape, clubbing, and care: well kept, overgrown, thickened, fungal, podiatry in place.'],['Tremor, contractures, foot deformity','and their effect on function.'],['Footwear','appropriate, unsafe, slippers only, barefoot. This is a falls finding as much as a clothing one.']],
+ scales:[['Pitting oedema',[['1+','2 mm · disappears rapidly'],['2+','4 mm · a few seconds'],['3+','6 mm · may last over a minute, obvious swelling'],['4+','8 mm · lasts 2 to 5 minutes']]]],
+ flags:['A cool, pale, pulseless, painful limb is acute arterial occlusion until excluded: urgent.','Unilateral warm, tender calf swelling: DVT pathway.','Compression stockings on a leg with absent pulses or an ABPI under 0.8: stop and refer.']},
+
+{id:'skin',n:13,name:'Skin',short:'Skin',loc:'Whole body',
+ structures:'Epidermis, dermis, subcutaneous tissue, hair follicles, sebaceous and sweat glands, and the pressure-bearing bony prominences.',
+ diagram:D.skin,caption:'Every red dot is a bony prominence to look at and touch. Stage 1 is non-blanching redness over one of them; it is the last point at which the injury is fully reversible.',
+ landmarks:[['Pressure points','occiput, ears, scapulae, elbows, sacrum, coccyx, ischial tuberosities, greater trochanters, knees, malleoli, heels, between the toes'],['Under devices','oxygen tubing behind the ears, catheter tubing on the thigh, splint edges, stocking tops']],
+ assess:[['Colour','normal, pale, flushed, cyanosed, mottled, jaundiced. Assess in natural light. In darker skin tones look for a change in hue against the surrounding skin, and rely more on <b>temperature, firmness and the person’s report of pain</b> than on redness.'],['Temperature, moisture, texture','warm, cool, clammy, cold, dry, scaly, broken.'],['Turgor','unreliable in older adults, but a gross change still tells you something.'],['Perfusion','good, poor, cool.'],['Sensation','normal, reduced, absent, tingling, and where. Map it. Reduced protective sensation in the feet changes the whole foot-care plan.'],['Lesions and wounds','site, size, depth, edges, base, exudate, odour, surrounding skin. Photograph and chart separately.'],['Foot care in diabetes','inspect between the toes; check for callus, deformity, ulceration and pulses; confirm who is cutting the nails.']],
+ scales:[['Pressure injury stage',[['1','Non-blanching erythema, skin intact'],['2','Partial thickness · shallow open wound or blister'],['3','Full thickness · fat visible, no bone or tendon'],['4','Full thickness · bone, tendon or muscle exposed','bad'],['U','Unstageable · base hidden by slough or eschar'],['DTI','Intact, purple or maroon, boggy · deep tissue injury','bad']]]],
+ flags:['Non-blanching erythema over a bony prominence is a stage 1 pressure injury. Offload it now.','A skin tear, a pressure injury and a moisture lesion are three different things with three different management paths. Name it correctly.','Any wound on a foot with reduced sensation or absent pulses: same-week podiatry or high-risk foot review.']},
+
+{id:'msk',n:14,name:'Musculoskeletal, mobility & falls',short:'Mobility',loc:'Whole body',
+ structures:'Joints: cervical spine, shoulders, elbows, forearms, wrists, fingers and thumbs, hips, knees, ankles and toes; the spine with its cervical, thoracic and lumbar curves. Muscles, tendons, ligaments, and the cerebellar and vestibular systems that keep it all upright.',
+ diagram:D.msk,caption:'Work through each marked joint on both sides. Turning is where instability shows first, so watch the turn during the gait assessment.',
+ assess:[['Functional transfers','mobilises unaided, turns over in bed, supine to sit, sit to stand, bed to chair. <b>Watch it done rather than ask.</b>'],['Posture','body erect, head upright, normal spinal curvature.'],['Gait and balance','coordinated, balanced and effortless; turning smooth.'],['Romberg’s test','feet together, eyes open then closed. Losing balance only with the eyes closed is a positive Romberg and points to a proprioceptive or vestibular problem rather than a cerebellar one.'],['Joints, one by one','crepitus, heat, redness, swelling, pain, deformity.'],['Muscle strength','graded 0 to 5, each limb (scale below).'],['Falls history','any fall in the last three months; how many, where, what they were doing, whether they could get up, whether anyone was told.'],['Aids','what they have, whether it is the right one, whether it is the right height, and whether they actually use it.']],
+ scales:[['Muscle strength',[['0','No movement','bad'],['1','Flicker of contraction, no movement'],['2','Full range with gravity eliminated'],['3','Full range against gravity'],['4','Against gravity and some resistance, but weak'],['5','Normal','ok']]]],
+ how:'<b>A fall is a symptom, not a diagnosis.</b> Work backwards through postural drop, medication (especially sedatives, antihypertensives, anticholinergics and anything started recently), vision, footwear, continence, environment, pain and cognition.',
+ flags:['A fall with a head strike on an anticoagulant: same-day medical review.','Unable to get up from the floor unaided: a lifter plan and an alarm are needed before the next fall, not after.','New unilateral weakness is not a mobility finding; it is a neurological one.']},
+
+{id:'pain',n:15,name:'Pain',short:'Pain',loc:'Whole body',
+ structures:'Wherever they say it is. Use the body map to mark the site and where it travels; use the structure below so nothing is missed.',
+ diagram:D.pain,caption:'Tap the figure to mark where the pain is and where it radiates; tap a mark to remove it. Marks stay on this device.',
+ assess:[['Onset','when it started, what they were doing, sudden or gradual.'],['Provoking and relieving','what makes it worse, what helps, what they have tried.'],['Quality','their words: burning, shooting, aching, cramping, stabbing. Burning, shooting or electric quality suggests <b>neuropathic</b> pain, which responds poorly to simple analgesia.'],['Region and radiation','where, and where it travels.'],['Severity','a consistent scale, and which scale. For someone with dementia use an observational tool (PAINAD, Abbey) and score behaviour, not self-report.'],['Timing','constant or intermittent, pattern through the day, what it stops them doing.'],['Understanding','what they believe is causing it and what they want done.'],['Acute versus chronic','the presumed cause, and associated factors: nausea, mood, appetite, sleep.']],
+ scales:[['Quality → likely mechanism',[['Nociceptive','aching, cramping, throbbing, sharp with movement · tissue or joint · responds to simple analgesia'],['Neuropathic','burning, shooting, electric, tingling, numb · nerve · poor response to simple analgesia'],['Visceral','deep, dull, poorly localised, with nausea · organ · often referred']]]],
+ flags:['In an older adult with cognitive impairment, pain is routinely under-treated and often presents as agitation, resistance to care, withdrawal or a sudden functional decline rather than a complaint.','New severe pain that is sudden, worst-ever, or with sweating and nausea: exclude the emergencies first (MI, AAA, perforation, fracture).']}
+];
+
+/* ---------- main body figure ---------- */
+const HOT={
+ vitals:`<circle cx="36" cy="200" r="14"/><circle cx="164" cy="200" r="14"/><circle cx="112" cy="126" r="10"/><circle cx="92" cy="72" r="6"/>`,
+ neuro:`<ellipse cx="100" cy="28" rx="23" ry="21"/>`,
+ eyes:`<rect x="80" y="30" width="40" height="12" rx="6"/>`,
+ ears:`<circle cx="74" cy="38" r="6"/><circle cx="126" cy="38" r="6"/>`,
+ nose:`<circle cx="100" cy="45" r="6"/>`,
+ mouth:`<rect x="88" y="52" width="24" height="9" rx="4"/>`,
+ neck:`<rect x="86" y="62" width="28" height="24" rx="6"/>`,
+ chest:`<rect x="66" y="86" width="68" height="64" rx="10"/>`,
+ abdomen:`<rect x="68" y="150" width="64" height="46" rx="8"/>`,
+ bowel:`<circle cx="126" cy="188" r="13"/>`,
+ urinary:`<rect x="74" y="196" width="52" height="24" rx="8"/>`,
+ limbs:`<rect x="56" y="296" width="88" height="136" rx="22"/><circle cx="36" cy="204" r="14"/><circle cx="164" cy="204" r="14"/>`,
+ skin:`<rect x="18" y="2" width="164" height="436" rx="40" class="dash"/>`,
+ msk:`<circle cx="66" cy="90" r="6"/><circle cx="134" cy="90" r="6"/><circle cx="52" cy="146" r="6"/><circle cx="148" cy="146" r="6"/><circle cx="38" cy="198" r="6"/><circle cx="162" cy="198" r="6"/><circle cx="84" cy="216" r="6"/><circle cx="116" cy="216" r="6"/><circle cx="80" cy="312" r="6"/><circle cx="120" cy="312" r="6"/><circle cx="78" cy="408" r="6"/><circle cx="122" cy="408" r="6"/><circle cx="100" cy="66" r="6"/>`,
+ pain:`<rect x="18" y="2" width="164" height="436" rx="40" class="dash"/>`
+};
+const PINS={ // [pinX,pinY, anchorX,anchorY] in body coords; anchor => leader line
+ vitals:[36,206],neuro:[196,16,118,22],eyes:[196,36,122,36],ears:[196,56,130,40],nose:[196,76,106,46],mouth:[196,96,110,56],neck:[196,118,114,74],
+ chest:[100,118],abdomen:[100,168],bowel:[128,190],urinary:[100,210],limbs:[80,362],skin:[176,236],msk:[120,312],pain:[164,208]
+};
+function drawBody(){
+  const svg=document.getElementById('bodyfig');
+  let s=`<g transform="translate(28 4)"><g class="body">${BODY}</g>`;
+  REGIONS.forEach(r=>{s+=`<g class="hl" id="hl-${r.id}">${HOT[r.id]}</g>`;});
+  REGIONS.forEach(r=>{const p=PINS[r.id];if(p.length>2)s+=`<line x1="${p[2]}" y1="${p[3]}" x2="${p[0]-9}" y2="${p[1]}" class="leader"/>`;});
+  REGIONS.forEach(r=>{const p=PINS[r.id];s+=`<g class="pin" id="pin-${r.id}" data-id="${r.id}" tabindex="0" role="button" aria-label="${r.n}. ${r.name}"><title>${r.n}. ${r.name}</title><circle cx="${p[0]}" cy="${p[1]}" r="9"/><text x="${p[0]}" y="${p[1]}">${r.n}</text></g>`;});
+  s+=`</g>`;
+  svg.innerHTML=s;
+  svg.querySelectorAll('.pin').forEach(el=>{
+    el.addEventListener('click',()=>show(el.dataset.id));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(el.dataset.id);}});
+  });
+}
+
+/* ---------- state ---------- */
+const KEY='bedside-atlas-v1';
+let state={active:'vitals',checks:{},marks:[]};
+try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&typeof s==='object')state={...state,...s};}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+const idx=id=>REGIONS.findIndex(r=>r.id===id);
+const doneCount=r=>(state.checks[r.id]||[]).length;
+
+/* ---------- render ---------- */
+function renderList(){
+  const ol=document.getElementById('list');
+  ol.innerHTML=REGIONS.map(r=>{const d=doneCount(r),t=r.assess.length;return `<li><button type="button" class="row${r.id===state.active?' on':''}${d===t?' done':''}" data-id="${r.id}"><span class="num">${r.n}</span><span class="name">${r.name}<small>${r.loc}</small></span><span class="prog">${d}/${t}</span></button></li>`;}).join('');
+  ol.querySelectorAll('.row').forEach(b=>b.addEventListener('click',()=>show(b.dataset.id)));
+  const total=REGIONS.reduce((a,r)=>a+r.assess.length,0),done=REGIONS.reduce((a,r)=>a+doneCount(r),0);
+  document.getElementById('overall').textContent=`${done} of ${total} items ticked`;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function renderDetail(){
+  const r=REGIONS[idx(state.active)],i=idx(state.active),prev=REGIONS[i-1],next=REGIONS[i+1];
+  const checks=state.checks[r.id]||[];
+  let h=`<div class="eyebrow"><span>Region ${r.n} of 15</span><span class="loc">${r.loc}</span></div>`;
+  h+=`<h2 class="title">${r.name}</h2>`;
+  h+=`<p class="lede"><b>Structures.</b> ${r.structures}</p>`;
+  if(r.nerves)h+=`<p class="nerves">${r.nerves}</p>`;
+  h+=`<section class="blk"><h3>Where to look</h3><figure class="fig"><div class="scroll">${r.diagram()}</div><figcaption>${r.caption}</figcaption></figure></section>`;
+  if(r.landmarks)h+=`<section class="blk"><h3>Landmarks</h3><ul class="landmarks">${r.landmarks.map(([a,b])=>`<li><b>${a}</b> · ${b}</li>`).join('')}</ul></section>`;
+  if(r.how)h+=`<section class="blk"><h3>How</h3><div class="how">${r.how}</div></section>`;
+  h+=`<section class="blk"><h3>Assess · ${checks.length}/${r.assess.length}</h3><ul class="check">${r.assess.map(([t,d],k)=>`<li><input type="checkbox" id="c-${r.id}-${k}" data-k="${k}"${checks.includes(k)?' checked':''}><label for="c-${r.id}-${k}"><b>${t}</b> <span>${d}</span></label></li>`).join('')}</ul></section>`;
+  if(r.scales)h+=`<section class="blk"><h3>Scales</h3><div class="scales">${r.scales.map(([n,rows])=>`<div><h5>${n}</h5><dl class="scale">${rows.map(([k,v,c])=>`<dt class="${c||''}">${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('')}</div></section>`;
+  h+=`<section class="blk"><div class="callout"><h4>Red flags · what matters</h4><ul>${r.flags.map(f=>`<li>${f}</li>`).join('')}</ul></div></section>`;
+  if(r.id==='pain')h+=`<div class="tools"><button type="button" class="btn" id="clearmarks">Clear pain marks</button></div>`;
+  h+=`<nav class="pager">${prev?`<button type="button" class="btn" data-go="${prev.id}"><small>Previous · ${prev.n}</small>${prev.short}</button>`:'<span></span>'}${next?`<button type="button" class="btn primary" data-go="${next.id}"><small>Next · ${next.n}</small>${next.short}</button>`:`<button type="button" class="btn primary" data-go="vitals"><small>Finished</small>Back to the start</button>`}</nav>`;
+  const d=document.getElementById('detail');
+  d.innerHTML=h;
+  d.querySelectorAll('.check input').forEach(cb=>cb.addEventListener('change',()=>{
+    const k=+cb.dataset.k,arr=new Set(state.checks[r.id]||[]);cb.checked?arr.add(k):arr.delete(k);state.checks[r.id]=[...arr].sort((a,b)=>a-b);save();renderList();
+    d.querySelector('.blk h3').textContent=`Assess · ${arr.size}/${r.assess.length}`;
+    const assessH3=[...d.querySelectorAll('.blk h3')].find(x=>x.textContent.startsWith('Assess'));if(assessH3)assessH3.textContent=`Assess · ${arr.size}/${r.assess.length}`;
+  }));
+  d.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{show(b.dataset.go);window.scrollTo({top:0});}));
+  if(r.id==='pain')initPainMap();
+  // mobile bar + figure state
+  document.getElementById('mpos').textContent=`${r.n} / 15 · ${r.short}`;
+  document.getElementById('mprev').disabled=!prev;document.getElementById('mnext').disabled=!next;
+  document.getElementById('figstate').innerHTML=`<b>${r.n}</b> ${r.short}`;
+  document.querySelectorAll('.hl').forEach(el=>el.classList.toggle('on',el.id==='hl-'+r.id));
+  document.querySelectorAll('.pin').forEach(el=>el.classList.toggle('on',el.dataset.id===r.id));
+}
+function initPainMap(){
+  const svg=document.querySelector('#painmap')?.closest('svg');if(!svg)return;
+  const marks=svg.querySelector('#painmarks');
+  const draw=()=>{marks.innerHTML=state.marks.map((m,i)=>`<circle cx="${m[0]}" cy="${m[1]}" r="7" class="mark" data-i="${i}"/>`).join('');marks.querySelectorAll('.mark').forEach(c=>c.addEventListener('click',e=>{e.stopPropagation();state.marks.splice(+c.dataset.i,1);save();draw();}));};
+  svg.addEventListener('click',e=>{const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());if(p.y>290)return;state.marks.push([Math.round(p.x),Math.round(p.y)]);save();draw();});
+  draw();
+  document.getElementById('clearmarks')?.addEventListener('click',()=>{state.marks=[];save();draw();});
+}
+function show(id){
+  if(!REGIONS.some(r=>r.id===id))return;
+  state.active=id;save();renderList();renderDetail();
+  if(window.innerWidth<=900){document.getElementById('detail').scrollIntoView({block:'start'});}
+  const row=document.querySelector(`.row[data-id="${id}"]`);if(row&&window.innerWidth<=900)row.scrollIntoView({inline:'center',block:'nearest'});
+}
+document.getElementById('mprev').addEventListener('click',()=>{const i=idx(state.active);if(i>0){show(REGIONS[i-1].id);window.scrollTo({top:0});}});
+document.getElementById('mnext').addEventListener('click',()=>{const i=idx(state.active);if(i<REGIONS.length-1){show(REGIONS[i+1].id);window.scrollTo({top:0});}});
+document.getElementById('reset').addEventListener('click',()=>{state.checks={};save();renderList();renderDetail();});
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea,button,[contenteditable]'))return;
+  const i=idx(state.active);
+  if(e.key==='ArrowRight'&&i<REGIONS.length-1)show(REGIONS[i+1].id);
+  if(e.key==='ArrowLeft'&&i>0)show(REGIONS[i-1].id);
+});
+drawBody();renderList();renderDetail();
+</script>
