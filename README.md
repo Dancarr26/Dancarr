@@ -5,6 +5,9 @@
 - [`atlas/index.html`](atlas/index.html) — the Bedside Assessment Atlas: one body figure with 15
   tappable regions, each opening a zoomed anatomical diagram, landmarks, a tickable
   assessment checklist, grading scales and red flags. Open the file in a browser; no build step.
+  The body figure paths in `atlas/body-art.js` are adapted from
+  [react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter)
+  (MIT, see `atlas/LICENSE-body-art.txt`).
 
 ## Documents
 

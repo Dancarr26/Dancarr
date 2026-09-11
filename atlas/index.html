@@ -46,21 +46,27 @@ a{color:var(--accent-ink)}
 .brand{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .brand h1{font-family:var(--display);font-weight:600;font-size:23px;margin:0;letter-spacing:-.01em;text-wrap:balance}
 .brand small{white-space:nowrap;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.figwrap{position:relative;background:var(--surface-2);border-radius:14px;padding:10px 8px 6px}
-.figwrap svg{display:block;width:100%;height:auto;max-height:420px;margin:0 auto}
+.figwrap{position:relative;background:var(--surface-2);border-radius:14px;padding:26px 8px 8px}
+.figwrap svg{display:block;width:100%;height:auto;max-height:440px;margin:0 auto}
 .figwrap .side{position:absolute;top:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .figwrap .side.l{left:12px}.figwrap .side.r{right:12px}
-.body{fill:var(--figure);stroke:var(--figure)}
-.body .limb{stroke-width:20;stroke-linecap:round}
-.body .l2{stroke-width:26}
-.hl{fill:var(--accent);stroke:var(--accent);fill-opacity:0;stroke-opacity:0;stroke-width:2;transition:fill-opacity .25s,stroke-opacity .25s}
-.hl.dash{stroke-dasharray:4 4;fill-opacity:0!important}
-.hl.on{fill-opacity:.32;stroke-opacity:1}
-.hl.on.dash{stroke-opacity:.9}
+.figwrap svg *{vector-effect:non-scaling-stroke}
+.body .mp{fill:var(--figure-soft);stroke:var(--figure);stroke-width:.8;transition:fill .25s}
+.body .mp.hair{fill:var(--figure)}
+.body .mp.on{fill:var(--accent);fill-opacity:.42;stroke:var(--accent)}
+.body .ol{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-opacity:.7}
+.hl{fill:var(--accent);stroke:var(--accent);fill-opacity:.36;stroke-width:2}
+.halo{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:6 6;stroke-opacity:.85}
+.dotpt{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+.joint{fill:var(--accent);fill-opacity:.35;stroke:var(--accent);stroke-width:2}
 .leader{stroke:var(--muted);stroke-width:1;fill:none;stroke-opacity:.7}
 .pin{cursor:pointer}
 .pin circle{fill:var(--surface);stroke:var(--muted);stroke-width:1.5;transition:fill .2s,stroke .2s}
-.pin text{fill:var(--ink);font-family:var(--mono);font-size:10.5px;font-weight:500;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.pin text{fill:var(--ink);font-family:var(--mono);font-size:22px;font-weight:500;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.vtoggle{display:inline-flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:2px}
+.vt{border:0;background:none;border-radius:999px;padding:3px 12px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.vt.on{background:var(--accent);color:#fff}
+.vt:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .pin:hover circle,.pin:focus-visible circle{stroke:var(--accent);stroke-width:2}
 .pin.on circle{fill:var(--accent);stroke:var(--accent)}
 .pin.on text{fill:#fff}
@@ -84,6 +90,8 @@ a{color:var(--accent-ink)}
 .atlas-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-top:auto;padding-top:6px}
 .linkbtn{background:none;border:0;padding:4px 6px;color:var(--accent-ink);cursor:pointer;border-radius:6px;font-size:12.5px}
 .linkbtn:hover{background:var(--surface-2)}
+.credit{font-size:11px;color:var(--muted);margin:0;line-height:1.4}
+.credit a{color:var(--muted)}
 
 /* ---------- Detail pane ---------- */
 .detail{padding:30px clamp(16px,4vw,60px) 110px;max-width:900px;width:100%}
@@ -110,9 +118,9 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
 .dg .th{stroke:currentColor;fill:none;stroke-width:1}
 .dg .lt{stroke:var(--line);fill:none;stroke-width:1}
 .dg .dash{stroke-dasharray:4 3}
-.dg .sil{fill:var(--figure-soft);stroke:var(--figure);stroke-width:1.2}
-.dg .sil .limb{stroke:var(--figure-soft);stroke-width:20;stroke-linecap:round}
-.dg .sil .l2{stroke-width:26}
+.dg .sil .mp{fill:var(--figure-soft);stroke:var(--figure);stroke-width:.8}
+.dg .sil .mp.hair{fill:var(--figure)}
+.dg .sil .ol{fill:none;stroke:var(--figure);stroke-width:1.4}
 .dg .ac{stroke:var(--accent);fill:none;stroke-width:1.8}
 .dg .acf{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
 .dg .acd{fill:var(--accent);stroke:none}
@@ -201,11 +209,12 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
     <div class="brand"><h1>Bedside Assessment Atlas</h1><small>RN · head to toe</small></div>
     <div class="figwrap">
       <span class="side l">Patient's R</span><span class="side r">Patient's L</span>
-      <svg id="bodyfig" viewBox="0 0 250 446" role="group" aria-label="Whole-body figure with numbered assessment regions"></svg>
-      <div class="figcap"><span>Tap a number or a region below</span><span id="figstate"></span></div>
+      <svg id="bodyfig" viewBox="40 80 700 1300" role="group" aria-label="Whole-body figure with numbered assessment regions"></svg>
+      <div class="figcap"><div class="vtoggle" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><span id="figstate"></span></div>
     </div>
     <ol class="list" id="list"></ol>
     <div class="atlas-foot"><span id="overall"></span><button class="linkbtn" id="reset" type="button">Reset all ticks</button></div>
+    <p class="credit">Body figure adapted from <a href="https://github.com/HichamELBSI/react-native-body-highlighter">react-native-body-highlighter</a>, © 2022 ELABBASSI Hicham, MIT licence.</p>
   </aside>
   <main class="detail" id="detail" aria-live="polite"></main>
 </div>
@@ -215,12 +224,15 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
   <button class="btn primary" id="mnext" type="button">Next →</button>
 </div>
 
+<script src="body-art.js"></script>
 <script>
 /* ---------- shared drawing helpers ---------- */
 const SVG=(w,h,label,inner)=>`<svg class="dg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}">${inner}</svg>`;
 const ARROW=id=>`<defs><marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>`;
-const BODY=`<ellipse cx="100" cy="36" rx="26" ry="32"/><rect x="90" y="62" width="20" height="22" rx="5"/><path d="M62 86 Q100 76 138 86 L134 212 Q100 224 66 212 Z"/><path d="M64 92 L36 206" class="limb"/><path d="M136 92 L164 206" class="limb"/><path d="M84 214 L78 412" class="limb l2"/><path d="M116 214 L122 412" class="limb l2"/><ellipse cx="76" cy="422" rx="14" ry="7"/><ellipse cx="124" cy="422" rx="14" ry="7"/>`;
-const sil=(x,y,s)=>`<g class="sil" transform="translate(${x} ${y}) scale(${s})">${BODY}</g>`;
+const ART=window.BODY_ART;
+const artPaths=view=>ART[view].map(p=>Object.values(p.parts).flat().map(d=>`<path d="${d}" class="mp${p.slug==='hair'?' hair':''}" data-slug="${p.slug}"/>`).join('')).join('')+`<path d="${ART.outline[view]}" class="ol"/>`;
+/* figure coordinates: front 0..724 x, back 724..1448 x, both 80..1380 y (source viewBox 1448 tall) */
+const sil=(x,y,s,view='front')=>`<g class="sil" transform="translate(${x} ${y}) scale(${s}) translate(${view==='back'?-724:0} -80)">${artPaths(view)}</g>`;
 const dot=(x,y,cls='acd',r=4)=>`<circle cx="${x}" cy="${y}" r="${r}" class="${cls}"/>`;
 const lbl=(x,y,t,cls='',anchor='start')=>`<text x="${x}" y="${y}" class="${cls}" text-anchor="${anchor}">${t}</text>`;
 const lead=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="th mu"/>`;
@@ -229,11 +241,11 @@ const num=(x,y,n,cls='acf')=>`<circle cx="${x}" cy="${y}" r="8" class="${cls}"/>
 /* ---------- diagrams ---------- */
 const D={};
 D.vitals=()=>{
-  const s=0.6,ox=16,oy=12,p=(x,y)=>[ox+x*s,oy+y*s];
-  const pts=[['Temporal',80,26,24],['Carotid',92,72,50],['Apex · 5th ICS MCL',112,124,78],['Brachial · antecubital',54,150,104],['Radial · lateral wrist',40,196,130],['Femoral · groin',88,222,152],['Popliteal · behind knee',80,318,204],['Posterior tibial · behind medial malleolus',86,404,250],['Dorsalis pedis · dorsum of foot',76,420,272]];
+  const s=0.18,ox=10,oy=8,p=(x,y)=>[ox+x*s,oy+(y-80)*s];
+  const pts=[['Temporal',312,168,22],['Carotid',338,286,50],['Apex · 5th ICS MCL',430,432,78],['Brachial · antecubital',214,500,104],['Radial · lateral wrist',132,700,130],['Femoral · groin',300,665,152],['Popliteal · behind knee',296,1010,200],['Posterior tibial · behind medial malleolus',312,1268,246],['Dorsalis pedis · dorsum of foot',276,1305,272]];
   let g=sil(ox,oy,s);
   pts.forEach(([n,x,y,ly])=>{const [px,py]=p(x,y);g+=lead(px,py,150,ly)+dot(px,py)+lbl(154,ly+4,n);});
-  g+=lbl(16,296,"Patient's R",'t10 mu')+lbl(100,296,"Patient's L",'t10 mu');
+  g+=lbl(10,296,"Patient's R",'t10 mu')+lbl(140,296,"Patient's L",'t10 mu','end');
   // chest auscultation
   const cx=330;
   let c=`<g transform="translate(${cx} 18)">`;
@@ -246,7 +258,7 @@ D.vitals=()=>{
   areas.forEach(([k,x,y])=>{c+=`<circle cx="${x}" cy="${y}" r="11" class="acf"/>`+lbl(x,y+4,k,'t12 b act','middle');});
   c+=lbl(20,-4,"Patient's R",'t10 mu')+lbl(170,-4,"Patient's L",'t10 mu','end');
   c+=`</g>`;
-  c+=lbl(16,322,'A  Aortic · R 2nd ICS, sternal edge')+lbl(16,338,'P  Pulmonic · L 2nd ICS, sternal edge')+lbl(300,322,'T  Tricuspid · L 4th–5th ICS, sternal edge')+lbl(300,338,'M  Mitral (apex) · L 5th ICS, mid-clavicular');
+  c+=lbl(16,322,'A  Aortic · R 2nd ICS, sternal edge')+lbl(16,338,'P  Pulmonic · L 2nd ICS, sternal edge')+lbl(290,322,'T  Tricuspid · L lower sternal edge')+lbl(290,338,'M  Mitral (apex) · L 5th ICS, MCL');
   return SVG(560,350,'Pulse points on a whole-body figure and the four cardiac auscultation areas on the anterior chest',g+c);
 };
 D.brain=()=>{
@@ -494,14 +506,14 @@ D.limbs=()=>{
 };
 D.skin=()=>{
   let g='';
-  const s=0.5;
-  g+=sil(10,14,s)+lbl(60,240,'Front','t12 b','middle');
-  g+=sil(130,14,s)+lbl(180,240,'Back','t12 b','middle');
-  const F=[[50,148,'elbow'],[150,148,'elbow'],[80,312,'knee'],[120,312,'knee'],[78,404,'malleolus'],[122,404,'malleolus'],[76,428,'toes'],[124,428,'toes']];
-  const B=[[100,10,'occiput'],[76,36,'ear'],[124,36,'ear'],[82,106,'scapula'],[118,106,'scapula'],[50,148,'elbow'],[150,148,'elbow'],[100,196,'sacrum'],[100,212,'coccyx'],[66,214,'trochanter'],[134,214,'trochanter'],[88,226,'ischial tub.'],[112,226,'ischial tub.'],[78,424,'heel'],[122,424,'heel']];
-  F.forEach(([x,y])=>{g+=dot(10+x*s,14+y*s,'fld',3.5);});
-  B.forEach(([x,y])=>{g+=dot(130+x*s,14+y*s,'fld',3.5);});
-  g+=lbl(10,262,'Front: elbows, knees, malleoli, toes','t10 mu')+lbl(10,275,'Back: occiput, ears, scapulae, elbows, sacrum, coccyx,','t10 mu')+lbl(10,288,'ischial tuberosities, trochanters, heels','t10 mu');
+  const s=0.17;
+  g+=sil(6,12,s,'front')+lbl(68,244,'Front','t12 b','middle');
+  g+=sil(134,12,s,'back')+lbl(196,244,'Back','t12 b','middle');
+  const F=[[200,505],[528,505],[296,1000],[432,1000],[268,1272],[460,1272],[276,1338],[452,1338]];
+  const B=[[1084,150],[1030,192],[1138,192],[1010,400],[1158,400],[930,520],[1240,520],[1084,640],[1084,706],[976,690],[1192,690],[1040,770],[1128,770],[996,1338],[1172,1338]];
+  F.forEach(([x,y])=>{g+=dot(6+x*s,12+(y-80)*s,'fld',3.5);});
+  B.forEach(([x,y])=>{g+=dot(134+(x-724)*s,12+(y-80)*s,'fld',3.5);});
+  g+=lbl(10,262,'Front: elbows, knees, malleoli, toes','t10 mu')+lbl(10,275,'Back: occiput, ears, scapulae, elbows,','t10 mu')+lbl(10,288,'sacrum, coccyx, ischial tuberosities,','t10 mu')+lbl(10,301,'trochanters, heels','t10 mu');
   // cross-section
   g+=`<g transform="translate(260 10)">`+lbl(0,8,'Pressure injury depth','t12 b');
   const Y=18;
@@ -517,10 +529,10 @@ D.skin=()=>{
 };
 D.msk=()=>{
   let g='';
-  const s=0.62,ox=20,oy=8;
+  const s=0.2,ox=20,oy=8;
   g+=sil(ox,oy,s);
-  const J=[[100,66,'C-spine'],[66,90,'shoulder'],[134,90,'shoulder'],[52,146,'elbow'],[148,146,'elbow'],[38,198,'wrist'],[162,198,'wrist'],[84,216,'hip'],[116,216,'hip'],[80,312,'knee'],[120,312,'knee'],[78,408,'ankle'],[122,408,'ankle']];
-  J.forEach(([x,y])=>{g+=`<circle cx="${ox+x*s}" cy="${oy+y*s}" r="5" class="acf"/>`;});
+  const J=[[364,300],[250,330],[478,330],[205,500],[523,500],[140,690],[588,690],[300,660],[428,660],[296,1000],[432,1000],[290,1250],[438,1250]];
+  J.forEach(([x,y])=>{g+=`<circle cx="${ox+x*s}" cy="${oy+(y-80)*s}" r="5" class="acf"/>`;});
   g+=lbl(20,290,'Assess each joint both sides:','t10 mu')+lbl(20,303,'crepitus, heat, redness, swelling, pain, deformity','t10 mu');
   // spine
   g+=`<g transform="translate(240 10)">`+lbl(0,8,'Spinal curves · side view','t12 b')+lbl(0,22,'front of body to the left','t10 mu');
@@ -533,16 +545,16 @@ D.msk=()=>{
   return SVG(560,330,'A skeleton figure with the assessed joints marked, the three spinal curves labelled, and the Romberg test',g);
 };
 D.pain=()=>{
-  const s=0.62;
+  const s=0.2;
   let g=`<g id="painmap" class="clickable">`;
   g+=`<rect x="0" y="0" width="560" height="300" fill="transparent" stroke="none"/>`;
   for(let x=0;x<=560;x+=40)g+=`<line x1="${x}" y1="0" x2="${x}" y2="290" class="lt"/>`;
   for(let y=0;y<=290;y+=40)g+=`<line x1="0" y1="${y}" x2="560" y2="${y}" class="lt"/>`;
-  g+=sil(80,8,s)+sil(340,8,s);
-  g+=lbl(142,296,'FRONT','t12 b','middle')+lbl(402,296,'BACK','t12 b','middle');
-  g+=lbl(70,296,"Patient's R",'t10 mu','end')+lbl(216,296,"Patient's L",'t10 mu')+lbl(330,296,"Patient's L",'t10 mu','end')+lbl(476,296,"Patient's R",'t10 mu');
+  g+=sil(60,8,s,'front')+sil(360,8,s,'back');
+  g+=lbl(132,286,'FRONT','t12 b','middle')+lbl(432,286,'BACK','t12 b','middle');
+  g+=lbl(62,302,"Patient's R",'t10 mu')+lbl(204,302,"Patient's L",'t10 mu','end')+lbl(362,302,"Patient's L",'t10 mu')+lbl(504,302,"Patient's R",'t10 mu','end');
   g+=`<g id="painmarks"></g></g>`;
-  return SVG(560,304,'Front and back body outlines for marking the site of pain and where it radiates',g);
+  return SVG(560,312,'Front and back body outlines for marking the site of pain and where it radiates',g);
 };
 
 /* ---------- region content ---------- */
@@ -658,44 +670,70 @@ const REGIONS=[
 ];
 
 /* ---------- main body figure ---------- */
-const HOT={
- vitals:`<circle cx="36" cy="200" r="14"/><circle cx="164" cy="200" r="14"/><circle cx="112" cy="126" r="10"/><circle cx="92" cy="72" r="6"/>`,
- neuro:`<ellipse cx="100" cy="28" rx="23" ry="21"/>`,
- eyes:`<rect x="80" y="30" width="40" height="12" rx="6"/>`,
- ears:`<circle cx="74" cy="38" r="6"/><circle cx="126" cy="38" r="6"/>`,
- nose:`<circle cx="100" cy="45" r="6"/>`,
- mouth:`<rect x="88" y="52" width="24" height="9" rx="4"/>`,
- neck:`<rect x="86" y="62" width="28" height="24" rx="6"/>`,
- chest:`<rect x="66" y="86" width="68" height="64" rx="10"/>`,
- abdomen:`<rect x="68" y="150" width="64" height="46" rx="8"/>`,
- bowel:`<circle cx="126" cy="188" r="13"/>`,
- urinary:`<rect x="74" y="196" width="52" height="24" rx="8"/>`,
- limbs:`<rect x="56" y="296" width="88" height="136" rx="22"/><circle cx="36" cy="204" r="14"/><circle cx="164" cy="204" r="14"/>`,
- skin:`<rect x="18" y="2" width="164" height="436" rx="40" class="dash"/>`,
- msk:`<circle cx="66" cy="90" r="6"/><circle cx="134" cy="90" r="6"/><circle cx="52" cy="146" r="6"/><circle cx="148" cy="146" r="6"/><circle cx="38" cy="198" r="6"/><circle cx="162" cy="198" r="6"/><circle cx="84" cy="216" r="6"/><circle cx="116" cy="216" r="6"/><circle cx="80" cy="312" r="6"/><circle cx="120" cy="312" r="6"/><circle cx="78" cy="408" r="6"/><circle cx="122" cy="408" r="6"/><circle cx="100" cy="66" r="6"/>`,
- pain:`<rect x="18" y="2" width="164" height="436" rx="40" class="dash"/>`
+/* Each region maps to muscle-group parts of the figure and/or extra shapes, per view. Coordinates are the figure's own (front x 0..724, back x 724..1448). */
+const MAP={
+ vitals:{front:{parts:['chest','forearm','hands','feet'],dots:[[132,700],[596,700],[430,432],[338,286],[276,1305],[448,1305]]},back:{parts:['hands','feet'],dots:[[1020,1170],[1148,1170]]}},
+ neuro:{front:{parts:['hair'],shapes:'<ellipse cx="364" cy="150" rx="62" ry="50"/>'},back:{parts:['hair','head']}},
+ eyes:{front:{shapes:'<ellipse cx="338" cy="184" rx="17" ry="9"/><ellipse cx="390" cy="184" rx="17" ry="9"/>'}},
+ ears:{front:{shapes:'<ellipse cx="304" cy="194" rx="8" ry="15"/><ellipse cx="424" cy="194" rx="8" ry="15"/>'},back:{shapes:'<ellipse cx="1026" cy="192" rx="8" ry="15"/><ellipse cx="1142" cy="192" rx="8" ry="15"/>'}},
+ nose:{front:{shapes:'<path d="M364 178 L352 216 Q364 224 376 216 Z"/>'}},
+ mouth:{front:{shapes:'<rect x="342" y="228" width="44" height="12" rx="6"/>'}},
+ neck:{front:{parts:['neck']},back:{parts:['neck']}},
+ chest:{front:{parts:['chest'],shapes:'<rect x="246" y="300" width="236" height="160" rx="34"/>'},back:{parts:['upper-back','trapezius']}},
+ abdomen:{front:{parts:['abs','obliques']},back:{parts:['lower-back']}},
+ bowel:{front:{parts:['abs'],shapes:'<circle cx="440" cy="662" r="28"/>'}},
+ urinary:{front:{shapes:'<path d="M298 650 Q364 630 430 650 L442 722 Q364 762 286 722 Z"/>'},back:{parts:['gluteal']}},
+ limbs:{front:{parts:['biceps','triceps','forearm','hands','quadriceps','knees','tibialis','calves','ankles','feet','adductors']},back:{parts:['triceps','forearm','hands','hamstring','calves','ankles','feet']}},
+ skin:{front:{halo:true,dots:[[200,505],[528,505],[296,1000],[432,1000],[268,1272],[460,1272],[276,1338],[452,1338]]},back:{halo:true,dots:[[1084,150],[1030,192],[1138,192],[1010,400],[1158,400],[930,520],[1240,520],[1084,640],[1084,706],[976,690],[1192,690],[1040,770],[1128,770],[996,1338],[1172,1338]]}},
+ msk:{front:{joints:[[364,300],[250,330],[478,330],[205,500],[523,500],[140,690],[588,690],[300,660],[428,660],[296,1000],[432,1000],[290,1250],[438,1250]]},back:{joints:[[1084,290],[950,340],[1218,340],[930,525],[1240,525],[860,690],[1310,690],[1000,1000],[1168,1000],[1006,1265],[1162,1265]]}},
+ pain:{front:{halo:true},back:{halo:true}}
 };
-const PINS={ // [pinX,pinY, anchorX,anchorY] in body coords; anchor => leader line
- vitals:[36,206],neuro:[196,16,118,22],eyes:[196,36,122,36],ears:[196,56,130,40],nose:[196,76,106,46],mouth:[196,96,110,56],neck:[196,118,114,74],
- chest:[100,118],abdomen:[100,168],bowel:[128,190],urinary:[100,210],limbs:[80,362],skin:[176,236],msk:[120,312],pain:[164,208]
+/* pin: [x,y] or [x,y,[anchorX,anchorY]] when the pin sits off the body with a leader line */
+const PINS={
+ vitals:{front:[110,690],back:[834,690]},
+ neuro:{front:[600,120,[404,132]],back:[1084,120]},
+ eyes:{front:[600,170,[408,184]]},
+ ears:{front:[600,215,[432,198]],back:[1300,196,[1150,194]]},
+ nose:{front:[600,260,[378,214]]},
+ mouth:{front:[600,305,[388,234]]},
+ neck:{front:[600,350,[398,292]],back:[1084,262]},
+ chest:{front:[364,384],back:[1084,430]},
+ abdomen:{front:[364,540],back:[1084,566]},
+ bowel:{front:[440,662]},
+ urinary:{front:[364,714],back:[1084,700]},
+ limbs:{front:[268,1130],back:[1000,1150]},
+ skin:{front:[500,740],back:[1290,640,[1092,646]]},
+ msk:{front:[432,1000],back:[1168,1000]},
+ pain:{front:[626,770],back:[1352,770]}
 };
+const VIEWBOX={front:'40 80 700 1300',back:'764 80 700 1300'};
 function drawBody(){
-  const svg=document.getElementById('bodyfig');
-  let s=`<g transform="translate(28 4)"><g class="body">${BODY}</g>`;
-  REGIONS.forEach(r=>{s+=`<g class="hl" id="hl-${r.id}">${HOT[r.id]}</g>`;});
-  REGIONS.forEach(r=>{const p=PINS[r.id];if(p.length>2)s+=`<line x1="${p[2]}" y1="${p[3]}" x2="${p[0]-9}" y2="${p[1]}" class="leader"/>`;});
-  REGIONS.forEach(r=>{const p=PINS[r.id];s+=`<g class="pin" id="pin-${r.id}" data-id="${r.id}" tabindex="0" role="button" aria-label="${r.n}. ${r.name}"><title>${r.n}. ${r.name}</title><circle cx="${p[0]}" cy="${p[1]}" r="9"/><text x="${p[0]}" y="${p[1]}">${r.n}</text></g>`;});
-  s+=`</g>`;
+  const view=state.view, svg=document.getElementById('bodyfig');
+  svg.setAttribute('viewBox',VIEWBOX[view]);
+  const act=state.active, m=(MAP[act]||{})[view]||{};
+  const onParts=new Set(m.parts||[]);
+  let s=`<g class="body">`+ART[view].map(p=>Object.values(p.parts).flat().map(d=>`<path d="${d}" class="mp${p.slug==='hair'?' hair':''}${onParts.has(p.slug)?' on':''}"/>`).join('')).join('')+`<path d="${ART.outline[view]}" class="ol"/></g>`;
+  const ob=view==='front'?[49,96,679,1351]:[769,96,1399,1351];
+  if(m.halo)s+=`<rect x="${ob[0]-14}" y="${ob[1]-14}" width="${ob[2]-ob[0]+28}" height="${ob[3]-ob[1]+28}" rx="60" class="halo"/>`;
+  if(m.shapes)s+=`<g class="hl on">${m.shapes}</g>`;
+  if(m.dots)s+=m.dots.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" class="dotpt"/>`).join('');
+  if(m.joints)s+=m.joints.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="13" class="joint"/>`).join('');
+  REGIONS.forEach(r=>{const p=(PINS[r.id]||{})[view];if(!p)return;if(p[2])s+=`<line x1="${p[2][0]}" y1="${p[2][1]}" x2="${p[0]-16}" y2="${p[1]}" class="leader"/>`;});
+  REGIONS.forEach(r=>{const p=(PINS[r.id]||{})[view];if(!p)return;s+=`<g class="pin${r.id===act?' on':''}" data-id="${r.id}" tabindex="0" role="button" aria-label="${r.n}. ${r.name}"><title>${r.n}. ${r.name}</title><circle cx="${p[0]}" cy="${p[1]}" r="17"/><text x="${p[0]}" y="${p[1]}">${r.n}</text></g>`;});
   svg.innerHTML=s;
   svg.querySelectorAll('.pin').forEach(el=>{
     el.addEventListener('click',()=>show(el.dataset.id));
     el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(el.dataset.id);}});
   });
+  document.querySelectorAll('.vt').forEach(b=>{const on=b.dataset.view===view;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
+  document.querySelector('.side.l').textContent=view==='front'?"Patient's R":"Patient's L";
+  document.querySelector('.side.r').textContent=view==='front'?"Patient's L":"Patient's R";
 }
+function setView(v){state.view=v;save();drawBody();}
 
 /* ---------- state ---------- */
 const KEY='bedside-atlas-v1';
-let state={active:'vitals',checks:{},marks:[]};
+let state={active:'vitals',view:'front',checks:{},marks:[]};
 try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&typeof s==='object')state={...state,...s};}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 const idx=id=>REGIONS.findIndex(r=>r.id===id);
@@ -738,8 +776,7 @@ function renderDetail(){
   document.getElementById('mpos').textContent=`${r.n} / 15 · ${r.short}`;
   document.getElementById('mprev').disabled=!prev;document.getElementById('mnext').disabled=!next;
   document.getElementById('figstate').innerHTML=`<b>${r.n}</b> ${r.short}`;
-  document.querySelectorAll('.hl').forEach(el=>el.classList.toggle('on',el.id==='hl-'+r.id));
-  document.querySelectorAll('.pin').forEach(el=>el.classList.toggle('on',el.dataset.id===r.id));
+  drawBody();
 }
 function initPainMap(){
   const svg=document.querySelector('#painmap')?.closest('svg');if(!svg)return;
@@ -751,7 +788,10 @@ function initPainMap(){
 }
 function show(id){
   if(!REGIONS.some(r=>r.id===id))return;
-  state.active=id;save();renderList();renderDetail();
+  state.active=id;
+  const other=state.view==='front'?'back':'front';
+  if(!(MAP[id]||{})[state.view]&&(MAP[id]||{})[other])state.view=other;
+  save();renderList();renderDetail();
   if(window.innerWidth<=900){document.getElementById('detail').scrollIntoView({block:'start'});}
   const row=document.querySelector(`.row[data-id="${id}"]`);if(row&&window.innerWidth<=900)row.scrollIntoView({inline:'center',block:'nearest'});
 }
@@ -764,5 +804,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'&&i<REGIONS.length-1)show(REGIONS[i+1].id);
   if(e.key==='ArrowLeft'&&i>0)show(REGIONS[i-1].id);
 });
-drawBody();renderList();renderDetail();
+document.querySelectorAll('.vt').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+renderList();renderDetail();
 </script>
