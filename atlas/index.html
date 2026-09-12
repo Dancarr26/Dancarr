@@ -55,14 +55,27 @@ a{color:var(--accent-ink)}
 .body .mp.hair{fill:var(--figure)}
 .body .mp.on{fill:var(--accent);fill-opacity:.42;stroke:var(--accent)}
 .body .ol{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-opacity:.7}
+.zone{cursor:pointer}
+.zone .zp,.zone .zs *{fill:var(--accent);fill-opacity:.10;stroke:var(--accent);stroke-opacity:.35;stroke-width:1;transition:fill-opacity .2s}
+.zone:hover .zp,.zone:hover .zs *,.zone:focus .zp,.zone:focus .zs *{fill-opacity:.34;stroke-opacity:.9}
+.zone:focus{outline:none}
+.zlabel{font-family:var(--mono);font-size:24px;letter-spacing:.08em;text-transform:uppercase;fill:var(--accent-ink);pointer-events:none;paint-order:stroke;stroke:var(--surface-2);stroke-width:6px;stroke-linejoin:round}
+.frag{cursor:pointer}
+.frag .mp{fill:var(--accent);fill-opacity:.16;stroke:var(--accent);stroke-opacity:.6;stroke-width:1;transition:fill-opacity .2s}
+.frag .hl{fill:var(--accent);fill-opacity:.2;stroke:var(--accent);stroke-width:1.5;transition:fill-opacity .2s}
+.frag:hover .mp,.frag:hover .hl,.frag:focus .mp,.frag:focus .hl{fill-opacity:.42}
+.frag.on .mp,.frag.on .hl{fill-opacity:.55;stroke-width:2}
+.frag:focus{outline:none}
+.frag .hit{fill:transparent;stroke:none;pointer-events:all}
+.flabel{font-family:var(--body);font-weight:700;fill:var(--ink);pointer-events:none;paint-order:stroke;stroke:var(--surface-2);stroke-width:4px;stroke-linejoin:round}
+.frag.on .flabel{fill:var(--accent-ink)}
 .hl{fill:var(--accent);stroke:var(--accent);fill-opacity:.36;stroke-width:2}
 .halo{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:6 6;stroke-opacity:.85}
 .dotpt{fill:var(--accent);stroke:var(--surface);stroke-width:2}
 .joint{fill:var(--accent);fill-opacity:.35;stroke:var(--accent);stroke-width:2}
-.leader{stroke:var(--muted);stroke-width:1;fill:none;stroke-opacity:.7}
-.pin{cursor:pointer}
-.pin circle{fill:var(--surface);stroke:var(--muted);stroke-width:1.5;transition:fill .2s,stroke .2s}
-.pin text{fill:var(--ink);font-family:var(--mono);font-size:22px;font-weight:500;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.backbtn{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--accent-ink)}
+.backbtn:hover{border-color:var(--accent)}
+.backbtn[hidden]{display:none}
 .vtoggle{display:inline-flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:2px}
 .vt{border:0;background:none;border-radius:999px;padding:3px 12px;font-size:12.5px;cursor:pointer;color:var(--muted)}
 .vt.on{background:var(--accent);color:#fff}
@@ -72,7 +85,8 @@ a{color:var(--accent-ink)}
 .pin.on text{fill:#fff}
 .pin:focus{outline:none}
 .pin:focus-visible circle{stroke-width:3}
-.figcap{display:flex;justify-content:space-between;align-items:center;padding:6px 6px 0;font-size:12.5px;color:var(--muted)}
+.figcap{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 0;font-size:12.5px;color:var(--muted)}
+.figcap #figstate{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
 .figcap b{color:var(--ink);font-weight:700}
 
 .list{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
@@ -311,7 +325,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
     <div class="figwrap">
       <span class="side l">Patient's R</span><span class="side r">Patient's L</span>
       <svg id="bodyfig" viewBox="40 80 700 1300" role="group" aria-label="Whole-body figure with numbered assessment regions"></svg>
-      <div class="figcap"><div class="vtoggle" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><span id="figstate"></span></div>
+      <div class="figcap"><div class="vtoggle" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><button type="button" class="backbtn" id="zoomout" hidden>‹ Whole body</button><span id="figstate"></span></div>
     </div>
     <div class="modes" role="tablist" aria-label="Navigation mode"><button type="button" class="mode on" role="tab" data-mode="regions" aria-selected="true">Regions</button><button type="button" class="mode" role="tab" data-mode="tools" aria-selected="false">Tools</button><button type="button" class="mode" role="tab" data-mode="conditions" aria-selected="false">Conditions</button></div>
     <input class="search" id="search" type="search" placeholder="Find a region, tool, condition or sign" aria-label="Search regions and tools" autocomplete="off">
@@ -796,55 +810,96 @@ const MAP={
  msk:{front:{joints:[[364,300],[250,330],[478,330],[205,500],[523,500],[140,690],[588,690],[300,660],[428,660],[296,1000],[432,1000],[290,1250],[438,1250]]},back:{joints:[[1084,290],[950,340],[1218,340],[930,525],[1240,525],[860,690],[1310,690],[1000,1000],[1168,1000],[1006,1265],[1162,1265]]}},
  pain:{front:{halo:true},back:{halo:true}}
 };
-/* pin: [x,y] or [x,y,[anchorX,anchorY]] when the pin sits off the body with a leader line */
-const PINS={
- vitals:{front:[110,690],back:[834,690]},
- neuro:{front:[600,120,[404,132]],back:[1084,120]},
- eyes:{front:[600,170,[408,184]]},
- ears:{front:[600,215,[432,198]],back:[1300,196,[1150,194]]},
- nose:{front:[600,260,[378,214]]},
- mouth:{front:[600,305,[388,234]]},
- neck:{front:[600,350,[398,292]],back:[1084,262]},
- chest:{front:[364,384],back:[1084,430]},
- abdomen:{front:[364,540],back:[1084,566]},
- bowel:{front:[440,662]},
- urinary:{front:[364,714],back:[1084,700]},
- limbs:{front:[268,1130],back:[1000,1150]},
- skin:{front:[500,740],back:[1290,640,[1092,646]]},
- msk:{front:[432,1000],back:[1168,1000]},
- pain:{front:[626,770],back:[1352,770]}
+const VIEWBOX={front:[40,36,700,1344],back:[764,36,700,1344]};
+/* Zones: tap to zoom. parts = [slug, side|null] muscle groups that form the tappable zone on the overview; label = [x,y,anchor];
+   regions = fragments shown inside the zoom, each with a label [x,y,anchor,text]. Coordinates are the figure's own. */
+const PELVIS_F='<path d="M296 646 Q364 626 432 646 L446 726 Q364 770 282 726 Z"/>';
+const ZONES={
+ front:[
+  {id:'head',name:'Head',parts:[['hair'],['head']],label:[364,64,'middle'],box:[250,78,230,204],regions:['neuro','eyes','ears','nose','mouth'],labels:{neuro:[364,148,'middle','Brain'],eyes:[292,189,'end','Eyes'],ears:[440,199,'start','Ears'],nose:[292,216,'end','Nose'],mouth:[292,240,'end','Mouth']}},
+  {id:'neck',name:'Neck',parts:[['neck']],label:[458,286,'start'],box:[270,232,190,104],regions:['neck'],labels:{neck:[364,300,'middle','Neck']}},
+  {id:'chest',name:'Chest',parts:[['chest'],['trapezius']],label:[364,384,'middle'],box:[170,286,390,210],regions:['chest'],labels:{chest:[364,326,'middle','Chest & lungs']}},
+  {id:'abdomen',name:'Abdomen',parts:[['abs'],['obliques']],label:[364,566,'middle'],box:[205,426,320,260],regions:['abdomen','bowel'],labels:{abdomen:[364,520,'middle','Abdomen'],bowel:[440,716,'middle','Bowel & stoma']}},
+  {id:'pelvis',name:'Pelvis',shapes:PELVIS_F,label:[364,712,'middle'],box:[220,612,290,190],regions:['urinary'],labels:{urinary:[364,700,'middle','Continence']}},
+  {id:'armR',name:'Arm',parts:[['deltoids','left'],['biceps','left'],['triceps','left'],['forearm','left'],['hands','left']],label:[118,470,'end'],box:[36,286,240,570],regions:['limbs'],labels:{limbs:[150,610,'middle','Arm & hand']}},
+  {id:'armL',name:'Arm',parts:[['deltoids','right'],['biceps','right'],['triceps','right'],['forearm','right'],['hands','right']],label:[610,470,'start'],box:[452,286,240,570],regions:['limbs'],labels:{limbs:[580,610,'middle','Arm & hand']}},
+  {id:'legs',name:'Legs & feet',parts:[['adductors'],['quadriceps'],['knees'],['tibialis'],['calves'],['ankles'],['feet']],label:[364,1000,'middle'],box:[200,636,330,730],regions:['limbs'],labels:{limbs:[364,1105,'middle','Legs & feet']}}
+ ],
+ back:[
+  {id:'head',name:'Head',parts:[['hair'],['head']],label:[1084,64,'middle'],box:[974,78,230,204],regions:['neuro','ears'],labels:{neuro:[1084,150,'middle','Brain'],ears:[1160,198,'start','Ears']}},
+  {id:'neck',name:'Neck',parts:[['neck']],label:[1178,262,'start'],box:[994,220,190,110],regions:['neck'],labels:{neck:[1084,266,'middle','Neck']}},
+  {id:'back',name:'Back',parts:[['trapezius'],['upper-back'],['lower-back']],label:[1084,470,'middle'],box:[894,286,390,340],regions:['chest','abdomen'],labels:{chest:[1084,420,'middle','Posterior chest'],abdomen:[1084,565,'middle','Lower back']}},
+  {id:'pelvis',name:'Sacrum',parts:[['gluteal']],label:[1084,712,'middle'],box:[944,596,290,210],regions:['urinary'],labels:{urinary:[1084,706,'middle','Gluteal & sacrum']}},
+  {id:'armL',name:'Arm',parts:[['deltoids','left'],['triceps','left'],['forearm','left'],['hands','left']],label:[842,470,'end'],box:[758,286,240,570],regions:['limbs'],labels:{limbs:[870,610,'middle','Arm & hand']}},
+  {id:'armR',name:'Arm',parts:[['deltoids','right'],['triceps','right'],['forearm','right'],['hands','right']],label:[1330,470,'start'],box:[1176,286,240,570],regions:['limbs'],labels:{limbs:[1300,610,'middle','Arm & hand']}},
+  {id:'legs',name:'Legs & heels',parts:[['adductors'],['hamstring'],['calves'],['ankles'],['feet']],label:[1084,1000,'middle'],box:[920,736,330,634],regions:['limbs'],labels:{limbs:[1084,1105,'middle','Legs & heels']}}
+ ]
 };
-const VIEWBOX={front:'40 80 700 1300',back:'764 80 700 1300'};
-function drawBody(activeIds){
-  const view=state.view, svg=document.getElementById('bodyfig');
-  svg.setAttribute('viewBox',VIEWBOX[view]);
-  const ids=Array.isArray(activeIds)?activeIds:[state.active];
-  const ms=ids.map(id=>(MAP[id]||{})[view]).filter(Boolean);
-  const m={parts:ms.flatMap(x=>x.parts||[]),shapes:ms.map(x=>x.shapes||'').join(''),dots:ms.flatMap(x=>x.dots||[]),joints:ms.flatMap(x=>x.joints||[]),halo:ms.some(x=>x.halo)};
-  const act=ids.length===1?ids[0]:null;
-  const onParts=new Set(m.parts);
-  let s=`<g class="body">`+ART[view].map(p=>Object.values(p.parts).flat().map(d=>`<path d="${d}" class="mp${p.slug==='hair'?' hair':''}${onParts.has(p.slug)?' on':''}"/>`).join('')).join('')+`<path d="${ART.outline[view]}" class="ol"/></g>`;
-  const ob=view==='front'?[49,96,679,1351]:[769,96,1399,1351];
-  if(m.halo)s+=`<rect x="${ob[0]-14}" y="${ob[1]-14}" width="${ob[2]-ob[0]+28}" height="${ob[3]-ob[1]+28}" rx="60" class="halo"/>`;
-  if(m.shapes)s+=`<g class="hl on">${m.shapes}</g>`;
+const partPaths=(view,slug,side)=>{const p=ART[view].find(x=>x.slug===slug);if(!p)return [];return side?(p.parts[side]||[]):Object.values(p.parts).flat();};
+const WHOLE=new Set(['vitals','skin','msk','pain']);
+const zoneFor=(rid,view)=>WHOLE.has(rid)?null:(ZONES[view].find(z=>z.regions.includes(rid))||null);
+let curVB=null,vbAnim=null;
+function setViewBox(vb,animate){
+  const svg=document.getElementById('bodyfig');
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(vbAnim)cancelAnimationFrame(vbAnim);
+  if(!animate||!curVB||reduce){curVB=vb.slice();svg.setAttribute('viewBox',vb.join(' '));return;}
+  const from=curVB.slice(),t0=performance.now(),D=320;
+  const step=now=>{const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);const cur=from.map((a,i)=>a+(vb[i]-a)*e);svg.setAttribute('viewBox',cur.join(' '));if(k<1)vbAnim=requestAnimationFrame(step);else{curVB=vb.slice();vbAnim=null;}};
+  vbAnim=requestAnimationFrame(step);
+}
+function regionOverlay(id,view,cls){
+  const m=(MAP[id]||{})[view];if(!m)return '';
+  let s='';
+  (m.parts||[]).forEach(slug=>{const p=ART[view].find(x=>x.slug===slug);if(p)s+=Object.values(p.parts).flat().map(d=>`<path d="${d}" class="mp"/>`).join('');});
+  if(m.shapes)s+=`<g class="hl">${m.shapes}</g>`;
   if(m.dots)s+=m.dots.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" class="dotpt"/>`).join('');
   if(m.joints)s+=m.joints.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="13" class="joint"/>`).join('');
-  REGIONS.forEach(r=>{const p=(PINS[r.id]||{})[view];if(!p)return;if(p[2])s+=`<line x1="${p[2][0]}" y1="${p[2][1]}" x2="${p[0]-16}" y2="${p[1]}" class="leader"/>`;});
-  REGIONS.forEach(r=>{const p=(PINS[r.id]||{})[view];if(!p)return;s+=`<g class="pin${r.id===act?' on':''}" data-id="${r.id}" tabindex="0" role="button" aria-label="${r.n}. ${r.name}"><title>${r.n}. ${r.name}</title><circle cx="${p[0]}" cy="${p[1]}" r="17"/><text x="${p[0]}" y="${p[1]}">${r.n}</text></g>`;});
+  return s;
+}
+function drawBody(activeIds){
+  const view=state.view, svg=document.getElementById('bodyfig');
+  const ids=Array.isArray(activeIds)?activeIds:[state.active];
+  const single=ids.length===1?ids[0]:null;
+  const zone=state.zone?ZONES[view].find(z=>z.id===state.zone):null;
+  let s=`<rect x="0" y="0" width="1448" height="1448" fill="transparent" stroke="none" id="bgclick"/>`;
+  s+=`<g class="body">`+ART[view].map(p=>Object.values(p.parts).flat().map(d=>`<path d="${d}" class="mp${p.slug==='hair'?' hair':''}"/>`).join('')).join('')+`<path d="${ART.outline[view]}" class="ol"/></g>`;
+  if(!zone){
+    /* overview: zones + whole-body overlays for the active region(s) */
+    ZONES[view].forEach(z=>{let inner=(z.parts||[]).flatMap(([slug,side])=>partPaths(view,slug,side)).map(d=>`<path d="${d}" class="zp"/>`).join('');if(z.shapes)inner+=`<g class="zs">${z.shapes}</g>`;s+=`<g class="zone" data-zone="${z.id}" tabindex="0" role="button" aria-label="Zoom to ${z.name}"><title>${z.name}</title>${inner}</g>`;});
+    ids.forEach(id=>{const m=(MAP[id]||{})[view];if(!m)return;if(m.halo){const ob=view==='front'?[49,96,679,1351]:[769,96,1399,1351];s+=`<rect x="${ob[0]-14}" y="${ob[1]-14}" width="${ob[2]-ob[0]+28}" height="${ob[3]-ob[1]+28}" rx="60" class="halo"/>`;}
+      if(WHOLE.has(id)||ids.length>1)s+=`<g class="hl on" style="pointer-events:none">${regionOverlay(id,view)}</g>`;});
+    ZONES[view].forEach(z=>{const [lx,ly,la]=z.label;s+=`<text x="${lx}" y="${ly}" text-anchor="${la}" class="zlabel">${z.name}</text>`;});
+    setViewBox(VIEWBOX[view],true);
+  } else {
+    const [x,y,w,h]=zone.box;
+    const pad0=Math.max(w,h)*0.08;const bw0=w+2*pad0,bh0=h+2*pad0;const ratio0=VIEWBOX[view][2]/VIEWBOX[view][3];const fw0=(bw0/bh0>ratio0)?bw0:bh0*ratio0;
+    const pxPerUnit=(svg.clientWidth||360)/fw0;const fs=Math.max(10,Math.round(15/pxPerUnit));
+    zone.regions.forEach(rid=>{const r=REGIONS.find(q=>q.id===rid);const lab=zone.labels[rid]||[x+w/2,y+h/2,'middle',r.short];
+      s+=`<g class="frag${ids.includes(rid)?' on':''}" data-id="${rid}" tabindex="0" role="button" aria-label="${r.n}. ${r.name}"><title>${r.name}</title>${regionOverlay(rid,view)}<text x="${lab[0]}" y="${lab[1]}" text-anchor="${lab[2]}" font-size="${fs}" class="flabel">${lab[3]||r.short}</text></g>`;});
+    /* fit the zone with padding, keeping the panel's aspect */
+    const pad=Math.max(w,h)*0.08;const bx=x-pad,by=y-pad,bw=w+2*pad,bh=h+2*pad;
+    const ratio=VIEWBOX[view][2]/VIEWBOX[view][3];let fw=bw,fh=bh;if(bw/bh>ratio)fh=bw/ratio;else fw=bh*ratio;
+    setViewBox([bx-(fw-bw)/2,by-(fh-bh)/2,fw,fh],true);
+  }
   svg.innerHTML=s;
-  svg.querySelectorAll('.pin').forEach(el=>{
-    el.addEventListener('click',()=>show(el.dataset.id));
-    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(el.dataset.id);}});
-  });
+  /* hit areas for small fragments */
+  svg.querySelectorAll('.frag').forEach(g=>{try{const b=g.getBBox();const padp=Math.max(12,b.width*0.15);const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('x',b.x-padp);r.setAttribute('y',b.y-padp);r.setAttribute('width',b.width+2*padp);r.setAttribute('height',b.height+2*padp);r.setAttribute('rx',14);r.setAttribute('class','hit');g.insertBefore(r,g.firstChild);}catch(e){}});
+  svg.querySelectorAll('.zone').forEach(el=>{const go=()=>{state.zone=el.dataset.zone;save();drawBody(ids);};el.addEventListener('click',go);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
+  svg.querySelectorAll('.frag').forEach(el=>{const go=()=>show(el.dataset.id);el.addEventListener('click',e=>{e.stopPropagation();go();});el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
+  document.getElementById('bgclick').addEventListener('click',()=>{if(state.zone){state.zone=null;save();drawBody(ids);}});
+  const zb=document.getElementById('zoomout');zb.hidden=!zone;zb.onclick=()=>{state.zone=null;save();drawBody(ids);};
   document.querySelectorAll('.vt').forEach(b=>{const on=b.dataset.view===view;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
   document.querySelector('.side.l').textContent=view==='front'?"Patient's R":"Patient's L";
   document.querySelector('.side.r').textContent=view==='front'?"Patient's L":"Patient's R";
+  document.getElementById('figstate').textContent='';
 }
-function setView(v){state.view=v;save();drawBody(state.mode==='tools'&&toolById(state.tool)?toolById(state.tool).regions:state.mode==='conditions'&&condById(state.cond)?condById(state.cond).regions:[state.active]);}
+function currentIds(){return state.mode==='tools'&&toolById(state.tool)?toolById(state.tool).regions:state.mode==='conditions'&&condById(state.cond)?condById(state.cond).regions:[state.active];}
+function setView(v){state.view=v;if(state.zone&&!ZONES[v].some(z=>z.id===state.zone))state.zone=null;save();drawBody(currentIds());}
 
 /* ---------- state ---------- */
 const KEY='bedside-atlas-v1';
-let state={mode:'regions',active:'vitals',tool:'drsabcd',cond:'cvrisk',view:'front',checks:{},marks:[],answers:{},vitals:{}};
+let state={mode:'regions',active:'vitals',tool:'drsabcd',cond:'cvrisk',view:'front',zone:null,checks:{},marks:[],answers:{},vitals:{}};
 try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&typeof s==='object')state={...state,...s};}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 const idx=id=>REGIONS.findIndex(r=>r.id===id);
@@ -919,10 +974,9 @@ function renderCond(c){
   d.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{showCond(b.dataset.go);window.scrollTo({top:0});}));
   bindChips(d);
   document.getElementById('mpos').textContent=c.name;
-  document.getElementById('figstate').innerHTML=`<b>Condition</b> ${c.name}`;
   drawBody(c.regions||[]);
 }
-function showCond(id){ if(!condById(id))return; state.mode='conditions';state.cond=id;save();renderList();renderDetail();afterNav(id); }
+function showCond(id){ if(!condById(id))return; state.mode='conditions';state.cond=id;state.zone=null;save();renderList();renderDetail();afterNav(id); }
 function renderRegion(){
   const r=REGIONS[idx(state.active)];
   const checks=state.checks[r.id]||[];
@@ -950,7 +1004,6 @@ function renderRegion(){
   bindChips(d);
   if(r.id==='pain')initPainMap();
   document.getElementById('mpos').textContent=`${r.n} / 15 · ${r.short}`;
-  document.getElementById('figstate').innerHTML=`<b>${r.n}</b> ${r.short}`;
   drawBody([r.id]);
 }
 /* ---- tool pages ---- */
@@ -1015,7 +1068,6 @@ function renderTool(t){
   d.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{showTool(b.dataset.go);window.scrollTo({top:0});}));
   bindChips(d);
   document.getElementById('mpos').textContent=t.short;
-  document.getElementById('figstate').innerHTML=`<b>Tool</b> ${t.short}`;
   drawBody(t.regions||[]);
 }
 /* ---- vitals engine ---- */
@@ -1075,9 +1127,11 @@ function show(id){
   state.mode='regions';state.active=id;
   const other=state.view==='front'?'back':'front';
   if(!(MAP[id]||{})[state.view]&&(MAP[id]||{})[other])state.view=other;
+  const cz=state.zone?ZONES[state.view].find(z=>z.id===state.zone):null;
+  if(WHOLE.has(id))state.zone=null;else if(!cz||!cz.regions.includes(id)){const z=zoneFor(id,state.view);state.zone=z?z.id:null;}
   save();renderList();renderDetail();afterNav(id);
 }
-function showTool(id){ if(!toolById(id))return; state.mode='tools';state.tool=id;save();renderList();renderDetail();afterNav(id); }
+function showTool(id){ if(!toolById(id))return; state.mode='tools';state.tool=id;state.zone=null;save();renderList();renderDetail();afterNav(id); }
 function afterNav(id){
   if(window.innerWidth<=900){document.getElementById('detail').scrollIntoView({block:'start'});}
   const row=document.querySelector(`.row[data-id="${id}"]`);if(row&&window.innerWidth<=900)row.scrollIntoView({inline:'center',block:'nearest'});
