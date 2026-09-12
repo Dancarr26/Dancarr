@@ -17,7 +17,8 @@
   [react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter)
   (MIT, see `atlas/LICENSE-body-art.txt`). The 3D body (`atlas/body3d-data.js`, rendered by
   `atlas/body3d.js` with raw WebGL) is the [MakeHuman](https://github.com/makehumancommunity/makehuman)
-  base mesh, released CC0. The figure has named muscle groups and toggleable schematic
+  base mesh, released CC0, rendered with the 2D muscle plate projected onto it so both views
+  share one look. The figure has named muscle groups and toggleable schematic
   artery, vein and nerve layers; the 3D view turns to show sides, back, top and bottom.
 
 ## Documents

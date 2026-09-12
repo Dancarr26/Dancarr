@@ -17,16 +17,35 @@ function classify(x,y,z){
 /* what a 3D zone means for the 2D atlas: [view, zoneId] */
 const TO2D={head:['front','head'],neck:['front','neck'],chest:['front','chest'],abdomen:['front','abdomen'],pelvis:['front','pelvis'],armR:['front','armR'],armL:['front','armL'],legs:['front','legs'],back:['back','back'],sacrum:['back','pelvis']};
 const FROM2D={'front:head':'head','front:neck':'neck','front:chest':'chest','front:abdomen':'abdomen','front:pelvis':'pelvis','front:armR':'armR','front:armL':'armL','front:legs':'legs','back:head':'head','back:neck':'neck','back:back':'back','back:pelvis':'sacrum','back:armR':'armR','back:armL':'armL','back:legs':'legs'};
-const VS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aZone;uniform mat4 uP,uV,uM;uniform float uZone,uHover;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;
-void main(){vec4 w=uM*vec4(aPos,1.0);vW=w.xyz;vN=mat3(uM)*aNrm;vOn=step(abs(aZone-uZone),0.5);vHv=step(abs(aZone-uHover),0.5);gl_Position=uP*uV*w;}`;
-const FS=`precision mediump float;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;uniform vec3 uBase,uAccent,uLight,uEye;
-void main(){vec3 n=normalize(vN);vec3 l=normalize(uLight);vec3 e=normalize(uEye-vW);
- float d=max(dot(n,l),0.0);float f=max(dot(n,normalize(vec3(-l.x,0.4,-l.z))),0.0)*0.35;float hemi=0.5+0.5*n.y;
- float rim=pow(1.0-max(dot(n,e),0.0),3.0)*0.25;
- vec3 col=uBase*(0.28+0.22*hemi+0.55*d+f)+rim*vec3(1.0);
+const VS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aZone;attribute vec2 aUvF;attribute vec2 aUvB;uniform mat4 uP,uV,uM;uniform float uZone,uHover,uOffset;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;varying vec2 vUvF;varying vec2 vUvB;varying float vNz;
+void main(){float hf=(abs(aZone-1.0)<0.5)?0.35:((abs(aZone-6.0)<0.5||abs(aZone-7.0)<0.5)?0.7:1.0);vec3 p=aPos+aNrm*uOffset*hf;vec4 w=uM*vec4(p,1.0);vW=w.xyz;vN=mat3(uM)*aNrm;vNz=aNrm.z;vOn=step(abs(aZone-uZone),0.5);vHv=step(abs(aZone-uHover),0.5);vUvF=aUvF;vUvB=aUvB;gl_Position=uP*uV*w;}`;
+const FS=`precision mediump float;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;varying vec2 vUvF;varying vec2 vUvB;varying float vNz;uniform vec3 uBase,uAccent,uLight,uEye,uInk;uniform float uOutline;uniform sampler2D uTexF,uTexB;
+void main(){
+ if(uOutline>0.5){gl_FragColor=vec4(uInk,1.0);return;}
+ vec3 n=normalize(vN);vec3 l=normalize(uLight);vec3 e=normalize(uEye-vW);
+ float k=smoothstep(-0.18,0.18,vNz);
+ vec3 tf=texture2D(uTexF,vUvF).rgb;vec3 tb=texture2D(uTexB,vUvB).rgb;vec3 tex=mix(tb,tf,k);
+ float d=dot(n,l);float band=d>0.3?1.0:(d>-0.15?0.88:0.76);
+ float rim=pow(1.0-max(dot(n,e),0.0),4.0);
+ vec3 col=tex*band;col=mix(col,uInk,rim*0.25);
  float on=smoothstep(0.45,0.55,vOn);float hv=smoothstep(0.45,0.55,vHv)*(1.0-on);
- col=mix(col,mix(col,uAccent,0.55),on);col=mix(col,mix(col,uAccent,0.25),hv);
+ col=mix(col,mix(col,uAccent,0.5),on);col=mix(col,mix(col,uAccent,0.22),hv);
  gl_FragColor=vec4(col,1.0);}`;
+/* project the 2D plate: rotate arms and legs in projection space so the muscle map lines up with the mesh pose */
+const K2D=75.3,Y02D=735;
+function unwarp(x,y){
+  const sx=x<0?-1:1,ax=Math.abs(x);
+  if(y<-0.6){const w=Math.min(1,Math.max(0,(-0.6-y)/0.7));const px=0.9*sx,py=-0.95;const vx=x-px,vy=y-py;const th=-sx*11.3*Math.PI/180*w;const c=Math.cos(th),sn=Math.sin(th);const sc=1+0.09*w;return [px+(vx*c-vy*sn)*sc,py+(vx*sn+vy*c)*sc];}
+  if(y>=0.9&&y<5.7&&ax>1.4){const w=Math.min(1,Math.max(0,(ax-1.4)/0.8));const px=1.9*sx,py=5.5;const vx=x-px,vy=y-py;const th=-sx*15*Math.PI/180*w;const c=Math.cos(th),sn=Math.sin(th);const sc=1+0.17*w;return [px+(vx*c-vy*sn)*sc,py+(vx*sn+vy*c)*sc];}
+  return [x,y];
+}
+function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||'#888';}
+function rasterArt(view){
+  const ART=window.BODY_ART;const w=724,h=1448;const soft=cssVar('--figure-soft'),fig=cssVar('--figure');const ox=view==='front'?0:724;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${ox} 0 724 1448" width="${w}" height="${h}"><rect x="${ox}" y="0" width="724" height="1448" fill="${soft}"/>`+
+    ART[view].map(p=>Object.values(p.parts).flat().map(d=>`<path d="${d}" fill="${p.slug==='hair'?fig:soft}" stroke="${fig}" stroke-width="1.6"/>`).join('')).join('')+`</svg>`;
+  return new Promise(res=>{const img=new Image();img.onload=()=>{const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0);res(cv);};img.onerror=()=>{const cv=document.createElement('canvas');cv.width=8;cv.height=8;const g=cv.getContext('2d');g.fillStyle=soft;g.fillRect(0,0,8,8);res(cv);};img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);});
+}
 function mat4Persp(f,a,n,fr){const t=1/Math.tan(f/2);return [t/a,0,0,0,0,t,0,0,0,0,(fr+n)/(n-fr),-1,0,0,2*fr*n/(n-fr),0];}
 function mat4LookAt(e,c,up){const z=norm([e[0]-c[0],e[1]-c[1],e[2]-c[2]]);const x=norm(cross(up,z));const y=cross(z,x);return [x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,e),-dot(y,e),-dot(z,e),1];}
 function norm(v){const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l];}
@@ -51,13 +70,18 @@ window.Body3D={
   this.pos=pos;this.idx=idx;this.zoneAttr=zone;this.nt=nt;
   const prog=gl.createProgram();const mk=(t,src)=>{const sh=gl.createShader(t);gl.shaderSource(sh,src);gl.compileShader(sh);gl.attachShader(prog,sh);};mk(gl.VERTEX_SHADER,VS);mk(gl.FRAGMENT_SHADER,FS);gl.linkProgram(prog);gl.useProgram(prog);this.prog=prog;
   const bind=(name,data,size)=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);const loc=gl.getAttribLocation(prog,name);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);};
-  bind('aPos',pos,3);bind('aNrm',nrm,3);bind('aZone',zone,1);
+  const uvF=new Float32Array(nv*2),uvB=new Float32Array(nv*2);
+  for(let i=0;i<nv;i++){const [ux,uy]=unwarp(pos[i*3],pos[i*3+1]);const yy=(Y02D-uy*K2D)/1448;uvF[i*2]=(364+ux*K2D)/724;uvF[i*2+1]=yy;uvB[i*2]=(360-ux*K2D)/724;uvB[i*2+1]=yy;}
+  bind('aPos',pos,3);bind('aNrm',nrm,3);bind('aZone',zone,1);bind('aUvF',uvF,2);bind('aUvB',uvB,2);
+  await this.loadTextures();
   const ext=gl.getExtension('OES_element_index_uint');const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
   if(ext){gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);this.idxType=gl.UNSIGNED_INT;}else{gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);this.idxType=gl.UNSIGNED_SHORT;}
-  this.u={};['uP','uV','uM','uBase','uAccent','uLight','uEye','uZone','uHover'].forEach(n=>this.u[n]=gl.getUniformLocation(prog,n));
+  this.u={};['uP','uV','uM','uBase','uAccent','uLight','uEye','uZone','uHover','uOffset','uInk','uOutline','uTexF','uTexB'].forEach(n=>this.u[n]=gl.getUniformLocation(prog,n));
+  gl.uniform1i(this.u.uTexF,0);gl.uniform1i(this.u.uTexB,1);
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   this.bindEvents();this.ready=true;this.resize();this.draw();
  },
+ async loadTextures(){const gl=this.gl;const [cf,cb]=await Promise.all([rasterArt('front'),rasterArt('back')]);const mk=(unit,cv)=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);return t;};this.texF=mk(0,cf);this.texB=mk(1,cb);this.texTheme=cssVar('--figure-soft');},
  setView(name){const p=PRESETS[name];if(!p)return;this.animateTo(p[0],p[1]);},
  animateTo(yaw,pitch){const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;const y0=this.yaw,p0=this.pitch;let dy=yaw-y0;dy=Math.atan2(Math.sin(dy),Math.cos(dy));if(reduce){this.yaw=yaw;this.pitch=pitch;this.draw();return;}const t0=performance.now();const step=now=>{const k=Math.min(1,(now-t0)/380),e=1-Math.pow(1-k,3);this.yaw=y0+dy*e;this.pitch=p0+(pitch-p0)*e;this.draw();if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);},
  setZone2D(view,zoneId){this.zone=zoneId?(ZONE_IDS[FROM2D[view+':'+zoneId]]||0):0;if(this.ready)this.draw();},
@@ -68,8 +92,13 @@ window.Body3D={
   gl.uniformMatrix4fv(this.u.uP,false,P);gl.uniformMatrix4fv(this.u.uV,false,V);gl.uniformMatrix4fv(this.u.uM,false,[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
   gl.uniform3fv(this.u.uBase,cssColor('--figure'));gl.uniform3fv(this.u.uAccent,cssColor('--accent'));
   gl.uniform3fv(this.u.uLight,[eye[0]*0.4+6,eye[1]*0.4+10,eye[2]*0.4+6]);gl.uniform3fv(this.u.uEye,eye);
-  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);
-  gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);this.P=P;this.V=V;this.eye=eye;},
+  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
+  if(this.texTheme&&this.texTheme!==cssVar('--figure-soft')&&!this.retex){this.retex=true;this.loadTextures().then(()=>{this.retex=false;this.draw();});}
+  /* pass 1: inked silhouette (inverted hull) */
+  gl.cullFace(gl.FRONT);gl.uniform1f(this.u.uOutline,1);gl.uniform1f(this.u.uOffset,0.05);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);
+  /* pass 2: the plate */
+  gl.cullFace(gl.BACK);gl.uniform1f(this.u.uOutline,0);gl.uniform1f(this.u.uOffset,0);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);
+  this.P=P;this.V=V;this.eye=eye;},
  pick(px,py){/* returns zone id under canvas pixel (px,py) or 0 */
   const c=this.canvas;const w=c.clientWidth,h=c.clientHeight;const nx=(px/w)*2-1,ny=1-(py/h)*2;
   const {eye,up}=this.camera();const f=norm([this.target[0]-eye[0],this.target[1]-eye[1],this.target[2]-eye[2]]);const r=norm(cross(f,up));const u=cross(r,f);
