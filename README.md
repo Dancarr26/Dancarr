@@ -21,10 +21,15 @@
   share one look. The 3D body is sectioned anatomically (limbs at the joints from the rig's bone
   weights; torso by the muscle plate into pectoral, sternal, the nine abdominal regions, inguinal,
   scapular, interscapular, lumbar, sacral and gluteal; head into cranium and face), each named on
-  hover, and carries artery, vein, nerve and lymph-node courses (`atlas/body3d-anatomy.js`)
-  anchored to the rig's joints and snapped to the skin, drawn as tubes and nodes with an x-ray
-  pass for deep structures. The 2D figure has named muscle groups and toggleable schematic
-  artery, vein and nerve layers; the 3D view turns to show sides, back, top and bottom.
+  hover, and carries branching artery, vein, nerve and lymphatic trees (`atlas/body3d-anatomy.js`)
+  built from the rig's joints (calibre-graded tubes: trunks, branches, twigs; superficial courses
+  set just under the skin, deep ones inside), lymph-node groups, and an organs-and-glands layer
+  (brain, airway and lungs, heart, gut from oesophagus to rectum, liver, pancreas, spleen,
+  kidneys and ureters, bladder, and the endocrine glands), all seen through the skin with an
+  x-ray pass. Selecting a body zone dims everything that does not run through it and lists what
+  does beneath the figure. The Muscles chip colours the 3D body as a muscle chart and names the
+  group under the pointer. The 2D figure has named muscle groups and toggleable schematic artery,
+  vein and nerve layers; the 3D view turns to show sides, back, top and bottom.
 
 ## Documents
 

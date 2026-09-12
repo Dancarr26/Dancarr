@@ -1,75 +1,173 @@
-/* 3D anatomy courses for the Bedside Assessment Atlas.
-   Points are in the posed model's coordinates (y up, +z front, +x = patient's LEFT), defined from the rig's joint
-   landmarks and snapped to the skin surface where a structure is palpable. Right-side copies are mirrored.
-   dir codes: F front, B back, M medial, L lateral, U up (dorsum of foot / top), D deep (no snap). */
-(function(){
+/* 3D anatomy tree for the Bedside Assessment Atlas.
+   Built from the rig's joint landmarks (window.BODY3D_JOINTS) so courses follow this mesh's bones.
+   Coordinates: y up, +z front, +x = patient's LEFT. Left-side courses are mirrored for the right.
+   Entry: [layer, name, calibre(1 trunk,2 branch,3 twig), pair?, points]. A point is [x,y,z] (internal, drawn as-is)
+   or [x,y,z,'F'|'B'|'M'|'L'|'U'] (superficial: snapped to the skin in that direction, then set just under it). */
+window.BODY3D_ANATOMY=function(J){
 const A='artery',V='vein',N='nerve',Y='lymph';
-/* [layer, name, pair?, deep?, points[[x,y,z,dir],...]] — points for the patient's LEFT side */
-window.BODY3D_ANATOMY=[
- /* ---- arteries ---- */
- [A,'Ascending aorta and arch',false,true,[[0.2,4.9,0.5,'D'],[0.1,5.6,0.35,'D'],[-0.1,5.85,0.1,'D'],[0.35,5.5,-0.15,'D']]],
- [A,'Descending / abdominal aorta',false,true,[[0.35,5.5,-0.15,'D'],[0.4,4.5,-0.15,'D'],[0.3,3.3,0.0,'D'],[0.15,2.45,0.05,'D']]],
- [A,'Common → external iliac a.',true,true,[[0.15,2.45,0.05,'D'],[0.55,1.75,0.3,'D'],[0.72,1.3,0.5,'D']]],
- [A,'Femoral a. (mid-inguinal point → adductor canal)',true,false,[[0.72,1.28,0.6,'F'],[0.8,0.6,0.6,'F'],[0.78,-0.5,0.45,'M'],[0.75,-1.8,0.25,'M'],[0.8,-2.6,-0.05,'M']]],
- [A,'Popliteal a.',true,false,[[1.0,-2.6,0.0,'D'],[0.97,-3.1,-0.35,'B'],[0.96,-3.7,-0.3,'B']]],
- [A,'Anterior tibial a. → dorsalis pedis',true,false,[[0.96,-3.7,-0.3,'D'],[1.05,-4.1,0.25,'F'],[1.1,-5.5,0.35,'F'],[1.0,-7.0,0.45,'F'],[0.95,-7.75,0.9,'U'],[0.9,-7.95,1.45,'U']]],
- [A,'Posterior tibial a. (behind medial malleolus)',true,false,[[0.96,-3.7,-0.3,'D'],[0.9,-5.0,-0.2,'B'],[0.85,-6.8,-0.1,'M'],[0.72,-7.45,0.05,'M'],[0.8,-7.85,0.55,'M']]],
- [A,'Subclavian → axillary a.',true,true,[[0.1,5.85,0.1,'D'],[0.9,5.85,0.0,'D'],[1.9,5.2,0.2,'D']]],
- [A,'Brachial a. (medial arm, antecubital fossa)',true,false,[[2.0,5.1,0.2,'D'],[2.3,4.4,0.2,'M'],[2.55,3.6,0.25,'M'],[2.85,3.15,0.55,'F']]],
- [A,'Radial a. (radial pulse)',true,false,[[2.85,3.15,0.55,'F'],[3.0,2.9,0.75,'F'],[3.3,2.2,1.5,'F'],[3.55,1.65,2.35,'F']]],
- [A,'Ulnar a.',true,false,[[2.85,3.15,0.55,'F'],[3.05,2.55,0.9,'M'],[3.4,1.9,1.7,'M'],[3.7,1.5,1.95,'M']]],
- [A,'Common carotid a. (carotid pulse)',true,false,[[0.25,5.95,0.35,'F'],[0.45,6.5,0.55,'F'],[0.55,7.05,0.7,'F']]],
- [A,'Internal carotid a.',true,true,[[0.55,7.05,0.7,'D'],[0.6,7.6,0.45,'D']]],
- [A,'External carotid → superficial temporal a.',true,false,[[0.55,7.05,0.7,'D'],[0.62,7.4,0.7,'L'],[0.72,7.9,0.55,'L'],[0.7,8.5,0.7,'L']]],
- [A,'Facial a. (crosses the mandible)',true,false,[[0.62,7.2,0.75,'D'],[0.55,7.0,1.05,'F'],[0.4,7.5,1.25,'F']]],
- /* ---- veins ---- */
- [V,'Internal jugular v.',true,true,[[0.65,7.55,0.4,'D'],[0.6,6.9,0.5,'D'],[0.4,6.2,0.35,'D'],[0.3,5.9,0.3,'D']]],
- [V,'External jugular v. (over sternocleidomastoid)',true,false,[[0.65,7.15,0.75,'L'],[0.85,6.55,0.45,'L'],[0.95,6.0,0.35,'F']]],
- [V,'Superior vena cava',false,true,[[0.2,5.9,0.2,'D'],[-0.1,5.4,0.3,'D'],[-0.05,4.9,0.5,'D']]],
- [V,'Inferior vena cava',false,true,[[-0.35,2.4,0.05,'D'],[-0.3,3.5,-0.05,'D'],[-0.2,4.6,0.3,'D']]],
- [V,'Cephalic v. (lateral arm)',true,false,[[3.5,1.7,2.25,'L'],[3.2,2.3,1.35,'L'],[2.9,3.2,0.3,'L'],[2.55,4.2,0.35,'L'],[1.75,5.55,0.6,'F'],[1.2,5.75,0.55,'F']]],
- [V,'Basilic v. (medial arm)',true,false,[[3.6,1.8,1.7,'M'],[3.2,2.5,0.9,'M'],[2.9,3.2,0.45,'M'],[2.45,4.0,0.3,'M'],[2.25,4.6,0.25,'D']]],
- [V,'Median cubital v. (venepuncture)',true,false,[[3.0,2.95,0.65,'F'],[2.9,3.15,0.6,'F'],[2.8,3.25,0.5,'F']]],
- [V,'Dorsal venous network (hand)',true,false,[[3.75,1.2,2.4,'L'],[3.9,0.95,2.65,'L']]],
- [V,'Femoral v.',true,true,[[0.85,1.2,0.5,'D'],[0.88,0.5,0.55,'D'],[0.85,-1.8,0.25,'D'],[0.85,-2.6,-0.05,'D']]],
- [V,'Great saphenous v. (anterior to medial malleolus)',true,false,[[0.55,-7.9,1.1,'U'],[0.6,-7.45,0.35,'M'],[0.55,-6.0,0.15,'M'],[0.6,-3.1,-0.05,'M'],[0.7,-1.5,0.35,'M'],[0.85,0.95,0.6,'F']]],
- [V,'Small saphenous v. (posterior calf)',true,false,[[1.25,-7.45,-0.1,'L'],[1.0,-5.5,-0.5,'B'],[0.97,-3.3,-0.45,'B']]],
- /* ---- nerves ---- */
- [N,'Spinal cord (C1 → L1/2)',false,true,[[0,6.6,-0.2,'D'],[0,5.5,-0.55,'D'],[0,4.5,-0.6,'D'],[0,3.2,-0.4,'D'],[0,2.3,-0.4,'D']]],
- [N,'Brachial plexus (roots C5–T1)',true,true,[[0.5,6.6,0.2,'D'],[0.9,6.2,0.25,'D'],[1.3,5.9,0.15,'D'],[1.9,5.3,0.25,'D']]],
- [N,'Median n. (carpal tunnel)',true,false,[[2.0,5.2,0.3,'D'],[2.4,4.2,0.28,'M'],[2.85,3.15,0.5,'F'],[3.2,2.4,1.2,'F'],[3.6,1.6,2.15,'F']]],
- [N,'Ulnar n. (behind medial epicondyle)',true,false,[[2.0,5.2,0.25,'D'],[2.45,4.1,0.15,'M'],[2.75,3.2,-0.05,'M'],[3.1,2.4,0.85,'M'],[3.6,1.55,1.9,'M']]],
- [N,'Radial n. (spiral groove → dorsum of hand)',true,false,[[2.1,5.1,0.05,'D'],[2.5,4.2,-0.15,'B'],[2.95,3.2,0.35,'L'],[3.25,2.3,1.35,'L'],[3.75,1.2,2.4,'L']]],
- [N,'Axillary n. (surgical neck of humerus)',true,false,[[2.0,5.5,0.0,'D'],[2.25,5.35,-0.15,'B'],[2.35,5.2,0.2,'L']]],
- [N,'Femoral n. → saphenous n. (medial leg)',true,false,[[0.95,1.3,0.55,'F'],[1.0,0.6,0.65,'F'],[0.8,-1.2,0.5,'M'],[0.65,-3.0,0.0,'M'],[0.6,-6.0,0.1,'M'],[0.62,-7.4,0.3,'M']]],
- [N,'Sciatic n. (posterior thigh)',true,false,[[0.95,0.75,-0.6,'B'],[1.0,-0.5,-0.55,'B'],[1.0,-2.0,-0.5,'B'],[0.97,-2.8,-0.45,'B']]],
- [N,'Tibial n. (posterior calf → medial malleolus)',true,false,[[0.97,-2.8,-0.45,'B'],[0.95,-5.0,-0.35,'B'],[0.72,-7.4,0.0,'M']]],
- [N,'Common fibular (peroneal) n. (fibular neck)',true,false,[[0.97,-2.9,-0.4,'B'],[1.25,-3.3,-0.15,'L'],[1.3,-3.7,0.05,'L'],[1.2,-5.5,0.3,'L'],[1.0,-7.8,1.0,'U']]],
- [N,'Vagus n. (CN X, carotid sheath)',true,true,[[0.6,7.5,0.45,'D'],[0.5,6.3,0.4,'D'],[0.3,5.6,0.2,'D']]],
- [N,'Facial n. (CN VII) branches',true,false,[[0.7,7.45,0.3,'D'],[0.72,7.4,0.75,'L'],[0.6,7.9,1.05,'F'],[0.5,7.85,1.35,'F']]],
- [N,'Facial n. buccal / marginal mandibular',true,false,[[0.72,7.4,0.75,'D'],[0.5,7.35,1.4,'F'],[0.45,7.0,1.3,'F']]],
- [N,'Greater occipital n.',true,false,[[0.35,7.0,-0.55,'B'],[0.4,7.7,-0.65,'B'],[0.5,8.4,-0.4,'B']]],
- /* ---- lymph node groups (rendered as nodes) ---- */
- [Y,'Preauricular nodes',true,false,[[0.78,7.85,0.65,'L']]],
- [Y,'Postauricular nodes',true,false,[[0.75,7.85,0.0,'L']]],
- [Y,'Occipital nodes',true,false,[[0.55,7.6,-0.6,'B']]],
- [Y,'Tonsillar (jugulodigastric) node',true,false,[[0.7,7.15,0.75,'L']]],
- [Y,'Submandibular nodes',true,false,[[0.45,6.95,1.05,'F'],[0.3,6.9,1.15,'F']]],
- [Y,'Submental nodes',false,false,[[0.0,6.8,1.15,'F']]],
- [Y,'Anterior (superficial) cervical nodes',true,false,[[0.65,6.7,0.7,'L'],[0.6,6.35,0.6,'L']]],
- [Y,'Deep cervical chain (along internal jugular)',true,true,[[0.6,6.9,0.45,'D'],[0.55,6.5,0.4,'D'],[0.5,6.15,0.35,'D']]],
- [Y,'Posterior cervical nodes',true,false,[[0.85,6.9,0.05,'B'],[0.9,6.5,-0.05,'B']]],
- [Y,'Supraclavicular nodes (Virchow’s node on the left)',true,false,[[0.9,6.05,0.25,'F']]],
- [Y,'Axillary nodes: central',true,true,[[1.75,5.0,0.25,'D']]],
- [Y,'Axillary nodes: anterior (pectoral)',true,false,[[1.8,4.75,0.5,'F']]],
- [Y,'Axillary nodes: posterior (subscapular)',true,false,[[1.75,4.9,-0.3,'B']]],
- [Y,'Axillary nodes: lateral',true,false,[[2.05,4.8,0.2,'M']]],
- [Y,'Axillary nodes: apical',true,true,[[1.45,5.5,0.2,'D']]],
- [Y,'Epitrochlear node (above medial epicondyle)',true,false,[[2.75,3.45,0.05,'M']]],
- [Y,'Superficial inguinal nodes: horizontal chain',true,false,[[0.6,1.15,0.6,'F'],[0.85,1.2,0.6,'F'],[1.05,1.3,0.55,'F']]],
- [Y,'Superficial inguinal nodes: vertical chain',true,false,[[0.8,0.85,0.65,'F'],[0.82,0.55,0.65,'F']]],
- [Y,'Deep inguinal nodes',true,true,[[0.85,1.05,0.4,'D']]],
- [Y,'Popliteal nodes',true,false,[[0.97,-3.4,-0.4,'B']]],
- [Y,'Para-aortic / mediastinal nodes (deep, not palpable)',false,true,[[0.2,4.8,-0.1,'D'],[0.1,3.2,0.0,'D'],[0.2,2.6,0.05,'D']]]
-];
-})();
+const j=(n,i)=>(J[n]||[[0,0,0],[0,0,0]])[i||0];
+const lerp=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+const add=(p,dx,dy,dz)=>[p[0]+dx,p[1]+dy,p[2]+dz];
+const S=j('upperarm01.L'),E=j('lowerarm01.L'),W=j('wrist.L'),MC=[1,2,3,4].map(k=>j('metacarpal'+k+'.L',1)),TIP=[1,2,3,4,5].map(k=>j('finger'+k+'-3.L',1)),TH=j('finger1-1.L');
+const H=j('upperleg01.L'),K=j('lowerleg01.L'),AN=j('foot.L'),FT=j('foot.L',1),TOE=[j('toe1-2.L',1),j('toe2-3.L',1),j('toe3-3.L',1),j('toe4-3.L',1),j('toe5-3.L',1)];
+const arm=t=>lerp(S,E,t),fa=t=>lerp(E,W,t),th=t=>lerp(H,K,t),lg=t=>lerp(K,AN,t);
+const L=[];const P=(layer,name,cal,pair,pts)=>L.push([layer,name,cal,pair,pts]);
+/* ================= ARTERIES ================= */
+P(A,'Ascending aorta and arch',1,false,[[0.25,4.85,0.5],[0.15,5.35,0.45],[0.0,5.65,0.2],[0.3,5.6,-0.1],[0.38,5.3,-0.2]]);
+P(A,'Thoracic aorta',1,false,[[0.38,5.3,-0.2],[0.38,4.6,-0.22],[0.32,3.9,-0.18],[0.25,3.4,-0.12]]);
+P(A,'Abdominal aorta',1,false,[[0.25,3.4,-0.12],[0.2,2.9,-0.08],[0.15,2.35,-0.02]]);
+P(A,'Brachiocephalic trunk',2,false,[[0.05,5.62,0.15],[-0.35,5.85,0.15]]);
+P(A,'Common carotid a.',2,true,[[0.25,5.9,0.3],[0.4,6.4,0.42],[0.45,7.0,0.5]]);
+P(A,'Internal carotid a.',2,true,[[0.45,7.0,0.5],[0.5,7.45,0.45],[0.42,7.9,0.4]]);
+P(A,'Middle cerebral a.',3,true,[[0.42,7.9,0.4],[0.75,8.15,0.45],[1.0,8.4,0.35]]);
+P(A,'Anterior cerebral a.',3,true,[[0.42,7.9,0.4],[0.2,8.3,0.75],[0.15,8.75,0.55]]);
+P(A,'Vertebral → basilar a.',3,true,[[0.5,5.9,-0.05],[0.36,6.5,-0.15],[0.36,7.3,-0.1],[0.2,7.75,-0.05],[0.05,8.0,0.05]]);
+P(A,'External carotid a.',2,true,[[0.45,7.0,0.5],[0.58,7.25,0.55],[0.66,7.55,0.5]]);
+P(A,'Superior thyroid a.',3,true,[[0.45,7.0,0.5],[0.3,6.7,0.62]]);
+P(A,'Facial a.',3,true,[[0.58,7.2,0.6],[0.55,7.05,1.0],[0.42,7.5,1.2],[0.3,7.95,1.25]]);
+P(A,'Lingual a.',3,true,[[0.55,7.15,0.6],[0.25,7.3,1.0]]);
+P(A,'Occipital a.',3,true,[[0.6,7.3,0.4],[0.55,7.6,-0.4],[0.5,8.1,-0.6]]);
+P(A,'Superficial temporal a. (temporal pulse)',3,true,[[0.66,7.55,0.5],[0.72,7.95,0.55],[0.7,8.45,0.6]]);
+P(A,'Superficial temporal: frontal branch',3,true,[[0.7,8.45,0.6],[0.55,8.8,0.9]]);
+P(A,'Superficial temporal: parietal branch',3,true,[[0.7,8.45,0.6],[0.62,8.85,0.1]]);
+P(A,'Maxillary a.',3,true,[[0.66,7.5,0.55],[0.55,7.7,0.95]]);
+P(A,'Subclavian a.',2,true,[[0.35,5.62,0.1],[0.9,5.85,0.0],[1.35,5.75,0.05]]);
+P(A,'Axillary a.',2,true,[[1.35,5.75,0.05],[1.75,5.4,0.15],add(S,-0.05,-0.35,0.2)]);
+P(A,'Brachial a. (medial to biceps tendon)',2,true,[add(S,-0.05,-0.35,0.2),add(arm(0.3),-0.14,0,0.12),add(arm(0.65),-0.12,0,0.14),add(arm(0.95),-0.05,0,0.2),add(E,0.02,-0.2,0.28)]);
+P(A,'Profunda brachii a.',3,true,[add(arm(0.15),-0.1,0,0.08),add(arm(0.4),0.1,0,-0.18),add(arm(0.7),0.16,0,-0.12)]);
+P(A,'Radial a. (radial pulse)',2,true,[add(E,0.02,-0.2,0.28),add(fa(0.3),0.12,0,0.14),add(fa(0.65),0.14,0,0.14),add(fa(0.95),0.1,0,0.12)]);
+P(A,'Ulnar a.',2,true,[add(E,0.02,-0.2,0.28),add(fa(0.3),-0.12,0,-0.08),add(fa(0.65),-0.14,0,-0.06),add(fa(0.95),-0.12,0,-0.04)]);
+P(A,'Common interosseous a.',3,true,[add(fa(0.15),-0.05,0,0.02),add(fa(0.5),0.0,0,0.0),add(fa(0.8),0.02,0,0.02)]);
+P(A,'Superficial palmar arch',3,true,[add(fa(0.95),-0.12,0,-0.04),add(lerp(W,MC[1],0.55),-0.12,0,0.02),add(lerp(W,MC[2],0.55),-0.1,0,0.02),add(lerp(W,MC[3],0.55),-0.08,0,0.02)]);
+P(A,'Deep palmar arch',3,true,[add(fa(0.95),0.1,0,0.12),add(lerp(W,MC[0],0.4),-0.05,0,0.05),add(lerp(W,MC[2],0.35),-0.06,0,0.0)]);
+[1,2,3,4].forEach((k,i)=>P(A,'Digital a. (finger '+(i+2)+')',3,true,[add(MC[i],-0.05,0,0),lerp(MC[i],TIP[i+1],0.5),TIP[i+1]]));
+P(A,'Princeps pollicis a. (thumb)',3,true,[add(lerp(W,MC[0],0.4),-0.05,0,0.05),lerp(TH,TIP[0],0.5),TIP[0]]);
+[5.05,4.55,4.05,3.55].forEach((y,i)=>P(A,'Posterior intercostal a. (T'+(4+i*2)+')',3,true,[[0.38,y,-0.25],[1.1,y-0.05,-0.45],[1.7,y-0.25,0.1],[1.45,y-0.45,0.8],[0.7,y-0.6,1.15]]));
+P(A,'Coeliac trunk (→ hepatic, splenic, left gastric)',3,false,[[0.25,3.55,-0.1],[0.2,3.6,0.25]]);
+P(A,'Hepatic a.',3,false,[[0.2,3.6,0.25],[-0.6,3.8,0.35],[-1.0,3.95,0.35]]);
+P(A,'Splenic a.',3,false,[[0.2,3.6,0.25],[0.7,3.55,-0.05],[1.15,3.6,-0.25]]);
+P(A,'Superior mesenteric a.',3,false,[[0.22,3.25,-0.05],[0.1,2.9,0.4],[-0.2,2.4,0.6],[-0.5,2.0,0.55]]);
+P(A,'Renal a.',3,true,[[0.2,3.05,-0.08],[0.7,3.05,-0.22],[1.05,3.05,-0.32]]);
+P(A,'Inferior mesenteric a.',3,false,[[0.18,2.65,-0.02],[0.45,2.3,0.35],[0.7,1.8,0.45]]);
+P(A,'Common iliac a.',2,true,[[0.15,2.35,-0.02],[0.5,1.9,0.05],[0.7,1.55,0.2]]);
+P(A,'Internal iliac a.',3,true,[[0.7,1.55,0.2],[0.75,1.15,-0.15],[0.6,0.8,-0.25]]);
+P(A,'External iliac a.',2,true,[[0.7,1.55,0.2],[0.78,1.3,0.45]]);
+P(A,'Femoral a. (mid-inguinal point)',2,true,[[0.78,1.3,0.45],add(th(0.12),-0.12,0,0.42),add(th(0.35),-0.22,0,0.3),add(th(0.6),-0.26,0,0.15),add(th(0.85),-0.2,0,-0.12)]);
+P(A,'Profunda femoris a.',3,true,[add(th(0.12),-0.1,0,0.4),add(th(0.3),0.05,0,0.05),add(th(0.6),0.1,0,-0.1)]);
+P(A,'Popliteal a.',2,true,[add(th(0.85),-0.2,0,-0.12),add(K,-0.02,0,-0.3),add(lg(0.1),0,0,-0.28)]);
+P(A,'Anterior tibial a.',2,true,[add(lg(0.1),0,0,-0.28),add(lg(0.2),0.12,0,0.15),add(lg(0.6),0.12,0,0.2),add(lg(0.95),0.05,0,0.22)]);
+P(A,'Dorsalis pedis a. (pedal pulse)',3,true,[add(lg(0.95),0.05,0,0.22),add(FT,0.0,0.12,0.15),add(lerp(FT,TOE[1],0.5),0,0.12,0)]);
+P(A,'Arcuate and dorsal metatarsal aa.',3,true,[add(lerp(FT,TOE[1],0.5),0,0.12,0),add(lerp(FT,TOE[3],0.5),0,0.12,0)]);
+[1,2,3].forEach(i=>P(A,'Dorsal digital a. (toe '+(i+1)+')',3,true,[add(lerp(FT,TOE[i],0.5),0,0.12,0),add(TOE[i],0,0.05,0)]));
+P(A,'Posterior tibial a. (behind medial malleolus)',2,true,[add(lg(0.1),0,0,-0.28),add(lg(0.4),-0.1,0,-0.2),add(lg(0.8),-0.15,0,-0.12),add(AN,-0.22,0.05,-0.08)]);
+P(A,'Fibular (peroneal) a.',3,true,[add(lg(0.15),0,0,-0.25),add(lg(0.5),0.2,0,-0.1),add(lg(0.9),0.2,0,-0.05)]);
+P(A,'Medial and lateral plantar aa.',3,true,[add(AN,-0.22,0.05,-0.08),add(AN,-0.1,-0.35,0.3),add(lerp(FT,TOE[2],0.6),0,-0.15,0)]);
+/* ================= VEINS ================= */
+P(V,'Superior vena cava',1,false,[[-0.2,5.55,0.32],[-0.15,5.15,0.45],[-0.1,4.85,0.5]]);
+P(V,'Brachiocephalic v.',2,true,[[0.5,5.9,0.25],[0.1,5.7,0.3],[-0.2,5.55,0.32]]);
+P(V,'Internal jugular v.',2,true,[[0.6,7.4,0.35],[0.58,6.9,0.4],[0.55,6.3,0.32],[0.5,5.9,0.25]]);
+P(V,'External jugular v. (over sternocleidomastoid)',3,true,[[0.62,7.15,0.75,'L'],[0.85,6.6,0.45,'L'],[0.95,6.0,0.35,'F']]);
+P(V,'Facial v.',3,true,[[0.32,7.9,1.2],[0.45,7.45,1.15],[0.6,7.05,0.9],[0.6,6.9,0.5]]);
+P(V,'Azygos v.',3,false,[[-0.3,3.5,-0.35],[-0.3,4.4,-0.38],[-0.28,5.1,-0.3],[-0.2,5.45,0.1]]);
+P(V,'Subclavian → axillary v.',2,true,[[0.5,5.9,0.25],[1.0,5.8,0.12],[1.4,5.65,0.15],add(S,-0.15,-0.35,0.28)]);
+P(V,'Brachial vv. (venae comitantes)',3,true,[add(S,-0.15,-0.35,0.28),add(arm(0.35),-0.2,0,0.1),add(arm(0.7),-0.18,0,0.12),add(E,-0.05,-0.15,0.22)]);
+P(V,'Cephalic v. (lateral arm)',2,true,[add(lerp(W,MC[0],0.3),0.18,0,0.02,'L'),add(fa(0.7),0.2,0,0.08,'L'),add(fa(0.3),0.22,0,0.08,'L'),add(arm(0.9),0.24,0,0.1,'L'),add(arm(0.5),0.25,0,0.12,'L'),add(arm(0.15),0.1,0.05,0.3,'F'),[1.25,5.7,0.55,'F']]);
+P(V,'Basilic v. (medial arm)',2,true,[add(fa(0.85),-0.2,0,-0.02,'M'),add(fa(0.5),-0.22,0,0.0,'M'),add(fa(0.1),-0.2,0,0.08,'M'),add(arm(0.8),-0.22,0,0.08,'M'),add(arm(0.55),-0.2,0,0.1)]);
+P(V,'Median cubital v. (venepuncture)',3,true,[add(fa(0.08),0.18,0,0.12,'F'),add(E,0.0,-0.1,0.3,'F'),add(fa(0.06),-0.18,0,0.1,'F')]);
+P(V,'Dorsal venous arch (hand)',3,true,[add(lerp(W,MC[0],0.45),0.15,0,0,'L'),add(lerp(W,MC[1],0.45),0.15,0,0,'L'),add(lerp(W,MC[2],0.45),0.14,0,0,'L'),add(lerp(W,MC[3],0.45),0.12,0,0,'L')]);
+P(V,'Inferior vena cava',1,false,[[-0.3,2.3,-0.05],[-0.32,3.2,-0.08],[-0.28,3.9,0.05],[-0.2,4.4,0.3],[-0.1,4.85,0.5]]);
+P(V,'Hepatic vv.',3,false,[[-0.28,4.2,0.2],[-0.8,4.05,0.35],[-1.05,3.9,0.3]]);
+P(V,'Renal v.',3,true,[[-0.3,3.0,-0.08],[0.4,3.0,-0.15],[1.05,3.0,-0.3]]);
+P(V,'Portal v. (splenic + superior mesenteric → liver)',3,false,[[1.1,3.55,-0.2],[0.4,3.35,0.15],[-0.1,3.45,0.3],[-0.55,3.7,0.4],[-0.9,3.85,0.4]]);
+P(V,'Superior mesenteric v.',3,false,[[-0.4,2.1,0.55],[-0.15,2.6,0.5],[0.0,3.05,0.35],[-0.1,3.45,0.3]]);
+P(V,'Common iliac v.',2,true,[[-0.3,2.3,-0.05],[0.4,1.85,0.0],[0.62,1.55,0.15]]);
+P(V,'Internal iliac v.',3,true,[[0.62,1.55,0.15],[0.68,1.15,-0.2]]);
+P(V,'External iliac → femoral v.',2,true,[[0.62,1.55,0.15],[0.7,1.28,0.42],add(th(0.12),-0.22,0,0.4),add(th(0.35),-0.32,0,0.26),add(th(0.6),-0.34,0,0.1),add(th(0.85),-0.28,0,-0.14)]);
+P(V,'Popliteal v.',2,true,[add(th(0.85),-0.28,0,-0.14),add(K,-0.08,0,-0.34),add(lg(0.1),-0.06,0,-0.32)]);
+P(V,'Posterior tibial vv.',3,true,[add(lg(0.1),-0.06,0,-0.32),add(lg(0.45),-0.16,0,-0.24),add(lg(0.85),-0.2,0,-0.14),add(AN,-0.26,0.05,-0.12)]);
+P(V,'Anterior tibial vv.',3,true,[add(lg(0.1),-0.06,0,-0.32),add(lg(0.25),0.06,0,0.14),add(lg(0.7),0.06,0,0.18),add(lg(0.95),0.0,0,0.2)]);
+P(V,'Great saphenous v. (anterior to the medial malleolus)',2,true,[add(lerp(FT,TOE[0],0.4),-0.15,0.1,0,'U'),add(AN,-0.3,0.15,0.2,'M'),add(lg(0.7),-0.3,0,0.05,'M'),add(lg(0.35),-0.3,0,-0.02,'M'),add(K,-0.38,0,-0.05,'M'),add(th(0.6),-0.36,0,0.18,'M'),add(th(0.25),-0.3,0,0.4,'M'),[0.82,0.95,0.6,'F']]);
+P(V,'Small saphenous v. (posterior calf)',3,true,[add(AN,0.32,0.15,-0.1,'L'),add(lg(0.7),0.05,0,-0.42,'B'),add(lg(0.35),0.0,0,-0.45,'B'),add(lg(0.08),-0.02,0,-0.42,'B')]);
+P(V,'Dorsal venous arch (foot)',3,true,[add(lerp(FT,TOE[0],0.4),-0.15,0.1,0,'U'),add(lerp(FT,TOE[2],0.4),0,0.1,0,'U'),add(lerp(FT,TOE[4],0.4),0.1,0.1,0,'U')]);
+/* ================= NERVES ================= */
+P(N,'Spinal cord (C1 → L1/2)',1,false,[[0,7.5,-0.05],[0,6.6,-0.2],[0,5.5,-0.52],[0,4.5,-0.55],[0,3.4,-0.4],[0,2.5,-0.35]]);
+P(N,'Cauda equina',2,false,[[0,2.5,-0.35],[0,1.9,-0.4],[0,1.3,-0.55]]);
+P(N,'Cervical plexus (C1–C4)',3,true,[[0.45,7.2,0.05],[0.5,6.9,0.05],[0.55,6.6,0.0]]);
+P(N,'Great auricular n.',3,true,[[0.5,6.9,0.05],[0.62,7.25,0.35],[0.7,7.6,0.35]]);
+P(N,'Lesser occipital n.',3,true,[[0.5,6.9,0.05],[0.55,7.45,-0.35],[0.55,7.9,-0.5]]);
+P(N,'Transverse cervical n.',3,true,[[0.5,6.9,0.05],[0.6,6.65,0.5],[0.35,6.5,0.75]]);
+P(N,'Supraclavicular nn.',3,true,[[0.55,6.6,0.0],[0.85,6.2,0.25],[1.15,5.95,0.4]]);
+P(N,'Phrenic n. (to the diaphragm)',3,true,[[0.55,6.5,0.05],[0.5,5.7,0.08],[0.55,5.0,0.3],[0.7,4.3,0.35],[0.9,3.9,0.3]]);
+P(N,'Vagus n. (CN X)',2,true,[[0.5,7.45,0.35],[0.5,6.6,0.38],[0.42,5.8,0.22],[0.25,5.0,-0.1],[0.1,4.2,-0.3],[0.3,3.5,0.0]]);
+P(N,'Accessory n. (CN XI, to trapezius)',3,true,[[0.5,7.3,0.1],[0.75,6.9,-0.2],[0.95,6.5,-0.35]]);
+P(N,'Trigeminal n. (CN V) ganglion',3,true,[[0.4,7.85,0.45],[0.5,7.9,0.7]]);
+P(N,'V1 ophthalmic → supraorbital n.',3,true,[[0.5,7.9,0.7],[0.32,8.3,1.15],[0.35,8.75,1.05]]);
+P(N,'V2 maxillary → infraorbital n.',3,true,[[0.5,7.9,0.7],[0.35,7.8,1.3],[0.5,7.6,1.35]]);
+P(N,'V3 mandibular → inferior alveolar / mental n.',3,true,[[0.5,7.9,0.7],[0.6,7.4,0.75],[0.4,7.05,1.2],[0.2,7.0,1.35]]);
+P(N,'Facial n. (CN VII) trunk',2,true,[[0.62,7.5,0.2],[0.7,7.35,0.55]]);
+[['temporal',[0.62,8.1,0.95]],['zygomatic',[0.5,7.85,1.3]],['buccal',[0.45,7.45,1.4]],['marginal mandibular',[0.4,7.0,1.3]],['cervical',[0.45,6.8,0.9]]].forEach(([n,e])=>P(N,'Facial n. '+n+' branch',3,true,[[0.7,7.35,0.55],lerp([0.7,7.35,0.55],e,0.5),e]));
+P(N,'Greater occipital n.',3,true,[[0.3,7.0,-0.55],[0.42,7.7,-0.7],[0.5,8.35,-0.45]]);
+P(N,'Brachial plexus roots (C5–T1)',2,true,[[0.42,6.55,0.05],[0.6,6.25,0.0],[0.85,6.05,0.0],[1.15,5.9,0.02]]);
+P(N,'Brachial plexus trunks → cords',2,true,[[1.15,5.9,0.02],[1.45,5.7,0.08],[1.75,5.4,0.18],add(S,-0.1,-0.3,0.2)]);
+P(N,'Musculocutaneous n. → lateral cutaneous n. of forearm',3,true,[add(S,-0.1,-0.3,0.2),add(arm(0.4),0.0,0,0.22),add(arm(0.85),0.08,0,0.24),add(fa(0.3),0.16,0,0.16),add(fa(0.8),0.16,0,0.1)]);
+P(N,'Median n. (carpal tunnel)',2,true,[add(S,-0.1,-0.3,0.2),add(arm(0.35),-0.16,0,0.16),add(arm(0.7),-0.14,0,0.18),add(E,0.0,-0.15,0.24),add(fa(0.4),0.0,0,0.12),add(fa(0.8),-0.02,0,0.12),add(fa(1.0),-0.02,0,0.12)]);
+[1,2,3].forEach((i)=>P(N,'Common palmar digital n. (median)',3,true,[add(fa(1.0),-0.02,0,0.12),add(MC[i-1],-0.06,0,0.02),lerp(MC[i-1],TIP[i],0.6)]));
+P(N,'Ulnar n. (behind the medial epicondyle)',2,true,[add(S,-0.1,-0.3,0.15),add(arm(0.4),-0.18,0,0.0),add(arm(0.8),-0.2,0,-0.1),add(E,-0.2,-0.05,-0.12),add(fa(0.3),-0.16,0,-0.1),add(fa(0.7),-0.15,0,-0.06),add(fa(1.0),-0.12,0,-0.03)]);
+P(N,'Ulnar n. digital branches',3,true,[add(fa(1.0),-0.12,0,-0.03),add(MC[3],-0.08,0,0.0),lerp(MC[3],TIP[4],0.6)]);
+P(N,'Radial n. (spiral groove)',2,true,[add(S,-0.05,-0.35,0.05),add(arm(0.3),0.02,0,-0.2),add(arm(0.55),0.14,0,-0.16),add(arm(0.85),0.2,0,0.0),add(E,0.15,-0.05,0.15)]);
+P(N,'Superficial radial n. (dorsum of hand)',3,true,[add(E,0.15,-0.05,0.15),add(fa(0.4),0.2,0,0.1),add(fa(0.8),0.18,0,0.05),add(lerp(W,MC[0],0.5),0.14,0,0.0)]);
+P(N,'Posterior interosseous n.',3,true,[add(E,0.15,-0.05,0.15),add(fa(0.3),0.05,0,-0.15),add(fa(0.7),0.02,0,-0.15)]);
+P(N,'Axillary n. (surgical neck)',3,true,[add(S,-0.05,-0.35,0.05),add(S,0.15,-0.4,-0.15),add(S,0.3,-0.3,0.05)]);
+[5.05,4.55,4.05,3.55].forEach((y,i)=>P(N,'Intercostal n. (T'+(4+i*2)+')',3,true,[[0.3,y,-0.35],[1.05,y-0.05,-0.5],[1.68,y-0.25,0.05],[1.42,y-0.45,0.76],[0.65,y-0.6,1.1]]));
+P(N,'Lumbar plexus (L1–L4)',2,true,[[0.35,2.6,-0.3],[0.5,2.2,-0.3],[0.6,1.8,-0.25]]);
+P(N,'Femoral n. (lateral to the femoral artery)',2,true,[[0.6,1.8,-0.25],[0.85,1.45,0.3],[0.95,1.25,0.5],add(th(0.15),0.05,0,0.4)]);
+P(N,'Saphenous n. (medial leg)',3,true,[add(th(0.15),0.05,0,0.4),add(th(0.5),-0.24,0,0.22),add(K,-0.34,0,0.05),add(lg(0.5),-0.28,0,0.02),add(AN,-0.28,0.1,0.15)]);
+P(N,'Obturator n. (medial thigh)',3,true,[[0.6,1.8,-0.25],[0.45,1.1,0.1],add(th(0.3),-0.32,0,0.05),add(th(0.6),-0.3,0,0.0)]);
+P(N,'Lateral femoral cutaneous n.',3,true,[[0.6,1.8,-0.25],[1.1,1.5,0.4],add(th(0.3),0.3,0,0.2),add(th(0.65),0.32,0,0.15)]);
+P(N,'Sacral plexus (L4–S3)',2,true,[[0.35,1.5,-0.5],[0.6,1.1,-0.55],[0.85,0.8,-0.6]]);
+P(N,'Sciatic n. (posterior thigh)',1,true,[[0.85,0.8,-0.6],add(th(0.2),0.0,0,-0.38),add(th(0.5),0.0,0,-0.36),add(th(0.8),0.0,0,-0.34)]);
+P(N,'Tibial n. (popliteal fossa → medial malleolus)',2,true,[add(th(0.8),0.0,0,-0.34),add(K,-0.02,0,-0.36),add(lg(0.4),-0.05,0,-0.3),add(lg(0.8),-0.12,0,-0.18),add(AN,-0.24,0.05,-0.1)]);
+P(N,'Medial and lateral plantar nn.',3,true,[add(AN,-0.24,0.05,-0.1),add(AN,-0.1,-0.38,0.3),add(lerp(FT,TOE[1],0.6),0,-0.18,0),add(lerp(FT,TOE[3],0.6),0.05,-0.18,0)]);
+P(N,'Sural n. (posterior calf → lateral foot)',3,true,[add(lg(0.15),0.05,0,-0.36),add(lg(0.55),0.1,0,-0.36),add(AN,0.3,0.1,-0.12),add(lerp(FT,TOE[4],0.5),0.15,0.0,0)]);
+P(N,'Common fibular (peroneal) n. (fibular neck)',2,true,[add(th(0.8),0.0,0,-0.34),add(K,0.28,-0.3,-0.2),add(K,0.36,-0.7,0.02)]);
+P(N,'Superficial fibular n.',3,true,[add(K,0.36,-0.7,0.02),add(lg(0.4),0.26,0,0.12),add(lg(0.8),0.2,0,0.2),add(lerp(FT,TOE[3],0.4),0.05,0.1,0)]);
+P(N,'Deep fibular n. (1st web space)',3,true,[add(K,0.36,-0.7,0.02),add(lg(0.3),0.12,0,0.22),add(lg(0.9),0.06,0,0.24),add(lerp(FT,TOE[0],0.5),0.1,0.1,0)]);
+/* ================= LYMPH NODE GROUPS ================= */
+P(Y,'Preauricular nodes',0,true,[[0.78,7.85,0.65,'L']]);
+P(Y,'Postauricular nodes',0,true,[[0.75,7.85,0.0,'L']]);
+P(Y,'Occipital nodes',0,true,[[0.55,7.6,-0.6,'B']]);
+P(Y,'Tonsillar (jugulodigastric) node',0,true,[[0.7,7.15,0.75,'L']]);
+P(Y,'Submandibular nodes',0,true,[[0.45,6.95,1.05,'F'],[0.3,6.9,1.15,'F']]);
+P(Y,'Submental nodes',0,false,[[0.0,6.8,1.15,'F']]);
+P(Y,'Anterior (superficial) cervical nodes',0,true,[[0.65,6.7,0.7,'L'],[0.6,6.35,0.6,'L']]);
+P(Y,'Deep cervical chain (along the internal jugular)',0,true,[[0.6,6.9,0.45],[0.55,6.5,0.4],[0.5,6.15,0.35]]);
+P(Y,'Posterior cervical nodes',0,true,[[0.85,6.9,0.05,'B'],[0.9,6.5,-0.05,'B']]);
+P(Y,'Supraclavicular nodes (Virchow’s node on the left)',0,true,[[0.9,6.05,0.25,'F']]);
+P(Y,'Axillary nodes: central',0,true,[[1.75,5.0,0.25]]);
+P(Y,'Axillary nodes: anterior (pectoral)',0,true,[[1.8,4.75,0.5,'F']]);
+P(Y,'Axillary nodes: posterior (subscapular)',0,true,[[1.75,4.9,-0.3,'B']]);
+P(Y,'Axillary nodes: lateral',0,true,[[2.05,4.8,0.2,'M']]);
+P(Y,'Axillary nodes: apical',0,true,[[1.45,5.5,0.2]]);
+P(Y,'Epitrochlear node (above the medial epicondyle)',0,true,[add(E,-0.18,0.25,0.02,'M')]);
+P(Y,'Superficial inguinal nodes: horizontal chain',0,true,[[0.6,1.15,0.6,'F'],[0.85,1.2,0.6,'F'],[1.05,1.3,0.55,'F']]);
+P(Y,'Superficial inguinal nodes: vertical chain',0,true,[[0.8,0.85,0.65,'F'],[0.82,0.55,0.65,'F']]);
+P(Y,'Deep inguinal nodes',0,true,[[0.85,1.05,0.4]]);
+P(Y,'Popliteal nodes',0,true,[add(K,0,-0.2,-0.3,'B')]);
+P(Y,'Mediastinal nodes (deep, not palpable)',0,false,[[0.1,5.2,0.1],[-0.1,4.8,-0.05]]);
+P(Y,'Para-aortic nodes (deep, not palpable)',0,false,[[0.35,3.2,-0.2],[0.05,2.8,-0.15],[0.3,2.4,-0.1]]);
+P(Y,'Coeliac / mesenteric nodes (deep, not palpable)',0,false,[[0.0,3.55,0.15],[-0.1,2.9,0.45]]);
+P(Y,'Thoracic duct (cisterna chyli → left venous angle)',3,false,[[0.15,2.6,-0.15],[0.05,3.6,-0.3],[-0.05,4.6,-0.35],[0.1,5.4,-0.2],[0.45,5.9,0.2]]);
+/* lymphatic vessels (thin, converging on the node groups and the two ducts) */
+P(Y,'Lymphatics of the leg (follow the great saphenous vein to the inguinal nodes)',3,true,[add(AN,0.2,0.3,0.4,'F'),add(lg(0.5),0.15,0,0.3,'F'),add(K,0.25,0,0.05,'M'),add(th(0.5),0.2,0,0.5,'F'),[0.82,0.55,0.65,'F'],[0.85,1.05,0.4]]);
+P(Y,'Lymphatics of the calf → popliteal nodes',3,true,[add(AN,-0.05,0.3,-0.3,'B'),add(lg(0.5),0,0,-0.3,'B'),add(K,0,-0.2,-0.3,'B')]);
+P(Y,'Iliac → lumbar (para-aortic) lymph trunks',3,true,[[0.85,1.05,0.4],[0.6,1.7,0.1],[0.35,2.4,-0.1],[0.2,2.9,-0.15]]);
+P(Y,'Cisterna chyli (L1–L2, behind the aorta)',0,false,[[0.15,2.6,-0.2]]);
+P(Y,'Intestinal lymph trunk (gut → cisterna chyli)',3,false,[[-0.1,2.9,0.45],[0.0,2.75,0.1],[0.15,2.6,-0.2]]);
+P(Y,'Lymphatics of the arm (along the basilic vein → epitrochlear → axillary)',3,true,[add(W,0,0.1,-0.1,'M'),add(fa(0.5),-0.1,0,0,'M'),add(E,-0.18,0.25,0.02,'M'),add(arm(0.4),-0.15,0,0.1,'M'),[2.05,4.8,0.2,'M'],[1.75,5.0,0.25],[1.45,5.5,0.2]]);
+P(Y,'Subclavian lymph trunk → venous angle',3,true,[[1.45,5.5,0.2],[0.95,5.85,0.15],[0.45,5.9,0.2]]);
+P(Y,'Jugular lymph trunk (deep cervical chain → venous angle)',3,true,[[0.6,6.9,0.45],[0.55,6.5,0.4],[0.5,6.15,0.35],[0.45,5.9,0.2]]);
+P(Y,'Right lymphatic duct (right head, arm and chest → right venous angle)',3,false,[[-0.5,5.6,0.05],[-0.45,5.9,0.2]]);
+P(Y,'Bronchomediastinal trunk',3,true,[[0.1,5.2,0.1],[0.3,5.6,0.15],[0.45,5.9,0.2]]);
+P(Y,'Breast lymphatics (~75% drain to the axillary nodes)',3,true,[[0.9,4.6,0.9,'F'],[1.3,4.7,0.7,'F'],[1.8,4.75,0.5,'F']]);
+return L;
+};

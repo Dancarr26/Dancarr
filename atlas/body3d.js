@@ -19,7 +19,8 @@ const TO2D={head:['front','head'],neck:['front','neck'],chest:['front','chest'],
 const FROM2D={'front:head':'head','front:neck':'neck','front:chest':'chest','front:abdomen':'abdomen','front:pelvis':'pelvis','front:armR':'armR','front:armL':'armL','front:legs':'legs','back:head':'head','back:neck':'neck','back:back':'back','back:pelvis':'sacrum','back:armR':'armR','back:armL':'armL','back:legs':'legs'};
 const VS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aZone;attribute float aSec;attribute vec2 aUvF;attribute vec2 aUvB;uniform mat4 uP,uV,uM;uniform float uZone,uHover,uOffset,uSec;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;varying float vSh;varying float vPar;varying vec2 vUvF;varying vec2 vUvB;varying float vNz;
 void main(){float hf=(abs(aZone-1.0)<0.5)?0.35:((abs(aZone-6.0)<0.5||abs(aZone-7.0)<0.5)?0.7:1.0);vec3 p=aPos+aNrm*uOffset*hf;vec4 w=uM*vec4(p,1.0);vW=w.xyz;vN=mat3(uM)*aNrm;vNz=aNrm.z;vOn=step(abs(aZone-uZone),0.5);vHv=step(abs(aZone-uHover),0.5);vSh=step(abs(aSec-uSec),0.5);vPar=mod(aSec,2.0);vUvF=aUvF;vUvB=aUvB;gl_Position=uP*uV*w;}`;
-const FS=`precision mediump float;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;varying float vSh;varying float vPar;varying vec2 vUvF;varying vec2 vUvB;varying float vNz;uniform vec3 uBase,uAccent,uLight,uEye,uInk;uniform float uOutline,uSections;uniform sampler2D uTexF,uTexB;
+const FS=`precision mediump float;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;varying float vSh;varying float vPar;varying vec2 vUvF;varying vec2 vUvB;varying float vNz;uniform vec3 uBase,uAccent,uLight,uEye,uInk;uniform float uOutline,uSections,uMuscles,uMusHov;uniform sampler2D uTexF,uTexB,uMusF,uMusB;
+vec3 hsv(float h,float s,float v){vec3 k=vec3(1.0,2.0/3.0,1.0/3.0);vec3 p=abs(fract(vec3(h)+k)*6.0-3.0);return v*mix(vec3(1.0),clamp(p-1.0,0.0,1.0),s);}
 void main(){
  if(uOutline>0.5){gl_FragColor=vec4(uInk,1.0);return;}
  vec3 n=normalize(vN);vec3 l=normalize(uLight);vec3 e=normalize(uEye-vW);
@@ -27,7 +28,12 @@ void main(){
  vec3 tf=texture2D(uTexF,vUvF).rgb;vec3 tb=texture2D(uTexB,vUvB).rgb;vec3 tex=mix(tb,tf,k);
  float d=dot(n,l);float band=d>0.3?1.0:(d>-0.15?0.88:0.76);
  float rim=pow(1.0-max(dot(n,e),0.0),4.0);
- vec3 col=tex*band;col=mix(col,uInk,rim*0.25);
+ vec3 col=tex*band;
+ /* muscle chart: colour each muscle group from the id map, name-highlight the hovered one */
+ vec4 mm=mix(texture2D(uMusB,vUvB),texture2D(uMusF,vUvF),step(0.5,k));float mid=floor(mm.r*255.0+0.5);
+ float musOn=uMuscles*step(0.5,mid);vec3 mc=hsv(fract(mid*0.173+0.93),0.5,0.82)*band;col=mix(col,mc,musOn*0.55);
+ float mh=step(abs(mid-uMusHov),0.5)*step(0.5,mid);col=mix(col,uAccent,mh*0.45);
+ col=mix(col,uInk,rim*0.25);
  float par=smoothstep(0.45,0.55,vPar);col=mix(col,col*0.9,par*uSections);
  float on=smoothstep(0.45,0.55,vOn);float sh=smoothstep(0.45,0.55,vSh)*(1.0-on);float hv=smoothstep(0.45,0.55,vHv)*(1.0-on)*(1.0-sh);
  col=mix(col,mix(col,uAccent,0.5),on);col=mix(col,mix(col,uAccent,0.35),sh);col=mix(col,mix(col,uAccent,0.12),hv);
@@ -87,6 +93,16 @@ function sectionizer(){
   };
 }
 function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||'#888';}
+const MUSCLE_NAMES={chest:'Pectoralis major',abs:'Rectus abdominis',obliques:'External oblique',deltoids:'Deltoid',biceps:'Biceps brachii',triceps:'Triceps brachii',forearm:'Forearm flexors',hands:'Hand',neck:'Sternocleidomastoid',trapezius:'Trapezius',head:'Face',hair:'Cranium',quadriceps:'Quadriceps',adductors:'Adductors',tibialis:'Tibialis anterior',calves:'Gastrocnemius / soleus',knees:'Patella',ankles:'Malleoli',feet:'Foot','upper-back':'Latissimus dorsi / rhomboids','lower-back':'Erector spinae',gluteal:'Gluteus maximus / medius',hamstring:'Hamstrings'};
+const MUSCLE_NAMES_BACK={forearm:'Forearm extensors',neck:'Splenius / trapezius',head:'Occiput'};
+function muscleName(view,slug){return (view==='back'&&MUSCLE_NAMES_BACK[slug])||MUSCLE_NAMES[slug]||slug;}
+/* id map: each plate part filled with rgb(id, side, 0), no antialiasing; front ids 1.., back ids 101.. */
+function rasterMuscleMap(view){
+  const ART=window.BODY_ART;const w=724,h=1448;const ox=view==='front'?0:724;const base=view==='front'?1:101;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${ox} 0 724 1448" width="${w}" height="${h}" shape-rendering="crispEdges"><rect x="${ox}" y="0" width="724" height="1448" fill="rgb(0,0,0)"/>`+
+    ART[view].map((p,i)=>Object.entries(p.parts).map(([side,ds])=>ds.map(d=>`<path d="${d}" fill="rgb(${base+i},${side==='left'?1:side==='right'?2:0},0)"/>`).join('')).join('')).join('')+`</svg>`;
+  return new Promise(res=>{const img=new Image();img.onload=()=>{const cv=document.createElement('canvas');cv.width=w;cv.height=h;const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(img,0,0);res({cv,data:g.getImageData(0,0,w,h).data});};img.onerror=()=>{const cv=document.createElement('canvas');cv.width=8;cv.height=8;res({cv,data:null});};img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);});
+}
 function rasterArt(view){
   const ART=window.BODY_ART;const w=724,h=1448;const soft=cssVar('--figure-soft'),fig=cssVar('--figure');const ox=view==='front'?0:724;
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${ox} 0 724 1448" width="${w}" height="${h}"><rect x="${ox}" y="0" width="724" height="1448" fill="${soft}"/>`+
@@ -101,10 +117,11 @@ function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
 function cssColor(name){const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();const m=v.match(/^#([0-9a-f]{6})$/i);if(!m)return [0.75,0.78,0.8];const h=m[1];return [parseInt(h.slice(0,2),16)/255,parseInt(h.slice(2,4),16)/255,parseInt(h.slice(4,6),16)/255];}
 const PRESETS={front:[0,0],back:[Math.PI,0],left:[Math.PI/2,0],right:[-Math.PI/2,0],top:[0,Math.PI/2-0.01],bottom:[0,-Math.PI/2+0.01]};
 /* ---- vessels, nerves and lymph nodes as 3D geometry ---- */
-const SVS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aId;uniform mat4 uP,uV;uniform float uHi;varying float vL;varying float vHi;
-void main(){vec3 n=normalize(aNrm);vL=0.6+0.4*max(dot(n,normalize(vec3(0.4,0.8,0.6))),0.0);vHi=step(abs(aId-uHi),0.5);gl_Position=uP*uV*vec4(aPos,1.0);}`;
-const SFS=`precision mediump float;uniform vec3 uCol;uniform float uAlpha;varying float vL;varying float vHi;
-void main(){vec3 c=mix(uCol*vL,vec3(1.0),vHi*0.35);gl_FragColor=vec4(c,uAlpha);}`;
+const SVS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aId;attribute float aZm;uniform mat4 uP,uV;uniform float uHi,uSel;varying float vL;varying float vHi;varying float vDim;
+void main(){vec3 n=normalize(aNrm);vL=0.6+0.4*max(dot(n,normalize(vec3(0.4,0.8,0.6))),0.0);vHi=step(abs(aId-uHi),0.5);
+ float inZone=uSel<0.5?1.0:mod(floor(aZm/pow(2.0,uSel)+0.5),2.0);vDim=1.0-inZone;gl_Position=uP*uV*vec4(aPos,1.0);}`;
+const SFS=`precision mediump float;uniform vec3 uCol;uniform float uAlpha;varying float vL;varying float vHi;varying float vDim;
+void main(){vec3 c=mix(uCol*vL,vec3(1.0),vHi*0.35);c=mix(c,vec3(0.6),vDim*0.5);gl_FragColor=vec4(c,uAlpha*(1.0-vDim*0.8));}`;
 const DIRV={F:[0,0,1],B:[0,0,-1],U:[0,1,0]};
 function snapPoint(body,x,y,z,dir){
   if(dir==='D')return [x,y,z];
@@ -112,14 +129,79 @@ function snapPoint(body,x,y,z,dir){
   const p=body.pos,n=body.nrm;let best=-1,bs=-1e9;
   for(let i=0;i<body.nv;i++){const dx=p[i*3]-x,dy=p[i*3+1]-y,dz=p[i*3+2]-z;const dd=dx*dx+dy*dy+dz*dz;if(dd>1.0)continue;const al=n[i*3]*d[0]+n[i*3+1]*d[1]+n[i*3+2]*d[2];const sc=al*0.9-dd*1.6;if(sc>bs){bs=sc;best=i;}}
   if(best<0)return [x,y,z];
-  return [p[best*3]+n[best*3]*0.1,p[best*3+1]+n[best*3+1]*0.1,p[best*3+2]+n[best*3+2]*0.1];
+  const IN=-0.06;/* superficial courses sit just under the skin */
+  return [p[best*3]+n[best*3]*IN,p[best*3+1]+n[best*3+1]*IN,p[best*3+2]+n[best*3+2]*IN];
 }
+function nearestZone(body,x,y,z){const p=body.pos;let best=-1,bd=1e9;for(let i=0;i<body.nv;i++){const dx=p[i*3]-x,dy=p[i*3+1]-y,dz=p[i*3+2]-z;const dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;best=i;}}return best<0?0:body.zone[best];}
+/* zone bitmask for a point: the nearest skin zone, plus both the front and back zone of its band when it lies deep in the trunk */
+function zoneBits(body,x,y,z,deep){let m=1<<nearestZone(body,x,y,z);
+  if(deep&&Math.abs(x)<1.75&&y<6.2&&y>=-0.95){const Z=ZONE_IDS;if(y>=5.55)m|=1<<Z.neck;else if(y>=3.4)m|=(1<<Z.chest)|(1<<Z.back);else if(y>=1.6)m|=(1<<Z.abdomen)|(1<<Z.back);else m|=(1<<Z.pelvis)|(1<<Z.sacrum);}
+  return m;}
 function smoothLine(pts,sub){const out=[];const P=i=>pts[Math.max(0,Math.min(pts.length-1,i))];for(let i=0;i<pts.length-1;i++){const p0=P(i-1),p1=P(i),p2=P(i+1),p3=P(i+2);for(let k=0;k<sub;k++){const t=k/sub,t2=t*t,t3=t2*t;out.push([0,1,2].map(a=>0.5*((2*p1[a])+(-p0[a]+p2[a])*t+(2*p0[a]-5*p1[a]+4*p2[a]-p3[a])*t2+(-p0[a]+3*p1[a]-3*p2[a]+p3[a])*t3)));}}out.push(pts[pts.length-1]);return out;}
-function tube(pts,r,id,out){const S=6;let prevN=null;const rings=[];
+function tube(pts,r,id,out,zm){const S=6;let prevN=null;const rings=[];
   for(let i=0;i<pts.length;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];let t=norm([b[0]-a[0],b[1]-a[1],b[2]-a[2]]);let u=prevN||norm(cross(t,Math.abs(t[1])<0.9?[0,1,0]:[1,0,0]));u=norm(cross(cross(t,u),t));const v=cross(t,u);prevN=u;const ring=[];for(let k=0;k<S;k++){const ang=k/S*Math.PI*2;const nx=u[0]*Math.cos(ang)+v[0]*Math.sin(ang),ny=u[1]*Math.cos(ang)+v[1]*Math.sin(ang),nz=u[2]*Math.cos(ang)+v[2]*Math.sin(ang);ring.push([pts[i][0]+nx*r,pts[i][1]+ny*r,pts[i][2]+nz*r,nx,ny,nz]);}rings.push(ring);}
-  for(let i=0;i<rings.length-1;i++)for(let k=0;k<S;k++){const a=rings[i][k],b=rings[i][(k+1)%S],c=rings[i+1][k],d=rings[i+1][(k+1)%S];[a,c,b,b,c,d].forEach(q=>{out.push(q[0],q[1],q[2],q[3],q[4],q[5],id);});}}
-function sphere(c,r,id,out){const R=8,Q=6;const P=(i,j)=>{const th=i/R*Math.PI*2,ph=j/Q*Math.PI;const nx=Math.sin(ph)*Math.cos(th),ny=Math.cos(ph),nz=Math.sin(ph)*Math.sin(th);return [c[0]+nx*r,c[1]+ny*r,c[2]+nz*r,nx,ny,nz];};
-  for(let i=0;i<R;i++)for(let j=0;j<Q;j++){const a=P(i,j),b=P(i+1,j),cc=P(i,j+1),d=P(i+1,j+1);[a,cc,b,b,cc,d].forEach(q=>{out.push(q[0],q[1],q[2],q[3],q[4],q[5],id);});}}
+  for(let i=0;i<rings.length-1;i++)for(let k=0;k<S;k++){const a=rings[i][k],b=rings[i][(k+1)%S],c=rings[i+1][k],d=rings[i+1][(k+1)%S];[a,c,b,b,c,d].forEach(q=>{out.push(q[0],q[1],q[2],q[3],q[4],q[5],id,zm);});}}
+function sphere(c,r,id,out,zm){const R=8,Q=6;const P=(i,j)=>{const th=i/R*Math.PI*2,ph=j/Q*Math.PI;const nx=Math.sin(ph)*Math.cos(th),ny=Math.cos(ph),nz=Math.sin(ph)*Math.sin(th);return [c[0]+nx*r,c[1]+ny*r,c[2]+nz*r,nx,ny,nz];};
+  for(let i=0;i<R;i++)for(let j=0;j<Q;j++){const a=P(i,j),b=P(i+1,j),cc=P(i,j+1),d=P(i+1,j+1);[a,cc,b,b,cc,d].forEach(q=>{out.push(q[0],q[1],q[2],q[3],q[4],q[5],id,zm);});}}
+/* organ blob: an ellipsoid (rx,ry,rz) tilted by rot radians about z, optionally squashed toward the front (fz<1 flattens the back) */
+function ellipsoid(c,rx,ry,rz,rot,id,out,zm){const R=14,Q=10;const cs=Math.cos(rot),sn=Math.sin(rot);
+  const P=(i,j)=>{const th=i/R*Math.PI*2,ph=j/Q*Math.PI;let x=Math.sin(ph)*Math.cos(th)*rx,y=Math.cos(ph)*ry,z=Math.sin(ph)*Math.sin(th)*rz;const X=x*cs-y*sn,Y=x*sn+y*cs;let nx=X/(rx*rx),ny=Y/(ry*ry),nz=z/(rz*rz);const l=Math.hypot(nx,ny,nz)||1;return [c[0]+X,c[1]+Y,c[2]+z,nx/l,ny/l,nz/l];};
+  for(let i=0;i<R;i++)for(let j=0;j<Q;j++){const a=P(i,j),b=P(i+1,j),cc=P(i,j+1),d=P(i+1,j+1);[a,cc,b,b,cc,d].forEach(q=>{out.push(q[0],q[1],q[2],q[3],q[4],q[5],id,zm);});}}
+/* organs: [name, centre, rx, ry, rz, tilt, colour] in model space (y up, +z front, +x patient's left) */
+const ORGANS=[
+ ['Brain',[0,8.25,0.05],0.8,0.72,0.95,0,[0.85,0.72,0.74]],
+ ['Heart (apex ~5th intercostal space, mid-clavicular line)',[0.3,4.55,0.42],0.62,0.85,0.5,-0.55,[0.8,0.2,0.22]],
+ ['Right lung',[-1.2,4.7,-0.1],0.68,1.45,0.72,0,[0.9,0.62,0.62]],
+ ['Left lung',[1.25,4.7,-0.1],0.6,1.4,0.7,0,[0.9,0.62,0.62]],
+ ['Liver (RUQ; edge below right costal margin)',[-0.85,3.55,0.3],1.25,0.7,0.6,0.25,[0.6,0.28,0.2]],
+ ['Gallbladder',[-0.55,3.15,0.75],0.18,0.3,0.15,0,[0.35,0.55,0.35]],
+ ['Spleen (LUQ, posterolateral)',[1.3,3.6,-0.25],0.32,0.5,0.28,0.3,[0.5,0.25,0.4]],
+ ['Pancreas (retroperitoneal, behind the stomach)',[0.2,3.2,-0.05],0.85,0.22,0.22,0.25,[0.85,0.75,0.55]],
+ ['Right kidney (flank; sits lower than the left)',[-0.75,2.95,-0.35],0.3,0.55,0.25,0.15,[0.55,0.2,0.22]],
+ ['Left kidney',[0.75,3.15,-0.35],0.3,0.55,0.25,-0.15,[0.55,0.2,0.22]],
+ ['Bladder (suprapubic; palpable only when distended)',[0,1.3,0.45],0.45,0.35,0.35,0,[0.9,0.75,0.4]],
+ ['Thyroid (anterior neck, below the cricoid)',[0,5.85,0.65],0.45,0.22,0.18,0,[0.7,0.35,0.35]],
+ ['Parathyroid glands (posterior to the thyroid)',[-0.3,5.85,0.5],0.07,0.1,0.06,0,[0.85,0.7,0.35]],
+ ['Parathyroid glands (posterior to the thyroid)',[0.3,5.85,0.5],0.07,0.1,0.06,0,[0.85,0.7,0.35]],
+ ['Pituitary gland (sella turcica, base of brain)',[0,7.65,0.25],0.11,0.09,0.11,0,[0.9,0.55,0.4]],
+ ['Hypothalamus',[0,7.85,0.25],0.16,0.1,0.14,0,[0.9,0.65,0.5]],
+ ['Pineal gland',[0,7.95,-0.35],0.07,0.07,0.09,0,[0.75,0.45,0.55]],
+ ['Thymus (retrosternal; large in children, involutes in adults)',[0,5.15,0.55],0.35,0.3,0.15,0,[0.85,0.7,0.6]],
+ ['Right adrenal (suprarenal) gland',[-0.75,3.6,-0.3],0.2,0.13,0.14,0,[0.9,0.7,0.3]],
+ ['Left adrenal (suprarenal) gland',[0.75,3.8,-0.3],0.2,0.13,0.14,0,[0.9,0.7,0.3]],
+ ['Gonads: ovaries (pelvis, lateral to the uterus) / testes (scrotum)',[-0.55,1.25,0.2],0.14,0.2,0.12,0,[0.85,0.55,0.6]],
+ ['Gonads: ovaries (pelvis, lateral to the uterus) / testes (scrotum)',[0.55,1.25,0.2],0.14,0.2,0.12,0,[0.85,0.55,0.6]],
+ ['Uterus / prostate (midline pelvis, behind the bladder)',[0,1.2,0.05],0.32,0.35,0.22,0,[0.85,0.5,0.55]],
+ ['Diaphragm (dome; separates thorax from abdomen)',[0,3.75,0.05],1.75,0.16,0.85,0,[0.85,0.55,0.5]],
+];
+/* colon course and airway as tubes */
+/* jejunum and ileum: a winding course filling the umbilical region, ending at the caecum */
+const SMALL_BOWEL=(()=>{const pts=[[0.2,2.62,0.25]];const rows=[2.75,2.45,2.15,1.85,1.6];rows.forEach((y,r)=>{const dir=r%2?1:-1;for(let k=0;k<=6;k++){const t=k/6;const x=dir*(-0.95+1.9*t);pts.push([x,y+Math.sin(t*Math.PI*3)*0.1,0.45+Math.cos(t*Math.PI*3)*0.1]);}});pts.push([-0.7,1.5,0.5],[-1.05,1.5,0.45]);return pts;})();
+const ORGAN_TUBES=[
+ ['Stomach: fundus → body → antrum → pylorus (epigastrium / LUQ)',[[0.45,3.55,0.2],[0.95,3.95,0.15],[1.05,3.5,0.4],[0.75,3.1,0.55],[0.25,3.0,0.55],[-0.15,3.15,0.5]],0.3,[0.85,0.6,0.5]],
+ ['Duodenum (C-loop around the head of the pancreas)',[[-0.15,3.15,0.5],[-0.5,3.05,0.4],[-0.6,2.65,0.3],[-0.25,2.45,0.25],[0.2,2.62,0.25]],0.12,[0.88,0.65,0.5]],
+ ['Jejunum and ileum (small bowel, central / umbilical; ends at the ileocaecal valve)',SMALL_BOWEL,0.15,[0.85,0.68,0.55]],
+ ['Nasal cavity → nasopharynx',[[0,7.55,1.15],[0,7.5,0.75],[0,7.35,0.4]],0.1,[0.6,0.7,0.85]],
+ ['Oropharynx → laryngopharynx',[[0,7.35,0.4],[0,7.0,0.45],[0,6.6,0.4]],0.11,[0.6,0.7,0.85]],
+ ['Larynx (thyroid cartilage / cricoid)',[[0,6.6,0.4],[0,6.35,0.5],[0,6.05,0.42]],0.15,[0.6,0.7,0.85]],
+ ['Trachea',[[0,6.05,0.42],[0,5.6,0.3],[0,5.35,0.25],[0,4.95,0.15]],0.13,[0.75,0.72,0.72]],
+ ['Right upper lobe bronchus',[[-0.55,4.7,0.1],[-0.95,5.15,0.1],[-1.25,5.5,0.05]],0.06,[0.75,0.72,0.72]],
+ ['Right middle lobe bronchus',[[-0.8,4.55,0.1],[-1.25,4.45,0.35],[-1.55,4.3,0.4]],0.05,[0.75,0.72,0.72]],
+ ['Right lower lobe bronchus',[[-1.0,4.4,0.05],[-1.2,3.95,-0.05],[-1.35,3.55,-0.1]],0.06,[0.75,0.72,0.72]],
+ ['Left upper lobe bronchus',[[0.55,4.65,0.1],[0.95,5.1,0.1],[1.25,5.45,0.05]],0.06,[0.75,0.72,0.72]],
+ ['Lingular bronchus',[[0.8,4.55,0.1],[1.2,4.4,0.35],[1.5,4.25,0.4]],0.05,[0.75,0.72,0.72]],
+ ['Left lower lobe bronchus',[[1.05,4.35,0.05],[1.25,3.9,-0.05],[1.4,3.5,-0.1]],0.06,[0.75,0.72,0.72]],
+ ['Right main bronchus',[[0,4.95,0.15],[-0.55,4.7,0.1],[-1.0,4.4,0.05]],0.09,[0.75,0.72,0.72]],
+ ['Left main bronchus',[[0,4.95,0.15],[0.55,4.65,0.1],[1.05,4.35,0.05]],0.09,[0.75,0.72,0.72]],
+ ['Oesophagus',[[0,5.95,0.15],[0.05,5.0,-0.15],[0.1,4.0,-0.1],[0.45,3.55,0.2]],0.09,[0.85,0.6,0.5]],
+ ['Colon: caecum and ascending (RLQ → hepatic flexure, RUQ)',[[-1.15,1.45,0.45],[-1.25,2.0,0.45],[-1.3,2.6,0.4],[-1.25,3.1,0.3]],0.2,[0.8,0.62,0.5]],
+ ['Colon: transverse (hepatic flexure → splenic flexure, drapes across the umbilical region)',[[-1.25,3.1,0.3],[-0.6,2.75,0.62],[0.1,2.6,0.68],[0.8,2.8,0.62],[1.35,3.2,0.3]],0.2,[0.8,0.62,0.5]],
+ ['Colon: descending (splenic flexure, LUQ → LLQ)',[[1.35,3.2,0.3],[1.4,2.6,0.35],[1.35,2.0,0.4],[1.2,1.55,0.45]],0.2,[0.8,0.62,0.5]],
+ ['Colon: sigmoid and rectum (LLQ → pelvis)',[[1.2,1.55,0.45],[0.7,1.25,0.35],[0.2,1.15,-0.1],[0.05,0.85,-0.35]],0.18,[0.8,0.62,0.5]],
+ ['Appendix (McBurney point, RLQ)',[[-1.15,1.45,0.45],[-0.95,1.2,0.5]],0.06,[0.8,0.62,0.5]],
+ ['Ureters (renal pelvis → bladder)',[[-0.75,2.7,-0.3],[-0.55,2.0,-0.05],[-0.3,1.45,0.3],[-0.05,1.3,0.45]],0.05,[0.9,0.75,0.4]],
+ ['Ureters (renal pelvis → bladder)',[[0.75,2.9,-0.3],[0.55,2.0,-0.05],[0.3,1.45,0.3],[0.05,1.3,0.45]],0.05,[0.9,0.75,0.4]],
+];
 window.Body3D={
  ready:false,yaw:0,pitch:0,dist:27.5,target:[0,0.45,0],zone:0,hover:0,
  async init(canvas,opts){
@@ -144,40 +226,48 @@ window.Body3D={
   for(let i=0;i<nv;i++){const [ux,uy]=unwarp(pos[i*3],pos[i*3+1]);const yy=(Y02D-uy*K2D)/1448;uvF[i*2]=(364+ux*K2D)/724;uvF[i*2+1]=yy;uvB[i*2]=(360-ux*K2D)/724;uvB[i*2+1]=yy;}
   /* anatomical sections: limbs from bone segments, torso and head from the muscle plate */
   const sec=new Float32Array(nv);{const S=sectionizer();for(let i=0;i<nv;i++){const sid=S(seg[i],nrm[i*3+2],uvF[i*2]*724,uvF[i*2+1]*1448,uvB[i*2]*724+724,uvB[i*2+1]*1448,pos[i*3],pos[i*3+1]);sec[i]=sid;zone[i]=SEC_ZONE[sid]||zone[i];}}
-  this.secAttr=sec;
+  this.secAttr=sec;this.uvF=uvF;this.uvB=uvB;
   bind('aPos',pos,3);bind('aNrm',nrm,3);bind('aZone',zone,1);bind('aSec',sec,1);bind('aUvF',uvF,2);bind('aUvB',uvB,2);
   await this.loadTextures();
   this.buildAnatomy();
   const ext=gl.getExtension('OES_element_index_uint');const ib=gl.createBuffer();this.ibuf=ib;gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
   if(ext){gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);this.idxType=gl.UNSIGNED_INT;}else{gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);this.idxType=gl.UNSIGNED_SHORT;}
-  this.u={};['uP','uV','uM','uBase','uAccent','uLight','uEye','uZone','uHover','uOffset','uInk','uOutline','uTexF','uTexB','uSec','uSections'].forEach(n=>this.u[n]=gl.getUniformLocation(prog,n));
-  gl.uniform1i(this.u.uTexF,0);gl.uniform1i(this.u.uTexB,1);
+  this.u={};['uP','uV','uM','uBase','uAccent','uLight','uEye','uZone','uHover','uOffset','uInk','uOutline','uTexF','uTexB','uSec','uSections','uMuscles','uMusHov','uMusF','uMusB'].forEach(n=>this.u[n]=gl.getUniformLocation(prog,n));
+  gl.uniform1i(this.u.uTexF,0);gl.uniform1i(this.u.uTexB,1);gl.uniform1i(this.u.uMusF,2);gl.uniform1i(this.u.uMusB,3);
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   this.bindEvents();this.ready=true;this.resize();this.draw();
  },
  buildAnatomy(){
-  const gl=this.gl,src=window.BODY3D_ANATOMY||[];const body={pos:this.pos,nrm:this.nrmArr,nv:this.pos.length/3};
-  const items=[];src.forEach(([layer,name,pair,deep,pts],k)=>{items.push({layer,name,deep,pts,side:pair?'L':null});if(pair)items.push({layer,name,deep,pts:pts.map(([x,y,z,d])=>[-x,y,z,d]),side:'R'});});
-  this.structs=[];const bufs={artery:[],vein:[],nerve:[],lymph:[]};
-  items.forEach((it,i)=>{const id=i+1;const P=it.pts.map(([x,y,z,d])=>snapPoint(body,x,y,z,it.deep?'D':d));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?' · left':' · right'):''),deep:it.deep,pts:P};this.structs.push(s);
-    if(it.layer==='lymph'){P.forEach(c=>sphere(c,0.09,id,bufs.lymph));}
-    else{const sm=P.length>1?smoothLine(P,5):P;tube(sm,it.layer==='artery'?0.075:it.layer==='vein'?0.07:0.06,id,bufs[it.layer]);}
+  const gl=this.gl;const body={pos:this.pos,nrm:this.nrmArr,zone:this.zoneAttr,nv:this.pos.length/3};
+  const src=(typeof window.BODY3D_ANATOMY==='function')?window.BODY3D_ANATOMY(window.BODY3D_JOINTS||{}):(window.BODY3D_ANATOMY||[]);
+  const items=[];src.forEach(([layer,name,cal,pair,pts])=>{items.push({layer,name,cal,pts,side:pair?'L':null});if(pair)items.push({layer,name,cal,pts:pts.map(([x,y,z,d])=>[-x,y,z,d]),side:'R'});});
+  this.structs=[];const bufs={artery:[],vein:[],nerve:[],lymph:[],organ:[]};this.organRanges=[];
+  const RAD={1:0.05,2:0.034,3:0.022};
+  const zonesOf=(P,deep)=>{let m=0;P.forEach((p,i)=>{m|=zoneBits(body,p[0],p[1],p[2],deep?deep[i]:true);});return m;};
+  items.forEach((it,i)=>{const id=i+1;const P=it.pts.map(([x,y,z,d])=>d?snapPoint(body,x,y,z,d):[x,y,z]);const zm=zonesOf(P,it.pts.map(q=>!q[3]));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?" · patient's left":" · patient's right"):''),pts:P,zones:zm};this.structs.push(s);
+    if(it.layer==='lymph'&&it.cal===0){P.forEach(c=>sphere(c,0.07,id,bufs.lymph,zm));}
+    else{const sm=P.length>1?smoothLine(P,5):P;tube(sm,it.layer==='lymph'?0.018:(RAD[it.cal]||0.03),id,bufs[it.layer],zm);}
   });
+  /* organs */
+  ORGANS.forEach(([name,c,rx,ry,rz,rot,col])=>{const id=this.structs.length+1;const zm=zonesOf([c,[c[0],c[1]+ry*0.8,c[2]],[c[0],c[1]-ry*0.8,c[2]]]);const start=bufs.organ.length/8;ellipsoid(c,rx,ry,rz,rot,id,bufs.organ,zm);this.organRanges.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts:[c],zones:zm});});
+  ORGAN_TUBES.forEach(([name,pts,r,col])=>{const id=this.structs.length+1;const zm=zonesOf(pts);const start=bufs.organ.length/8;tube(smoothLine(pts,5),r,id,bufs.organ,zm);this.organRanges.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts,zones:zm});});
   const prog=gl.createProgram();const mk=(t,src2)=>{const sh=gl.createShader(t);gl.shaderSource(sh,src2);gl.compileShader(sh);gl.attachShader(prog,sh);};mk(gl.VERTEX_SHADER,SVS);mk(gl.FRAGMENT_SHADER,SFS);gl.linkProgram(prog);this.sprog=prog;
-  this.su={};['uP','uV','uHi','uCol','uAlpha'].forEach(n=>this.su[n]=gl.getUniformLocation(prog,n));this.sa={aPos:gl.getAttribLocation(prog,'aPos'),aNrm:gl.getAttribLocation(prog,'aNrm'),aId:gl.getAttribLocation(prog,'aId')};
-  this.sbuf={};Object.entries(bufs).forEach(([k,arr])=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.STATIC_DRAW);this.sbuf[k]={buf:b,n:arr.length/7};});
-  this.layers={artery:false,vein:false,nerve:false,lymph:false};this.hoverStruct=0;
+  this.su={};['uP','uV','uHi','uSel','uCol','uAlpha'].forEach(n=>this.su[n]=gl.getUniformLocation(prog,n));this.sa={aPos:gl.getAttribLocation(prog,'aPos'),aNrm:gl.getAttribLocation(prog,'aNrm'),aId:gl.getAttribLocation(prog,'aId'),aZm:gl.getAttribLocation(prog,'aZm')};
+  this.sbuf={};Object.entries(bufs).forEach(([k,arr])=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.STATIC_DRAW);this.sbuf[k]={buf:b,n:arr.length/8};});
+  this.layers={artery:false,vein:false,nerve:false,lymph:false,organ:false};this.hoverStruct=0;
  },
+ /* structures that run through a zone (for the list under the figure) */
+ inZone(zoneName){const z=ZONE_IDS[zoneName]||0;if(!this.structs)return [];return this.structs.filter(s=>this.layers[s.layer]&&(!z||(s.zones&(1<<z))));},
  drawStructs(P,V){
-  const gl=this.gl;if(!this.sprog)return;gl.useProgram(this.sprog);gl.uniformMatrix4fv(this.su.uP,false,P);gl.uniformMatrix4fv(this.su.uV,false,V);gl.uniform1f(this.su.uHi,this.hoverStruct||0);
-  const cols={artery:cssColor('--artery'),vein:cssColor('--vein'),nerve:cssColor('--nerve'),lymph:cssColor('--accent')};
+  const gl=this.gl;if(!this.sprog)return;gl.useProgram(this.sprog);gl.uniformMatrix4fv(this.su.uP,false,P);gl.uniformMatrix4fv(this.su.uV,false,V);gl.uniform1f(this.su.uHi,this.hoverStruct||0);gl.uniform1f(this.su.uSel,this.zone||0);
+  const cols={artery:cssColor('--artery'),vein:cssColor('--vein'),nerve:cssColor('--nerve'),lymph:cssColor('--accent'),organ:[0.8,0.5,0.5]};
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.disable(gl.CULL_FACE);
-  Object.entries(this.sbuf).forEach(([k,b])=>{if(!this.layers[k]||!b.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,b.buf);const st=28;gl.enableVertexAttribArray(this.sa.aPos);gl.vertexAttribPointer(this.sa.aPos,3,gl.FLOAT,false,st,0);gl.enableVertexAttribArray(this.sa.aNrm);gl.vertexAttribPointer(this.sa.aNrm,3,gl.FLOAT,false,st,12);gl.enableVertexAttribArray(this.sa.aId);gl.vertexAttribPointer(this.sa.aId,1,gl.FLOAT,false,st,24);
-    gl.uniform3fv(this.su.uCol,cols[k]);
-    /* visible parts solid */
-    gl.depthFunc(gl.LEQUAL);gl.uniform1f(this.su.uAlpha,1.0);gl.drawArrays(gl.TRIANGLES,0,b.n);
-    /* hidden parts faint (x-ray) */
-    gl.depthFunc(gl.GREATER);gl.depthMask(false);gl.uniform1f(this.su.uAlpha,0.28);gl.drawArrays(gl.TRIANGLES,0,b.n);gl.depthMask(true);gl.depthFunc(gl.LEQUAL);});
+  Object.entries(this.sbuf).forEach(([k,b])=>{if(!this.layers[k]||!b.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,b.buf);const st=32;gl.enableVertexAttribArray(this.sa.aPos);gl.vertexAttribPointer(this.sa.aPos,3,gl.FLOAT,false,st,0);gl.enableVertexAttribArray(this.sa.aNrm);gl.vertexAttribPointer(this.sa.aNrm,3,gl.FLOAT,false,st,12);gl.enableVertexAttribArray(this.sa.aId);gl.vertexAttribPointer(this.sa.aId,1,gl.FLOAT,false,st,24);gl.enableVertexAttribArray(this.sa.aZm);gl.vertexAttribPointer(this.sa.aZm,1,gl.FLOAT,false,st,28);
+    const ranges=k==='organ'?this.organRanges:[{start:0,count:b.n,col:cols[k]}];
+    /* pass A: anything in front of the skin, solid */
+    gl.depthFunc(gl.LEQUAL);gl.uniform1f(this.su.uAlpha,1.0);ranges.forEach(r=>{gl.uniform3fv(this.su.uCol,r.col);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});
+    /* pass B: inside the body, seen through the skin (x-ray) */
+    gl.depthFunc(gl.GREATER);gl.depthMask(false);const xa=k==='organ'?0.42:0.62;gl.uniform1f(this.su.uAlpha,xa);ranges.forEach(r=>{gl.uniform3fv(this.su.uCol,r.col);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});gl.depthMask(true);gl.depthFunc(gl.LEQUAL);});
   gl.disable(gl.BLEND);gl.enable(gl.CULL_FACE);gl.useProgram(this.prog);
   /* restore body attribute pointers */
   this.rebind();
@@ -186,11 +276,14 @@ window.Body3D={
   if(!this.structs)return null;const c=this.canvas;const w=c.clientWidth,h=c.clientHeight;const nx=(px/w)*2-1,ny=1-(py/h)*2;
   const {eye,up}=this.camera();const f=norm([this.target[0]-eye[0],this.target[1]-eye[1],this.target[2]-eye[2]]);const r=norm(cross(f,up));const u=cross(r,f);const t=Math.tan(0.31),a=w/h;const dir=norm([f[0]+r[0]*nx*t*a+u[0]*ny*t,f[1]+r[1]*nx*t*a+u[1]*ny*t,f[2]+r[2]*nx*t*a+u[2]*ny*t]);
   let best=null,bd=0.16*this.dist/27;
-  for(const s of this.structs){if(!this.layers[s.layer])continue;for(const p of s.pts){const vx=p[0]-eye[0],vy=p[1]-eye[1],vz=p[2]-eye[2];const tt=vx*dir[0]+vy*dir[1]+vz*dir[2];if(tt<0)continue;const dx=vx-dir[0]*tt,dy=vy-dir[1]*tt,dz=vz-dir[2]*tt;const d=Math.hypot(dx,dy,dz);if(d<bd){bd=d;best=s;}}
+  const zsel=this.zone||0;for(const s of this.structs){if(!this.layers[s.layer])continue;if(zsel&&!(s.zones&(1<<zsel)))continue;for(const p of s.pts){const vx=p[0]-eye[0],vy=p[1]-eye[1],vz=p[2]-eye[2];const tt=vx*dir[0]+vy*dir[1]+vz*dir[2];if(tt<0)continue;const dx=vx-dir[0]*tt,dy=vy-dir[1]*tt,dz=vz-dir[2]*tt;const d=Math.hypot(dx,dy,dz);if(d<bd){bd=d;best=s;}}
    /* also test segment midpoints for long courses */
    for(let i=0;i<s.pts.length-1;i++){const p=[(s.pts[i][0]+s.pts[i+1][0])/2,(s.pts[i][1]+s.pts[i+1][1])/2,(s.pts[i][2]+s.pts[i+1][2])/2];const vx=p[0]-eye[0],vy=p[1]-eye[1],vz=p[2]-eye[2];const tt=vx*dir[0]+vy*dir[1]+vz*dir[2];if(tt<0)continue;const dx=vx-dir[0]*tt,dy=vy-dir[1]*tt,dz=vz-dir[2]*tt;const d=Math.hypot(dx,dy,dz);if(d<bd){bd=d;best=s;}}}
   return best;},
- async loadTextures(){const gl=this.gl;const [cf,cb]=await Promise.all([rasterArt('front'),rasterArt('back')]);const mk=(unit,cv)=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);return t;};this.texF=mk(0,cf);this.texB=mk(1,cb);this.texTheme=cssVar('--figure-soft');},
+ async loadTextures(){const gl=this.gl;const [cf,cb]=await Promise.all([rasterArt('front'),rasterArt('back')]);const mk=(unit,cv,nearest)=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);const f=nearest?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,f);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,f);return t;};this.texF=mk(0,cf);this.texB=mk(1,cb);this.texTheme=cssVar('--figure-soft');
+  if(!this.musMap){const [mf,mb]=await Promise.all([rasterMuscleMap('front'),rasterMuscleMap('back')]);this.musMap={front:mf.data,back:mb.data};mk(2,mf.cv,true);mk(3,mb.cv,true);}},
+ /* muscle group under a plate point: {id,name} or null */
+ muscleAt(view,u,v){const d=this.musMap&&this.musMap[view];if(!d)return null;const x=Math.max(0,Math.min(723,Math.round(u*724))),y=Math.max(0,Math.min(1447,Math.round(v*1448)));const o=(y*724+x)*4;const id=d[o],side=d[o+1];if(!id)return null;const base=view==='front'?1:101;const p=window.BODY_ART[view][id-base];if(!p)return null;return {id,name:muscleName(view,p.slug)+(side===1?" · patient's left":side===2?" · patient's right":'')};},
  setView(name){const p=PRESETS[name];if(!p)return;this.animateTo(p[0],p[1]);},
  animateTo(yaw,pitch){const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;const y0=this.yaw,p0=this.pitch;let dy=yaw-y0;dy=Math.atan2(Math.sin(dy),Math.cos(dy));if(reduce){this.yaw=yaw;this.pitch=pitch;this.draw();return;}const t0=performance.now();const step=now=>{const k=Math.min(1,(now-t0)/380),e=1-Math.pow(1-k,3);this.yaw=y0+dy*e;this.pitch=p0+(pitch-p0)*e;this.draw();if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);},
  setZone2D(view,zoneId){this.zone=zoneId?(ZONE_IDS[FROM2D[view+':'+zoneId]]||0):0;if(this.ready)this.draw();},
@@ -201,7 +294,7 @@ window.Body3D={
   gl.uniformMatrix4fv(this.u.uP,false,P);gl.uniformMatrix4fv(this.u.uV,false,V);gl.uniformMatrix4fv(this.u.uM,false,[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
   gl.uniform3fv(this.u.uBase,cssColor('--figure'));gl.uniform3fv(this.u.uAccent,cssColor('--accent'));
   gl.uniform3fv(this.u.uLight,[eye[0]*0.4+6,eye[1]*0.4+10,eye[2]*0.4+6]);gl.uniform3fv(this.u.uEye,eye);
-  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform1f(this.u.uSec,this.hoverSec||0);gl.uniform1f(this.u.uSections,this.sections?1:0);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
+  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform1f(this.u.uSec,this.hoverSec||0);gl.uniform1f(this.u.uSections,this.sections?1:0);gl.uniform1f(this.u.uMuscles,this.layers&&this.layers.muscle?1:0);gl.uniform1f(this.u.uMusHov,this.layers&&this.layers.muscle?(this.hoverMuscle||0):0);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
   if(this.texTheme&&this.texTheme!==cssVar('--figure-soft')&&!this.retex){this.retex=true;this.loadTextures().then(()=>{this.retex=false;this.draw();});}
   /* pass 1: inked silhouette (inverted hull) */
   gl.cullFace(gl.FRONT);gl.uniform1f(this.u.uOutline,1);gl.uniform1f(this.u.uOffset,0.05);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);
@@ -219,15 +312,16 @@ window.Body3D={
    const hx=dir[1]*e2z-dir[2]*e2y,hy=dir[2]*e2x-dir[0]*e2z,hz=dir[0]*e2y-dir[1]*e2x;const det=e1x*hx+e1y*hy+e1z*hz;if(det>-1e-7&&det<1e-7)continue;const inv=1/det;
    const sx=eye[0]-p[a0],sy=eye[1]-p[a0+1],sz=eye[2]-p[a0+2];const uu=inv*(sx*hx+sy*hy+sz*hz);if(uu<0||uu>1)continue;
    const qx=sy*e1z-sz*e1y,qy=sz*e1x-sx*e1z,qz=sx*e1y-sy*e1x;const vv=inv*(dir[0]*qx+dir[1]*qy+dir[2]*qz);if(vv<0||uu+vv>1)continue;
-   const tt=inv*(e2x*qx+e2y*qy+e2z*qz);if(tt>1e-4&&tt<best){best=tt;const za=this.zoneAttr,sa=this.secAttr;bz=za?za[ix[i]]:0;this.lastSec=sa?sa[ix[i]]:0;}}
-  if(best===Infinity)this.lastSec=0;return bz;},
+   const tt=inv*(e2x*qx+e2y*qy+e2z*qz);if(tt>1e-4&&tt<best){best=tt;const za=this.zoneAttr,sa=this.secAttr;bz=za?za[ix[i]]:0;this.lastSec=sa?sa[ix[i]]:0;
+    const n=this.nrmArr,ia=ix[i],ib=ix[i+1],ic=ix[i+2];const nz=n[ia*3+2]+n[ib*3+2]+n[ic*3+2];const uv=nz>=0?this.uvF:this.uvB;const w0=1-uu-vv;this.lastHit={view:nz>=0?'front':'back',u:uv[ia*2]*w0+uv[ib*2]*uu+uv[ic*2]*vv,v:uv[ia*2+1]*w0+uv[ib*2+1]*uu+uv[ic*2+1]*vv};}}
+  if(best===Infinity){this.lastSec=0;this.lastHit=null;this.lastMuscle=null;}else{this.lastMuscle=this.lastHit?this.muscleAt(this.lastHit.view,this.lastHit.u,this.lastHit.v):null;}return bz;},
  bindEvents(){const c=this.canvas;let down=null,moved=false,pts=new Map(),pinch0=0,dist0=0;
   c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);if(pts.size===1){down=[e.clientX,e.clientY,this.yaw,this.pitch];moved=false;}else if(pts.size===2){const a=[...pts.values()];pinch0=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);dist0=this.dist;}});
   c.addEventListener('pointermove',e=>{if(pts.has(e.pointerId))pts.set(e.pointerId,[e.clientX,e.clientY]);
    if(pts.size===2){const a=[...pts.values()];const d=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);this.dist=Math.min(60,Math.max(8,dist0*pinch0/d));this.draw();return;}
    if(down){const dx=e.clientX-down[0],dy=e.clientY-down[1];if(Math.abs(dx)+Math.abs(dy)>4)moved=true;this.yaw=down[2]+dx*0.01;this.pitch=Math.max(-1.5,Math.min(1.5,down[3]+dy*0.01));this.draw();}
-   else if(e.pointerType==='mouse'){const r=c.getBoundingClientRect();const z=this.pick(e.clientX-r.left,e.clientY-r.top);const sc=this.lastSec||0;const st=this.pickStruct(e.clientX-r.left,e.clientY-r.top);const sid=st?st.id:0;if(z!==this.hover||sc!==this.hoverSec||sid!==this.hoverStruct){this.hover=z;this.hoverSec=sc;this.hoverStruct=sid;this.draw();if(this.opts.onHover)this.opts.onHover(ZONE_BY_ID[z]||null,st?st.name:(SEC_NAMES[sc]||null));}}});
-  const up=e=>{pts.delete(e.pointerId);if(down&&!moved&&pts.size===0){const r=c.getBoundingClientRect();const st=this.pickStruct(e.clientX-r.left,e.clientY-r.top);if(st){this.hoverStruct=st.id;this.draw();if(this.opts.onHover)this.opts.onHover(null,st.name);}else{const z=this.pick(e.clientX-r.left,e.clientY-r.top);if(z&&this.opts.onPick){const name=ZONE_BY_ID[z];this.opts.onPick(name,TO2D[name]);}}}if(pts.size===0)down=null;};
+   else if(e.pointerType==='mouse'){const r=c.getBoundingClientRect();const z=this.pick(e.clientX-r.left,e.clientY-r.top);const sc=this.lastSec||0;const st=this.pickStruct(e.clientX-r.left,e.clientY-r.top);const sid=st?st.id:0;const mu=this.layers&&this.layers.muscle?this.lastMuscle:null;const mid=mu?mu.id:0;if(z!==this.hover||sc!==this.hoverSec||sid!==this.hoverStruct||mid!==this.hoverMuscle){this.hover=z;this.hoverSec=sc;this.hoverStruct=sid;this.hoverMuscle=mid;this.draw();if(this.opts.onHover)this.opts.onHover(ZONE_BY_ID[z]||null,st?st.name:(mu?mu.name:(SEC_NAMES[sc]||null)));}}});
+  const up=e=>{pts.delete(e.pointerId);if(down&&!moved&&pts.size===0){const r=c.getBoundingClientRect();const st=this.pickStruct(e.clientX-r.left,e.clientY-r.top);if(st){this.hoverStruct=st.id;this.draw();if(this.opts.onHover)this.opts.onHover(null,st.name);}else{const z=this.pick(e.clientX-r.left,e.clientY-r.top);const mu=this.layers&&this.layers.muscle?this.lastMuscle:null;if(mu){this.hoverMuscle=mu.id;this.draw();if(this.opts.onHover)this.opts.onHover(null,mu.name);}if(z&&this.opts.onPick){const name=ZONE_BY_ID[z];this.opts.onPick(name,TO2D[name]);}}}if(pts.size===0)down=null;};
   c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
   c.addEventListener('wheel',e=>{e.preventDefault();this.dist=Math.min(60,Math.max(8,this.dist*(1+Math.sign(e.deltaY)*0.08)));this.draw();},{passive:false});
   c.addEventListener('pointerleave',()=>{if(this.hover||this.hoverSec||this.hoverStruct){this.hover=0;this.hoverSec=0;this.hoverStruct=0;this.draw();}});
