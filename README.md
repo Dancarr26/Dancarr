@@ -18,7 +18,10 @@
   (MIT, see `atlas/LICENSE-body-art.txt`). The 3D body (`atlas/body3d-data.js`, rendered by
   `atlas/body3d.js` with raw WebGL) is the [MakeHuman](https://github.com/makehumancommunity/makehuman)
   base mesh, released CC0, rendered with the 2D muscle plate projected onto it so both views
-  share one look. The figure has named muscle groups and toggleable schematic
+  share one look. The 3D body is sectioned anatomically (limbs at the joints from the rig's bone
+  weights; torso by the muscle plate into pectoral, sternal, the nine abdominal regions, inguinal,
+  scapular, interscapular, lumbar, sacral and gluteal; head into cranium and face), each named on
+  hover. The figure has named muscle groups and toggleable schematic
   artery, vein and nerve layers; the 3D view turns to show sides, back, top and bottom.
 
 ## Documents

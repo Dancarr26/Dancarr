@@ -106,6 +106,8 @@ a{color:var(--accent-ink)}
 .views[hidden]{display:none}
 .vp{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--muted)}
 .vp:hover{border-color:var(--accent);color:var(--accent-ink)}
+.vp.sec{margin-left:6px}
+.vp.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .vp:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .frag3d{padding:8px 4px 0;justify-content:center}
 .frag3d[hidden]{display:none}
@@ -119,7 +121,7 @@ a{color:var(--accent-ink)}
 .pin:focus{outline:none}
 .pin:focus-visible circle{stroke-width:3}
 .figcap{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 0;font-size:12.5px;color:var(--muted)}
-.figcap #figstate{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.figcap #figstate{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;text-align:right}
 .figcap b{color:var(--ink);font-weight:700}
 
 .list{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
@@ -363,7 +365,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
       <span class="side l">Patient's R</span><span class="side r">Patient's L</span>
       <svg id="bodyfig" viewBox="40 80 700 1300" role="group" aria-label="Whole-body figure with tappable zones"></svg>
       <canvas id="body3d" class="c3d" hidden aria-label="Three-dimensional body: drag to turn, tap a zone to select it"></canvas>
-      <div class="views" id="views3d" hidden role="group" aria-label="3D view presets"><button type="button" class="vp" data-p="front">Front</button><button type="button" class="vp" data-p="back">Back</button><button type="button" class="vp" data-p="left">Left</button><button type="button" class="vp" data-p="right">Right</button><button type="button" class="vp" data-p="top">Top</button><button type="button" class="vp" data-p="bottom">Bottom</button></div>
+      <div class="views" id="views3d" hidden role="group" aria-label="3D view presets"><button type="button" class="vp" data-p="front">Front</button><button type="button" class="vp" data-p="back">Back</button><button type="button" class="vp" data-p="left">Left</button><button type="button" class="vp" data-p="right">Right</button><button type="button" class="vp" data-p="top">Top</button><button type="button" class="vp" data-p="bottom">Bottom</button><button type="button" class="vp sec" id="sec3d" aria-pressed="false">Sections</button></div>
       <div class="chips frag3d" id="frag3d" hidden></div>
       <div class="layers" role="group" aria-label="Anatomy layers"><button type="button" class="lay on" data-layer="muscles" style="--c:var(--accent)" aria-pressed="true">Muscles</button><button type="button" class="lay" data-layer="artery" style="--c:var(--artery)" aria-pressed="false">Arteries</button><button type="button" class="lay" data-layer="vein" style="--c:var(--vein)" aria-pressed="false">Veins</button><button type="button" class="lay" data-layer="nerve" style="--c:var(--nerve)" aria-pressed="false">Nerves</button></div>
       <div class="figcap"><div class="vtoggle dim" role="group" aria-label="Figure type"><button type="button" class="vd on" data-dim="2d" aria-pressed="true">2D</button><button type="button" class="vd" data-dim="3d" aria-pressed="false">3D</button></div><div class="vtoggle" id="vt2d" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><button type="button" class="backbtn" id="zoomout" hidden>‹ Whole body</button><span id="figstate"></span></div>
@@ -1281,7 +1283,7 @@ function sync3D(ids){
   if(!window.Body3D)return;
   if(!Body3D.ready&&!Body3D.loading){Body3D.loading=true;Body3D.init(c,{src:'body3d.bin',
     onPick:(name,[view,zid])=>{state.view=view;state.zone=zid;const z=ZONES[view].find(x=>x.id===zid);if(z)show(z.regions[0]);},
-    onHover:name=>{const map={head:'Head',neck:'Neck',chest:'Chest',abdomen:'Abdomen',pelvis:'Pelvis',armR:"Arm (patient's right)",armL:"Arm (patient's left)",legs:'Legs',back:'Back',sacrum:'Sacrum & gluteal'};document.getElementById('figstate').textContent=name?map[name]:'';}
+    onHover:(name,secName)=>{const map={head:'Head',neck:'Neck',chest:'Chest',abdomen:'Abdomen',pelvis:'Pelvis',armR:"Arm (patient's right)",armL:"Arm (patient's left)",legs:'Legs',back:'Back',sacrum:'Sacrum & gluteal'};document.getElementById('figstate').textContent=secName||(name?map[name]:'');}
   }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);Body3D.draw();});}
   else if(Body3D.ready){Body3D.setZone2D(state.view,state.zone);Body3D.draw();}
   const zone=state.zone?ZONES[state.view].find(z=>z.id===state.zone):null;
@@ -1289,7 +1291,8 @@ function sync3D(ids){
   fr.querySelectorAll('[data-region]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.region)));
 }
 document.querySelectorAll('.vd').forEach(b=>b.addEventListener('click',()=>{state.dim=b.dataset.dim;save();drawBody(currentIds());}));
-document.querySelectorAll('.vp').forEach(b=>b.addEventListener('click',()=>{if(window.Body3D&&Body3D.ready)Body3D.setView(b.dataset.p);}));
+document.querySelectorAll('.vp[data-p]').forEach(b=>b.addEventListener('click',()=>{if(window.Body3D&&Body3D.ready)Body3D.setView(b.dataset.p);}));
+document.getElementById('sec3d').addEventListener('click',()=>{if(!window.Body3D)return;Body3D.sections=!Body3D.sections;const b=document.getElementById('sec3d');b.classList.toggle('on',Body3D.sections);b.setAttribute('aria-pressed',Body3D.sections);if(Body3D.ready)Body3D.draw();});
 function syncLayers(){document.querySelectorAll('.lay').forEach(b=>{const on=!!(state.layers||{})[b.dataset.layer];b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});}
 document.querySelectorAll('.lay').forEach(b=>b.addEventListener('click',()=>{state.layers=state.layers||{};state.layers[b.dataset.layer]=!state.layers[b.dataset.layer];save();syncLayers();drawBody(currentIds());}));
 syncLayers();renderList();renderDetail();
