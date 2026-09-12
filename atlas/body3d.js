@@ -32,11 +32,14 @@ void main(){
  col=mix(col,mix(col,uAccent,0.5),on);col=mix(col,mix(col,uAccent,0.22),hv);
  gl_FragColor=vec4(col,1.0);}`;
 /* project the 2D plate: rotate arms and legs in projection space so the muscle map lines up with the mesh pose */
-const K2D=75.3,Y02D=735;
+const FIT=window.BODY3D_FIT||{armAngle:0.61,armLen:4.88,legAngle:0.18,legLen:7.27,shoulder:[1.9,5.5],hip:[0.9,-0.95],top:8.49,bottom:-8.17};
+const K2D=1255/(FIT.top-FIT.bottom),Y02D=96+FIT.top*K2D;
+const ARM2D=20*Math.PI/180,ARMLEN2D=5.9,LEG2D=-1*Math.PI/180,LEGLEN2D=7.9;
 function unwarp(x,y){
   const sx=x<0?-1:1,ax=Math.abs(x);
-  if(y<-0.6){const w=Math.min(1,Math.max(0,(-0.6-y)/0.7));const px=0.9*sx,py=-0.95;const vx=x-px,vy=y-py;const th=-sx*11.3*Math.PI/180*w;const c=Math.cos(th),sn=Math.sin(th);const sc=1+0.09*w;return [px+(vx*c-vy*sn)*sc,py+(vx*sn+vy*c)*sc];}
-  if(y>=0.9&&y<5.7&&ax>1.4){const w=Math.min(1,Math.max(0,(ax-1.4)/0.8));const px=1.9*sx,py=5.5;const vx=x-px,vy=y-py;const th=-sx*15*Math.PI/180*w;const c=Math.cos(th),sn=Math.sin(th);const sc=1+0.17*w;return [px+(vx*c-vy*sn)*sc,py+(vx*sn+vy*c)*sc];}
+  const [hx,hy]=FIT.hip,[shx,shy]=FIT.shoulder;
+  if(y<hy+0.35){const w=Math.min(1,Math.max(0,(hy+0.35-y)/0.7));const px=hx*sx,py=hy;const vx=x-px,vy=y-py;const th=-sx*(FIT.legAngle-LEG2D)*w;const c=Math.cos(th),sn=Math.sin(th);const sc=1+(LEGLEN2D/FIT.legLen-1)*w;return [px+(vx*c-vy*sn)*sc,py+(vx*sn+vy*c)*sc];}
+  if(y>=hy+0.35&&y<shy+0.4&&ax>shx-0.5){const w=Math.min(1,Math.max(0,(ax-(shx-0.5))/0.8));const px=shx*sx,py=shy;const vx=x-px,vy=y-py;const th=-sx*(FIT.armAngle-ARM2D)*w;const c=Math.cos(th),sn=Math.sin(th);const sc=1+(ARMLEN2D/FIT.armLen-1)*w;return [px+(vx*c-vy*sn)*sc,py+(vx*sn+vy*c)*sc];}
   return [x,y];
 }
 function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||'#888';}
@@ -54,7 +57,7 @@ function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
 function cssColor(name){const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();const m=v.match(/^#([0-9a-f]{6})$/i);if(!m)return [0.75,0.78,0.8];const h=m[1];return [parseInt(h.slice(0,2),16)/255,parseInt(h.slice(2,4),16)/255,parseInt(h.slice(4,6),16)/255];}
 const PRESETS={front:[0,0],back:[Math.PI,0],left:[Math.PI/2,0],right:[-Math.PI/2,0],top:[0,Math.PI/2-0.01],bottom:[0,-Math.PI/2+0.01]};
 window.Body3D={
- ready:false,yaw:0,pitch:0,dist:26,target:[0,0.3,0],zone:0,hover:0,
+ ready:false,yaw:0,pitch:0,dist:27.5,target:[0,0.45,0],zone:0,hover:0,
  async init(canvas,opts){
   this.canvas=canvas;this.opts=opts||{};
   const gl=canvas.getContext('webgl',{antialias:true,alpha:true,premultipliedAlpha:false});if(!gl){canvas.replaceWith(Object.assign(document.createElement('p'),{textContent:'3D view needs WebGL.',className:'none'}));return;}
@@ -63,10 +66,11 @@ window.Body3D={
   if(window.BODY3D_B64){const bin=atob(window.BODY3D_B64);const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);buf=u8.buffer;}
   else{const res=await fetch(this.opts.src||'body3d.bin');buf=await res.arrayBuffer();}
   const dv=new DataView(buf);
-  const nv=dv.getUint32(0,true),nt=dv.getUint32(4,true);
-  const pos=new Float32Array(buf,8,nv*3);const nrmI=new Int8Array(buf,8+nv*12,nv*3);const idx=new Uint32Array(buf.slice(8+nv*12+nv*3,8+nv*12+nv*3+nt*12));
+  const v2=String.fromCharCode(dv.getUint8(0),dv.getUint8(1),dv.getUint8(2),dv.getUint8(3))==='B3D2';const h=v2?4:0;
+  const nv=dv.getUint32(h,true),nt=dv.getUint32(h+4,true);const o0=h+8;
+  const pos=new Float32Array(buf,o0,nv*3);const nrmI=new Int8Array(buf,o0+nv*12,nv*3);const idx=new Uint32Array(buf.slice(o0+nv*12+nv*3,o0+nv*12+nv*3+nt*12));
   const nrm=new Float32Array(nv*3);for(let i=0;i<nv*3;i++)nrm[i]=nrmI[i]/127;
-  const zone=new Float32Array(nv);for(let i=0;i<nv;i++)zone[i]=classify(pos[i*3],pos[i*3+1],pos[i*3+2]);
+  const zone=new Float32Array(nv);if(v2){const zb=new Uint8Array(buf,o0+nv*12+nv*3+nt*12,nv);for(let i=0;i<nv;i++)zone[i]=zb[i];}else{for(let i=0;i<nv;i++)zone[i]=classify(pos[i*3],pos[i*3+1],pos[i*3+2]);}
   this.pos=pos;this.idx=idx;this.zoneAttr=zone;this.nt=nt;
   const prog=gl.createProgram();const mk=(t,src)=>{const sh=gl.createShader(t);gl.shaderSource(sh,src);gl.compileShader(sh);gl.attachShader(prog,sh);};mk(gl.VERTEX_SHADER,VS);mk(gl.FRAGMENT_SHADER,FS);gl.linkProgram(prog);gl.useProgram(prog);this.prog=prog;
   const bind=(name,data,size)=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);const loc=gl.getAttribLocation(prog,name);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);};
@@ -109,7 +113,7 @@ window.Body3D={
    const hx=dir[1]*e2z-dir[2]*e2y,hy=dir[2]*e2x-dir[0]*e2z,hz=dir[0]*e2y-dir[1]*e2x;const det=e1x*hx+e1y*hy+e1z*hz;if(det>-1e-7&&det<1e-7)continue;const inv=1/det;
    const sx=eye[0]-p[a0],sy=eye[1]-p[a0+1],sz=eye[2]-p[a0+2];const uu=inv*(sx*hx+sy*hy+sz*hz);if(uu<0||uu>1)continue;
    const qx=sy*e1z-sz*e1y,qy=sz*e1x-sx*e1z,qz=sx*e1y-sy*e1x;const vv=inv*(dir[0]*qx+dir[1]*qy+dir[2]*qz);if(vv<0||uu+vv>1)continue;
-   const tt=inv*(e2x*qx+e2y*qy+e2z*qz);if(tt>1e-4&&tt<best){best=tt;const hx2=eye[0]+dir[0]*tt,hy2=eye[1]+dir[1]*tt,hz2=eye[2]+dir[2]*tt;bz=classify(hx2,hy2,hz2);}}
+   const tt=inv*(e2x*qx+e2y*qy+e2z*qz);if(tt>1e-4&&tt<best){best=tt;const za=this.zoneAttr;bz=za?Math.round((za[ix[i]]+za[ix[i+1]]+za[ix[i+2]])/3):0;}}
   return bz;},
  bindEvents(){const c=this.canvas;let down=null,moved=false,pts=new Map(),pinch0=0,dist0=0;
   c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);if(pts.size===1){down=[e.clientX,e.clientY,this.yaw,this.pitch];moved=false;}else if(pts.size===2){const a=[...pts.values()];pinch0=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);dist0=this.dist;}});
