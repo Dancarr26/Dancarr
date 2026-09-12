@@ -1,4 +1,4 @@
-The 3D body mesh in body3d.bin is derived from the MakeHuman base mesh
+The 3D body mesh in body3d-data.js (base64-packed binary) is derived from the MakeHuman base mesh
 (makehuman/data/3dobjs/base.obj, "body" group only, triangulated, with
 computed smooth normals), from https://github.com/makehumancommunity/makehuman
 

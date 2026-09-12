@@ -15,7 +15,7 @@
   and links to the regions and tools. Open the file in a browser; no build step.
   The 2D figure paths in `atlas/body-art.js` are adapted from
   [react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter)
-  (MIT, see `atlas/LICENSE-body-art.txt`). The 3D body (`atlas/body3d.bin`, rendered by
+  (MIT, see `atlas/LICENSE-body-art.txt`). The 3D body (`atlas/body3d-data.js`, rendered by
   `atlas/body3d.js` with raw WebGL) is the [MakeHuman](https://github.com/makehumancommunity/makehuman)
   base mesh, released CC0. The figure has named muscle groups and toggleable schematic
   artery, vein and nerve layers; the 3D view turns to show sides, back, top and bottom.

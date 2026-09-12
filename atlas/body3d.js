@@ -40,7 +40,10 @@ window.Body3D={
   this.canvas=canvas;this.opts=opts||{};
   const gl=canvas.getContext('webgl',{antialias:true,alpha:true,premultipliedAlpha:false});if(!gl){canvas.replaceWith(Object.assign(document.createElement('p'),{textContent:'3D view needs WebGL.',className:'none'}));return;}
   this.gl=gl;
-  const res=await fetch(this.opts.src||'body3d.bin');const buf=await res.arrayBuffer();const dv=new DataView(buf);
+  let buf;
+  if(window.BODY3D_B64){const bin=atob(window.BODY3D_B64);const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);buf=u8.buffer;}
+  else{const res=await fetch(this.opts.src||'body3d.bin');buf=await res.arrayBuffer();}
+  const dv=new DataView(buf);
   const nv=dv.getUint32(0,true),nt=dv.getUint32(4,true);
   const pos=new Float32Array(buf,8,nv*3);const nrmI=new Int8Array(buf,8+nv*12,nv*3);const idx=new Uint32Array(buf.slice(8+nv*12+nv*3,8+nv*12+nv*3+nt*12));
   const nrm=new Float32Array(nv*3);for(let i=0;i<nv*3;i++)nrm[i]=nrmI[i]/127;
