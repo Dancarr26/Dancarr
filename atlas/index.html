@@ -93,6 +93,97 @@ a{color:var(--accent-ink)}
 .credit{font-size:11px;color:var(--muted);margin:0;line-height:1.4}
 .credit a{color:var(--muted)}
 
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface-2);border-radius:10px;padding:3px}
+.mode{border:0;background:none;border-radius:8px;padding:7px 8px;font-size:13.5px;cursor:pointer;color:var(--muted)}
+.mode.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:700}
+.mode:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.search{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:14px;background:var(--surface);color:var(--ink)}
+.search:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+.list .cat{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 8px 4px}
+.list .cat:first-child{padding-top:4px}
+.row .num.t{font-size:12px;border-style:dashed}
+.list .none{list-style:none;color:var(--muted);font-size:13.5px;padding:10px 8px}
+
+/* ---------- Tool pages ---------- */
+.when{font-size:14.5px;color:var(--muted);max-width:66ch;margin:6px 0 0}
+.when b{color:var(--ink)}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ol.steps li{display:grid;grid-template-columns:24px 40px 1fr;gap:12px;align-items:start;padding:12px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+ol.steps li:has(input:checked){background:var(--accent-soft);border-color:var(--accent-line)}
+ol.steps .k{width:40px;height:40px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;font-family:var(--display);font-size:22px;font-weight:600;color:var(--accent-ink)}
+ol.steps .st{font-weight:700;font-size:15.5px;margin:0 0 4px}
+ol.steps .look,ol.steps .do{font-size:14.5px;margin:0;line-height:1.45}
+ol.steps .look b,ol.steps .do b{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+ol.steps .do{margin-top:4px}
+ol.steps input{appearance:none;-webkit-appearance:none;width:20px;height:20px;margin:10px 0 0;border:1.5px solid var(--muted);border-radius:6px;background:var(--surface);cursor:pointer;display:grid;place-items:center}
+ol.steps input:checked{background:var(--accent);border-color:var(--accent)}
+ol.steps input:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+ol.steps input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.items{display:flex;flex-direction:column;gap:14px}
+.item{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px}
+.item h4{margin:0 0 2px;font-size:15.5px}
+.item .d{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer;display:inline-flex;align-items:baseline;gap:8px;max-width:100%;text-align:left}
+.opt .v{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);flex:none}
+.opt small{color:var(--muted);font-size:12.5px}
+.opt:hover{border-color:var(--accent)}
+.opt:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.opt.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt.on .v,.opt.on small{color:rgba(255,255,255,.8)}
+.result{position:sticky;bottom:0;margin-top:14px;border-radius:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);display:grid;grid-template-columns:auto 1fr;gap:6px 18px;align-items:center}
+.result .big{font-family:var(--display);font-size:40px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
+.result .lab{font-weight:700;font-size:15px}
+.result .adv{grid-column:1/-1;font-size:14.5px;color:var(--ink);margin:0}
+.result .sum{grid-column:1/-1;font-family:var(--mono);font-size:12.5px;color:var(--muted);user-select:all;margin:0}
+.result.ok{border-color:var(--accent-line)}.result.ok .big{color:var(--accent-ink)}
+.result.warn{border-color:var(--amber)}.result.warn .big{color:var(--amber)}
+.result.bad{border-color:var(--flag);background:var(--flag-soft)}.result.bad .big{color:var(--flag-ink)}
+.result .pending{grid-column:1/-1;color:var(--muted);font-size:14px}
+.vform{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 14px}
+.vform label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.vform input,.vform select{font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);width:100%;font-variant-numeric:tabular-nums}
+.vform input:focus,.vform select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.vout{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:16px}
+.vpanel{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px 16px}
+.vpanel h4{margin:0 0 8px;font-family:var(--mono);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.vpanel .big{font-family:var(--display);font-size:36px;line-height:1;font-weight:600}
+.vpanel .lab{font-weight:700;margin:6px 0 4px}
+.vpanel p{margin:0;font-size:14px}
+.vpanel table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+.vpanel td{padding:4px 0;border-top:1px solid var(--line)}
+.vpanel td:last-child{text-align:right;font-family:var(--mono);font-size:12.5px}
+.z0{color:var(--muted)}.z1{color:var(--amber);font-weight:700}.z2{color:var(--flag-ink);font-weight:700}
+.vpanel.ok{border-color:var(--accent-line)}.vpanel.ok .big{color:var(--accent-ink)}
+.vpanel.warn{border-color:var(--amber)}.vpanel.warn .big{color:var(--amber)}
+.vpanel.bad{border-color:var(--flag);background:var(--flag-soft)}.vpanel.bad .big{color:var(--flag-ink)}
+.reflist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.reflist section{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px}
+.reflist h4{margin:0 0 6px;font-size:15px}
+.reflist ul{margin:0;padding-left:18px;font-size:14.5px}
+.reflist li{margin:3px 0}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.tbl table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+.tbl th{text-align:left;font-family:var(--mono);font-weight:500;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:bottom}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.card h4{margin:0;font-size:16px;font-family:var(--display);font-weight:600}
+.card h5{margin:4px 0 2px;font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card h5.red{color:var(--flag-ink)}
+.card ul{margin:0;padding-left:16px;font-size:14px}
+.card li{margin:2px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--accent);color:var(--accent-ink)}
+.chip .n{font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:4px}
+.sources{margin:0;padding:0;list-style:none;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.sources a{color:var(--muted)}
+.callout.teal{border-left-color:var(--accent);background:var(--accent-soft)}
+.callout.teal h4{color:var(--accent-ink)}
+
 /* ---------- Detail pane ---------- */
 .detail{padding:30px clamp(16px,4vw,60px) 110px;max-width:900px;width:100%}
 .eyebrow{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -198,6 +289,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
   .row .name{font-size:13.5px}.row .name small{display:none}.row .prog{display:none}
   .atlas-foot{margin-top:0}
   .detail{padding-bottom:120px}
+  .result{bottom:66px}
   .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));justify-content:space-between;align-items:center;gap:10px}
   .mbar .pos{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 }
@@ -212,8 +304,10 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
       <svg id="bodyfig" viewBox="40 80 700 1300" role="group" aria-label="Whole-body figure with numbered assessment regions"></svg>
       <div class="figcap"><div class="vtoggle" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><span id="figstate"></span></div>
     </div>
+    <div class="modes" role="tablist" aria-label="Navigation mode"><button type="button" class="mode on" role="tab" data-mode="regions" aria-selected="true">Body regions</button><button type="button" class="mode" role="tab" data-mode="tools" aria-selected="false">Tools &amp; frameworks</button></div>
+    <input class="search" id="search" type="search" placeholder="Find a region, tool, score or sign" aria-label="Search regions and tools" autocomplete="off">
     <ol class="list" id="list"></ol>
-    <div class="atlas-foot"><span id="overall"></span><button class="linkbtn" id="reset" type="button">Reset all ticks</button></div>
+    <div class="atlas-foot"><span id="overall"></span><button class="linkbtn" id="reset" type="button">Reset this tab</button></div>
     <p class="credit">Body figure adapted from <a href="https://github.com/HichamELBSI/react-native-body-highlighter">react-native-body-highlighter</a>, © 2022 ELABBASSI Hicham, MIT licence.</p>
   </aside>
   <main class="detail" id="detail" aria-live="polite"></main>
@@ -225,6 +319,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
 </div>
 
 <script src="body-art.js"></script>
+<script src="tools.js"></script>
 <script>
 /* ---------- shared drawing helpers ---------- */
 const SVG=(w,h,label,inner)=>`<svg class="dg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}">${inner}</svg>`;
@@ -707,11 +802,14 @@ const PINS={
  pain:{front:[626,770],back:[1352,770]}
 };
 const VIEWBOX={front:'40 80 700 1300',back:'764 80 700 1300'};
-function drawBody(){
+function drawBody(activeIds){
   const view=state.view, svg=document.getElementById('bodyfig');
   svg.setAttribute('viewBox',VIEWBOX[view]);
-  const act=state.active, m=(MAP[act]||{})[view]||{};
-  const onParts=new Set(m.parts||[]);
+  const ids=Array.isArray(activeIds)?activeIds:[state.active];
+  const ms=ids.map(id=>(MAP[id]||{})[view]).filter(Boolean);
+  const m={parts:ms.flatMap(x=>x.parts||[]),shapes:ms.map(x=>x.shapes||'').join(''),dots:ms.flatMap(x=>x.dots||[]),joints:ms.flatMap(x=>x.joints||[]),halo:ms.some(x=>x.halo)};
+  const act=ids.length===1?ids[0]:null;
+  const onParts=new Set(m.parts);
   let s=`<g class="body">`+ART[view].map(p=>Object.values(p.parts).flat().map(d=>`<path d="${d}" class="mp${p.slug==='hair'?' hair':''}${onParts.has(p.slug)?' on':''}"/>`).join('')).join('')+`<path d="${ART.outline[view]}" class="ol"/></g>`;
   const ob=view==='front'?[49,96,679,1351]:[769,96,1399,1351];
   if(m.halo)s+=`<rect x="${ob[0]-14}" y="${ob[1]-14}" width="${ob[2]-ob[0]+28}" height="${ob[3]-ob[1]+28}" rx="60" class="halo"/>`;
@@ -729,27 +827,56 @@ function drawBody(){
   document.querySelector('.side.l').textContent=view==='front'?"Patient's R":"Patient's L";
   document.querySelector('.side.r').textContent=view==='front'?"Patient's L":"Patient's R";
 }
-function setView(v){state.view=v;save();drawBody();}
+function setView(v){state.view=v;save();drawBody(state.mode==='tools'&&toolById(state.tool)?toolById(state.tool).regions:[state.active]);}
 
 /* ---------- state ---------- */
 const KEY='bedside-atlas-v1';
-let state={active:'vitals',view:'front',checks:{},marks:[]};
+let state={mode:'regions',active:'vitals',tool:'drsabcd',view:'front',checks:{},marks:[],answers:{},vitals:{}};
 try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&typeof s==='object')state={...state,...s};}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 const idx=id=>REGIONS.findIndex(r=>r.id===id);
 const doneCount=r=>(state.checks[r.id]||[]).length;
 
 /* ---------- render ---------- */
+const TOOLS=window.TOOLS||[];
+const CATS=[...new Set(TOOLS.map(t=>t.cat))];
+const toolById=id=>TOOLS.find(t=>t.id===id);
+const regionTools=rid=>TOOLS.filter(t=>t.regions.includes(rid));
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function q(){return (document.getElementById('search').value||'').trim().toLowerCase();}
+function matchR(r,t){if(!t)return true;return (r.name+' '+r.loc+' '+r.assess.map(a=>a[0]).join(' ')).toLowerCase().includes(t);}
+function matchT(x,t){if(!t)return true;const hay=(x.name+' '+x.short+' '+x.cat+' '+x.purpose+' '+(x.cards||[]).map(c=>c.t).join(' ')+' '+(x.rows||[]).map(r=>r[0]).join(' ')).toLowerCase();return hay.includes(t);}
+function visibleRegions(){const t=q();return REGIONS.filter(r=>matchR(r,t));}
+function visibleTools(){const t=q();return TOOLS.filter(x=>matchT(x,t));}
+function toolProgress(x){const a=state.answers[x.id]||{};if(x.type==='steps')return [Object.values(a).filter(Boolean).length,x.steps.length];if(x.type==='score')return [Object.keys(a).length,x.items.length];return null;}
 function renderList(){
   const ol=document.getElementById('list');
-  ol.innerHTML=REGIONS.map(r=>{const d=doneCount(r),t=r.assess.length;return `<li><button type="button" class="row${r.id===state.active?' on':''}${d===t?' done':''}" data-id="${r.id}"><span class="num">${r.n}</span><span class="name">${r.name}<small>${r.loc}</small></span><span class="prog">${d}/${t}</span></button></li>`;}).join('');
-  ol.querySelectorAll('.row').forEach(b=>b.addEventListener('click',()=>show(b.dataset.id)));
-  const total=REGIONS.reduce((a,r)=>a+r.assess.length,0),done=REGIONS.reduce((a,r)=>a+doneCount(r),0);
-  document.getElementById('overall').textContent=`${done} of ${total} items ticked`;
+  if(state.mode==='regions'){
+    const vis=visibleRegions();
+    ol.innerHTML=vis.length?vis.map(r=>{const d=doneCount(r),t=r.assess.length;return `<li><button type="button" class="row${r.id===state.active?' on':''}${d===t?' done':''}" data-id="${r.id}"><span class="num">${r.n}</span><span class="name">${r.name}<small>${r.loc}</small></span><span class="prog">${d}/${t}</span></button></li>`;}).join(''):'<li class="none">Nothing matches. Try the Tools tab.</li>';
+    ol.querySelectorAll('.row').forEach(b=>b.addEventListener('click',()=>show(b.dataset.id)));
+    const total=REGIONS.reduce((a,r)=>a+r.assess.length,0),done=REGIONS.reduce((a,r)=>a+doneCount(r),0);
+    document.getElementById('overall').textContent=`${done} of ${total} items ticked`;
+  } else {
+    const vis=visibleTools();let h='';
+    CATS.forEach(c=>{const items=vis.filter(x=>x.cat===c);if(!items.length)return;h+=`<li class="cat">${c}</li>`+items.map(x=>{const p=toolProgress(x);const badge={steps:'✓',score:'Σ',vitals:'⚡',list:'≡',table:'⊞',cards:'▦'}[x.type]||'·';return `<li><button type="button" class="row${x.id===state.tool?' on':''}${p&&p[0]===p[1]?' done':''}" data-id="${x.id}"><span class="num t">${badge}</span><span class="name">${x.name}<small>${x.cat}</small></span><span class="prog">${p?p[0]+'/'+p[1]:''}</span></button></li>`;}).join('');});
+    ol.innerHTML=h||'<li class="none">Nothing matches. Try the Body regions tab.</li>';
+    ol.querySelectorAll('.row').forEach(b=>b.addEventListener('click',()=>showTool(b.dataset.id)));
+    const done=TOOLS.filter(x=>{const p=toolProgress(x);return p&&p[0]===p[1];}).length;
+    document.getElementById('overall').textContent=`${TOOLS.length} tools · ${done} completed`;
+  }
+  document.querySelectorAll('.mode').forEach(b=>{const on=b.dataset.mode===state.mode;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
 }
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
-function renderDetail(){
-  const r=REGIONS[idx(state.active)],i=idx(state.active),prev=REGIONS[i-1],next=REGIONS[i+1];
+const chipsR=ids=>`<div class="chips">${ids.map(id=>{const r=REGIONS.find(x=>x.id===id);return r?`<button type="button" class="chip" data-region="${id}"><span class="n">${r.n}</span>${r.short}</button>`:'';}).join('')}</div>`;
+const chipsT=list=>`<div class="chips">${list.map(x=>`<button type="button" class="chip" data-tool="${x.id}">${x.short}</button>`).join('')}</div>`;
+function bindChips(root){root.querySelectorAll('[data-region]').forEach(c=>c.addEventListener('click',()=>{state.mode='regions';show(c.dataset.region);window.scrollTo({top:0});}));root.querySelectorAll('[data-tool]').forEach(c=>c.addEventListener('click',()=>{state.mode='tools';showTool(c.dataset.tool);window.scrollTo({top:0});}));}
+function pager(list,cur,goFn){
+  const i=list.findIndex(x=>x.id===cur),prev=list[i-1],next=list[i+1];
+  return `<nav class="pager">${prev?`<button type="button" class="btn" data-go="${prev.id}"><small>Previous</small>${prev.short}</button>`:'<span></span>'}${next?`<button type="button" class="btn primary" data-go="${next.id}"><small>Next</small>${next.short}</button>`:'<span></span>'}</nav>`;
+}
+function renderDetail(){ if(state.mode==='tools'&&toolById(state.tool))renderTool(toolById(state.tool)); else {state.mode='regions';renderRegion();} }
+function renderRegion(){
+  const r=REGIONS[idx(state.active)];
   const checks=state.checks[r.id]||[];
   let h=`<div class="eyebrow"><span>Region ${r.n} of 15</span><span class="loc">${r.loc}</span></div>`;
   h+=`<h2 class="title">${r.name}</h2>`;
@@ -758,25 +885,133 @@ function renderDetail(){
   h+=`<section class="blk"><h3>Where to look</h3><figure class="fig"><div class="scroll">${r.diagram()}</div><figcaption>${r.caption}</figcaption></figure></section>`;
   if(r.landmarks)h+=`<section class="blk"><h3>Landmarks</h3><ul class="landmarks">${r.landmarks.map(([a,b])=>`<li><b>${a}</b> · ${b}</li>`).join('')}</ul></section>`;
   if(r.how)h+=`<section class="blk"><h3>How</h3><div class="how">${r.how}</div></section>`;
-  h+=`<section class="blk"><h3>Assess · ${checks.length}/${r.assess.length}</h3><ul class="check">${r.assess.map(([t,d],k)=>`<li><input type="checkbox" id="c-${r.id}-${k}" data-k="${k}"${checks.includes(k)?' checked':''}><label for="c-${r.id}-${k}"><b>${t}</b> <span>${d}</span></label></li>`).join('')}</ul></section>`;
+  h+=`<section class="blk"><h3 id="assessh">Assess · ${checks.length}/${r.assess.length}</h3><ul class="check">${r.assess.map(([t,d],k)=>`<li><input type="checkbox" id="c-${r.id}-${k}" data-k="${k}"${checks.includes(k)?' checked':''}><label for="c-${r.id}-${k}"><b>${t}</b> <span>${d}</span></label></li>`).join('')}</ul></section>`;
   if(r.scales)h+=`<section class="blk"><h3>Scales</h3><div class="scales">${r.scales.map(([n,rows])=>`<div><h5>${n}</h5><dl class="scale">${rows.map(([k,v,c])=>`<dt class="${c||''}">${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('')}</div></section>`;
   h+=`<section class="blk"><div class="callout"><h4>Red flags · what matters</h4><ul>${r.flags.map(f=>`<li>${f}</li>`).join('')}</ul></div></section>`;
+  const rt=regionTools(r.id);if(rt.length)h+=`<section class="blk"><h3>Tools for this region</h3>${chipsT(rt)}</section>`;
   if(r.id==='pain')h+=`<div class="tools"><button type="button" class="btn" id="clearmarks">Clear pain marks</button></div>`;
-  h+=`<nav class="pager">${prev?`<button type="button" class="btn" data-go="${prev.id}"><small>Previous · ${prev.n}</small>${prev.short}</button>`:'<span></span>'}${next?`<button type="button" class="btn primary" data-go="${next.id}"><small>Next · ${next.n}</small>${next.short}</button>`:`<button type="button" class="btn primary" data-go="vitals"><small>Finished</small>Back to the start</button>`}</nav>`;
+  h+=pager(visibleRegions().length?visibleRegions():REGIONS,r.id);
   const d=document.getElementById('detail');
   d.innerHTML=h;
   d.querySelectorAll('.check input').forEach(cb=>cb.addEventListener('change',()=>{
     const k=+cb.dataset.k,arr=new Set(state.checks[r.id]||[]);cb.checked?arr.add(k):arr.delete(k);state.checks[r.id]=[...arr].sort((a,b)=>a-b);save();renderList();
-    d.querySelector('.blk h3').textContent=`Assess · ${arr.size}/${r.assess.length}`;
-    const assessH3=[...d.querySelectorAll('.blk h3')].find(x=>x.textContent.startsWith('Assess'));if(assessH3)assessH3.textContent=`Assess · ${arr.size}/${r.assess.length}`;
+    document.getElementById('assessh').textContent=`Assess · ${arr.size}/${r.assess.length}`;
   }));
   d.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{show(b.dataset.go);window.scrollTo({top:0});}));
+  bindChips(d);
   if(r.id==='pain')initPainMap();
-  // mobile bar + figure state
   document.getElementById('mpos').textContent=`${r.n} / 15 · ${r.short}`;
-  document.getElementById('mprev').disabled=!prev;document.getElementById('mnext').disabled=!next;
   document.getElementById('figstate').innerHTML=`<b>${r.n}</b> ${r.short}`;
-  drawBody();
+  drawBody([r.id]);
+}
+/* ---- tool pages ---- */
+function bandFor(t,total){return (t.bands||[]).find(([lo,hi])=>total>=lo&&total<=hi);}
+function scoreState(t){
+  const a=state.answers[t.id]||{};const picks=t.items.map((it,i)=>a[i]===undefined?null:it.opts[a[i]]);
+  if(t.scoring==='gcs'){
+    const [e,v,m,p]=picks;const core=[e,v,m];const answered=core.every(Boolean);
+    if(!answered)return {answered:false,n:core.filter(Boolean).length,m:3};
+    const nt=core.some(x=>x[0]==='NT');const sum=core.reduce((s,x)=>s+(x[0]==='NT'?0:x[0]),0);
+    const comp=`E${e[0]} V${v[0]} M${m[0]}`;
+    if(nt)return {answered:true,nt:true,total:null,summary:`GCS ${comp} · a component is not testable, so no total is recorded`+(p?` · pupils: ${p[1].toLowerCase()}`:'')};
+    const gp=p?sum+p[0]:null;
+    return {answered:true,total:sum,band:bandFor(t,sum),summary:`GCS ${sum} (${comp})`+(p?` · pupils: ${p[1].toLowerCase()} · GCS-P ${gp}`:'')};
+  }
+  if(t.scoring==='sepsis'){
+    const answered=picks.every(Boolean);if(!answered)return {answered:false,n:picks.filter(Boolean).length,m:picks.length};
+    const inf=picks[0][0];const red=picks.slice(1).filter(x=>x[0]===3).length,amber=picks.slice(1).filter(x=>x[0]===1).length;
+    const level=inf===0?0:red?4:amber?3:1;const band=bandFor(t,level);
+    return {answered:true,total:inf===0?'—':(red?`${red} red`:amber?`${amber} amber`:'0'),band,summary:`Sepsis screen: infection ${inf?'likely':'not suspected'} · ${red} red flag${red===1?'':'s'} · ${amber} amber flag${amber===1?'':'s'}`};
+  }
+  const answered=picks.every(Boolean);if(!answered)return {answered:false,n:picks.filter(Boolean).length,m:picks.length};
+  const sum=picks.reduce((s,x)=>s+x[0],0);
+  return {answered:true,total:sum,band:bandFor(t,sum),summary:`${t.short} ${sum}: ${picks.map((x,i)=>t.items[i].t.replace(/^\d+ · /,'').split(' (')[0]+' '+x[0]).join(', ')}`};
+}
+function renderResult(t){
+  const r=scoreState(t);const el=document.getElementById('result');if(!el)return;
+  if(!r.answered){el.className='result';el.innerHTML=`<div class="pending">${r.n} of ${r.m} answered. Complete every item for a result.</div>`;return;}
+  if(r.nt){el.className='result warn';el.innerHTML=`<div class="big">NT</div><div class="lab">Components only</div><p class="adv">Record the testable components and pupils. Trend each component separately.</p><p class="sum">${esc(r.summary)}</p>`;return;}
+  const b=r.band;el.className='result '+(b?b[3]:'');
+  el.innerHTML=`<div class="big">${r.total}</div><div class="lab">${b?b[2]:''}</div>${b&&b[4]?`<p class="adv">${b[4]}</p>`:''}<p class="sum">${esc(r.summary)}</p>`;
+}
+function renderTool(t){
+  const a=state.answers[t.id]||{};
+  let h=`<div class="eyebrow"><span>${t.cat}</span><span class="loc">${{steps:'Protocol',score:'Score',vitals:'Calculator',list:'Reference',table:'Reference table',cards:'Reference'}[t.type]}</span></div>`;
+  h+=`<h2 class="title">${t.name}</h2><p class="lede">${t.purpose}</p>`;
+  if(t.when)h+=`<p class="when"><b>When.</b> ${t.when}</p>`;
+  if(t.type==='steps'){
+    h+=`<section class="blk"><h3>Sequence · ${Object.values(a).filter(Boolean).length}/${t.steps.length}</h3><ol class="steps">${t.steps.map((st,i)=>`<li><input type="checkbox" id="s-${t.id}-${i}" data-i="${i}"${a[i]?' checked':''} aria-label="Done: ${esc(st.t)}"><span class="k">${st.k}</span><div><p class="st">${st.t}</p><p class="look"><b>Look for</b>${st.look}</p>${st.act?`<p class="do"><b>Do</b>${st.act}</p>`:''}</div></li>`).join('')}</ol><div class="tools"><button type="button" class="btn" id="resettool">Reset ticks</button></div></section>`;
+  }
+  if(t.type==='score'){
+    h+=`<section class="blk"><h3>Score it</h3><div class="items">${t.items.map((it,i)=>`<div class="item"><h4>${it.t}</h4>${it.d?`<p class="d">${it.d}</p>`:''}<div class="opts" role="radiogroup" aria-label="${esc(it.t)}">${it.opts.map((o,k)=>`<button type="button" class="opt${a[i]===k?' on':''}" role="radio" aria-checked="${a[i]===k}" data-i="${i}" data-k="${k}"><span class="v">${o[0]}</span><span>${o[1]}${o[2]?` <small>· ${o[2]}</small>`:''}</span></button>`).join('')}</div></div>`).join('')}</div><div class="result" id="result"></div><div class="tools"><button type="button" class="btn" id="resettool">Clear answers</button></div></section>`;
+  }
+  if(t.type==='vitals'){
+    const v=state.vitals||{};
+    const f=(id,l,ph,step)=>`<label>${l}<input type="number" inputmode="decimal" id="v-${id}" data-v="${id}" placeholder="${ph}" step="${step||1}" value="${v[id]??''}"></label>`;
+    h+=`<section class="blk"><h3>Observations</h3><div class="vform">${f('rr','Respiratory rate /min','12–20')}${f('spo2','SpO₂ %','96')}<label>Oxygen<select id="v-o2" data-v="o2"><option value="0"${v.o2==0?' selected':''}>Room air</option><option value="1"${v.o2==1?' selected':''}>On supplemental oxygen</option></select></label><label>SpO₂ scale<select id="v-scale" data-v="scale"><option value="1"${v.scale!=2?' selected':''}>Scale 1 · target 94–98%</option><option value="2"${v.scale==2?' selected':''}>Scale 2 · known CO₂ retainer, target 88–92%</option></select></label>${f('sbp','Systolic BP mmHg','120')}${f('hr','Heart rate /min','60–90')}${f('temp','Temperature °C','36.8','0.1')}<label>Consciousness (ACVPU)<select id="v-acvpu" data-v="acvpu">${['A','C','V','P','U'].map(k=>`<option value="${k}"${(v.acvpu||'A')===k?' selected':''}>${{A:'A · Alert',C:'C · New confusion',V:'V · Responds to voice',P:'P · Responds to pain',U:'U · Unresponsive'}[k]}</option>`).join('')}</select></label></div><div class="vout" id="vout"></div><div class="tools"><button type="button" class="btn" id="resettool">Clear</button></div></section>`;
+  }
+  if(t.type==='list')h+=`<section class="blk"><h3>Reference</h3><div class="reflist">${t.sections.map(sec=>`<section><h4>${sec.h}</h4><ul>${sec.items.map(i=>`<li>${i}</li>`).join('')}</ul></section>`).join('')}</div></section>`;
+  if(t.type==='table')h+=`<section class="blk"><h3>Reference</h3><div class="tbl"><table><thead><tr>${t.columns.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`;
+  if(t.type==='cards')h+=`<section class="blk"><h3>Conditions · ${t.cards.length}</h3><div class="cards">${t.cards.map(c=>`<div class="card"><h4>${c.t}</h4><h5>Early signs</h5><ul>${c.early.map(i=>`<li>${i}</li>`).join('')}</ul><h5 class="red">Red flags</h5><ul>${c.red.map(i=>`<li>${i}</li>`).join('')}</ul>${c.check&&c.check.length?`<h5>Check on the body</h5>${chipsR(c.check)}`:''}</div>`).join('')}</div></section>`;
+  if(t.act&&t.act.length)h+=`<section class="blk"><div class="callout${t.type==='list'||t.type==='table'||t.type==='cards'?' teal':''}"><h4>Act on it</h4><ul>${t.act.map(x=>`<li>${x}</li>`).join('')}</ul></div></section>`;
+  if(t.regions&&t.regions.length)h+=`<section class="blk"><h3>Assess on the body</h3>${chipsR(t.regions)}</section>`;
+  if(t.sources&&t.sources.length)h+=`<section class="blk"><h3>Sources</h3><ul class="sources">${t.sources.map(s=>`<li><a href="${s.u}" target="_blank" rel="noopener">${s.n}</a></li>`).join('')}</ul></section>`;
+  h+=pager(visibleTools().length?visibleTools():TOOLS,t.id);
+  const d=document.getElementById('detail');d.innerHTML=h;
+  d.querySelectorAll('ol.steps input').forEach(cb=>cb.addEventListener('change',()=>{state.answers[t.id]=state.answers[t.id]||{};state.answers[t.id][cb.dataset.i]=cb.checked;save();renderList();d.querySelector('.blk h3').textContent=`Sequence · ${Object.values(state.answers[t.id]).filter(Boolean).length}/${t.steps.length}`;}));
+  d.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{state.answers[t.id]=state.answers[t.id]||{};state.answers[t.id][b.dataset.i]=+b.dataset.k;save();d.querySelectorAll(`.opt[data-i="${b.dataset.i}"]`).forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on);});renderResult(t);renderList();}));
+  if(t.type==='score')renderResult(t);
+  if(t.type==='vitals'){d.querySelectorAll('[data-v]').forEach(el=>el.addEventListener('input',()=>{state.vitals=state.vitals||{};state.vitals[el.dataset.v]=el.value;save();renderVitals();}));renderVitals();}
+  d.querySelector('#resettool')?.addEventListener('click',()=>{if(t.type==='vitals')state.vitals={};else delete state.answers[t.id];save();renderTool(t);renderList();});
+  d.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{showTool(b.dataset.go);window.scrollTo({top:0});}));
+  bindChips(d);
+  document.getElementById('mpos').textContent=t.short;
+  document.getElementById('figstate').innerHTML=`<b>Tool</b> ${t.short}`;
+  drawBody(t.regions||[]);
+}
+/* ---- vitals engine ---- */
+function news2(v){
+  const s={};
+  s.rr=v.rr<=8?3:v.rr<=11?1:v.rr<=20?0:v.rr<=24?2:3;
+  if(v.scale===2){s.spo2=v.o2?(v.spo2<=83?3:v.spo2<=85?2:v.spo2<=87?1:v.spo2<=92?0:v.spo2<=94?1:v.spo2<=96?2:3):(v.spo2<=83?3:v.spo2<=85?2:v.spo2<=87?1:0);}
+  else s.spo2=v.spo2<=91?3:v.spo2<=93?2:v.spo2<=95?1:0;
+  s.o2=v.o2?2:0;
+  s.sbp=v.sbp<=90?3:v.sbp<=100?2:v.sbp<=110?1:v.sbp<=219?0:3;
+  s.hr=v.hr<=40?3:v.hr<=50?1:v.hr<=90?0:v.hr<=110?1:v.hr<=130?2:3;
+  s.acvpu=v.acvpu==='A'?0:3;
+  s.temp=v.temp<=35.0?3:v.temp<=36.0?1:v.temp<=38.0?0:v.temp<=39.0?1:2;
+  const total=Object.values(s).reduce((a,b)=>a+b,0);
+  const any3=['rr','spo2','sbp','hr','acvpu','temp'].some(k=>s[k]===3);
+  let risk,cls,resp;
+  if(total>=7){risk='High risk';cls='bad';resp='Emergency response now: 000 or rapid response. Continuous monitoring. Do not leave the person.';}
+  else if(total>=5){risk='Medium risk';cls='warn';resp='Urgent review within the hour by a clinician who can assess acutely ill people. Observations at least hourly. Think sepsis.';}
+  else if(any3){risk='Low to medium risk';cls='warn';resp='A single parameter scoring 3. Urgent review by a registered nurse, observations hourly, decide on escalation.';}
+  else if(total>=1){risk='Low risk';cls='ok';resp='Registered nurse to assess. Observations every 4 to 6 hours. Compare with their baseline.';}
+  else{risk='Low risk';cls='ok';resp='Routine monitoring, at least 12-hourly.';}
+  return {s,total,any3,risk,cls,resp};
+}
+function btf(v){
+  const z={};
+  z.rr=v.rr<5||v.rr>30?2:(v.rr<=10||v.rr>=25)?1:0;
+  z.spo2=v.spo2<90?2:v.spo2<=95?1:0;
+  z.sbp=v.sbp<90||v.sbp>200?2:(v.sbp<=100||v.sbp>=180)?1:0;
+  z.hr=v.hr<40||v.hr>140?2:(v.hr<=50||v.hr>=120)?1:0;
+  z.temp=(v.temp<35.5||v.temp>=38.5)?1:0;
+  z.acvpu=(v.acvpu==='P'||v.acvpu==='U')?2:(v.acvpu==='V'||v.acvpu==='C')?1:0;
+  const max=Math.max(...Object.values(z));
+  return {z,max,label:max===2?'RED ZONE':max===1?'YELLOW ZONE':'Between the flags',cls:max===2?'bad':max===1?'warn':'ok',resp:max===2?'Rapid response or 000 now. No discretion. Stay with the person, A to E, prepare ISBAR.':max===1?'Clinical review: consult the nurse in charge now and arrange review within 30 minutes. Increase observation frequency. Any worsening = red.':'Continue routine observations. Compare with their usual values and watch for soft signs.'};
+}
+function renderVitals(){
+  const out=document.getElementById('vout');if(!out)return;
+  const raw=state.vitals||{};const v={rr:+raw.rr,spo2:+raw.spo2,sbp:+raw.sbp,hr:+raw.hr,temp:+raw.temp,o2:+(raw.o2||0),scale:+(raw.scale||1),acvpu:raw.acvpu||'A'};
+  const missing=['rr','spo2','sbp','hr','temp'].filter(k=>!raw[k]||isNaN(v[k]));
+  if(missing.length){out.innerHTML=`<div class="vpanel"><h4>Result</h4><p>Enter ${missing.map(k=>({rr:'respiratory rate',spo2:'SpO₂',sbp:'systolic BP',hr:'heart rate',temp:'temperature'})[k]).join(', ')} for a result.</p></div>`;return;}
+  const n=news2(v),b=btf(v);const qs=(v.rr>=22?1:0)+(v.sbp<=100?1:0)+(v.acvpu!=='A'?1:0);
+  const names={rr:'Respiratory rate',spo2:'SpO₂',o2:'Supplemental O₂',sbp:'Systolic BP',hr:'Heart rate',acvpu:'Consciousness',temp:'Temperature'};
+  const zl=['between the flags','yellow','RED'];
+  out.innerHTML=`<div class="vpanel ${n.cls}"><h4>NEWS2</h4><div class="big">${n.total}</div><div class="lab">${n.risk}${n.any3&&n.total<5?' · single parameter 3':''}</div><p>${n.resp}</p><table>${Object.keys(names).map(k=>`<tr><td>${names[k]}</td><td class="${n.s[k]>=3?'z2':n.s[k]>=1?'z1':'z0'}">${n.s[k]}</td></tr>`).join('')}</table></div>
+  <div class="vpanel ${b.cls}"><h4>Between the Flags (NSW adult chart)</h4><div class="big">${b.label}</div><div class="lab">${b.max===2?'Rapid response':b.max===1?'Clinical review':'No trigger'}</div><p>${b.resp}</p><table>${['rr','spo2','sbp','hr','temp','acvpu'].map(k=>`<tr><td>${names[k]}</td><td class="z${b.z[k]}">${zl[b.z[k]]}</td></tr>`).join('')}</table><p style="margin-top:8px;font-size:12.5px;color:var(--muted)">Yellow: RR 5–10 or 25–30, SpO₂ 90–95, SBP 90–100 or 180–200, HR 40–50 or 120–140, temp under 35.5 or 38.5 and over, responds to voice or new confusion. Red: RR under 5 or over 30, SpO₂ under 90, SBP under 90 or over 200, HR under 40 or over 140, responds only to pain or unresponsive. Local charts vary; yours wins.</p></div>
+  <div class="vpanel ${qs>=2?'bad':'ok'}"><h4>qSOFA</h4><div class="big">${qs}</div><div class="lab">${qs>=2?'2 or more: higher risk if infection is suspected':'Under 2'}</div><p>RR 22 or more, systolic 100 or below, altered mental state. ${qs>=2?'Run the full sepsis screen and escalate now.':'A low qSOFA does not exclude sepsis: use NEWS2 and the sepsis screen.'}</p><p class="sum" style="margin-top:8px;font-family:var(--mono);font-size:12.5px;color:var(--muted);user-select:all">RR ${v.rr} · SpO₂ ${v.spo2}% ${v.o2?'on O₂':'RA'} · BP ${v.sbp} systolic · HR ${v.hr} · T ${v.temp} · ${v.acvpu} · NEWS2 ${n.total} · BTF ${b.label.toLowerCase()} · qSOFA ${qs}</p></div>`;
 }
 function initPainMap(){
   const svg=document.querySelector('#painmap')?.closest('svg');if(!svg)return;
@@ -788,21 +1023,29 @@ function initPainMap(){
 }
 function show(id){
   if(!REGIONS.some(r=>r.id===id))return;
-  state.active=id;
+  state.mode='regions';state.active=id;
   const other=state.view==='front'?'back':'front';
   if(!(MAP[id]||{})[state.view]&&(MAP[id]||{})[other])state.view=other;
-  save();renderList();renderDetail();
+  save();renderList();renderDetail();afterNav(id);
+}
+function showTool(id){ if(!toolById(id))return; state.mode='tools';state.tool=id;save();renderList();renderDetail();afterNav(id); }
+function afterNav(id){
   if(window.innerWidth<=900){document.getElementById('detail').scrollIntoView({block:'start'});}
   const row=document.querySelector(`.row[data-id="${id}"]`);if(row&&window.innerWidth<=900)row.scrollIntoView({inline:'center',block:'nearest'});
 }
-document.getElementById('mprev').addEventListener('click',()=>{const i=idx(state.active);if(i>0){show(REGIONS[i-1].id);window.scrollTo({top:0});}});
-document.getElementById('mnext').addEventListener('click',()=>{const i=idx(state.active);if(i<REGIONS.length-1){show(REGIONS[i+1].id);window.scrollTo({top:0});}});
-document.getElementById('reset').addEventListener('click',()=>{state.checks={};save();renderList();renderDetail();});
+function step(dir){
+  if(state.mode==='tools'){const l=visibleTools().length?visibleTools():TOOLS;const i=l.findIndex(x=>x.id===state.tool);const n=l[i+dir];if(n){showTool(n.id);window.scrollTo({top:0});}}
+  else{const l=visibleRegions().length?visibleRegions():REGIONS;const i=l.findIndex(x=>x.id===state.active);const n=l[i+dir];if(n){show(n.id);window.scrollTo({top:0});}}
+}
+document.getElementById('mprev').addEventListener('click',()=>step(-1));
+document.getElementById('mnext').addEventListener('click',()=>step(1));
+document.getElementById('reset').addEventListener('click',()=>{if(state.mode==='tools'){state.answers={};state.vitals={};}else state.checks={};save();renderList();renderDetail();});
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{state.mode=b.dataset.mode;if(state.mode==='tools'&&!toolById(state.tool))state.tool=TOOLS[0].id;save();renderList();renderDetail();}));
+document.getElementById('search').addEventListener('input',()=>renderList());
 document.addEventListener('keydown',e=>{
-  if(e.target.matches('input,textarea,button,[contenteditable]'))return;
-  const i=idx(state.active);
-  if(e.key==='ArrowRight'&&i<REGIONS.length-1)show(REGIONS[i+1].id);
-  if(e.key==='ArrowLeft'&&i>0)show(REGIONS[i-1].id);
+  if(e.target.matches('input,textarea,select,button,[contenteditable]'))return;
+  if(e.key==='ArrowRight')step(1);
+  if(e.key==='ArrowLeft')step(-1);
 });
 document.querySelectorAll('.vt').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
 renderList();renderDetail();
