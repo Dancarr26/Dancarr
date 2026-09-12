@@ -24,14 +24,12 @@
   hover, and carries branching artery, vein, nerve and lymphatic trees (`atlas/body3d-anatomy.js`)
   built from the rig's joints (calibre-graded tubes: trunks, branches, twigs; superficial courses
   set just under the skin, deep ones inside), lymph-node groups, and an organs-and-glands layer
-  (brain, airway and lungs, heart, gut from oesophagus to rectum, liver, pancreas, spleen,
-  kidneys and ureters, bladder, and the endocrine glands) and a bones layer, all seen through
-  the skin with an x-ray pass. The abdominal organs and vessels, the brain (by lobe), the
-  neck (thyroid, larynx, carotids, jugulars, subclavians, aortic arch) and the skeleton from
-  skull to pelvis are real CT/MR-segmented meshes from the Open Anatomy Project's SPL atlases
-  (`atlas/body3d-organs.js`, 3D Slicer licence, see `atlas/LICENSE-body3d-organs.txt`), fitted
-  to the rig by landmarks; the heart, lungs, airway, bladder and small glands are still
-  hand-shaped placeholders. Selecting a body zone dims everything that does not run through it and lists what
+  and a bones and a muscles layer, all seen through the skin with an x-ray pass. The anatomy is
+  real: organs (lungs by lobe, heart by chamber, airway, gut from oesophagus to sigmoid, liver,
+  pancreas, spleen, kidneys, bladder, glands), vessels, nerves, lymph nodes, muscles by compartment
+  and the whole skeleton come from Z-Anatomy (`atlas/body3d-organs.js`, CC BY-SA 4.0, see
+  `atlas/LICENSE-body3d-organs.txt`), retargeted onto the rig: the torso by a landmark warp and
+  each limb by its bone chain, so the straight Z-Anatomy arms follow the mesh's bent forearms. Selecting a body zone dims everything that does not run through it and lists what
   does beneath the figure. The Muscles chip colours the 3D body as a muscle chart and names the
   group under the pointer. The 2D figure has named muscle groups and toggleable schematic artery,
   vein and nerve layers; the 3D view turns to show sides, back, top and bottom.

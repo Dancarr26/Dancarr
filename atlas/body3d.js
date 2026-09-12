@@ -159,7 +159,7 @@ function ellipsoid(c,rx,ry,rz,rot,id,out,zm){const R=14,Q=10;const cs=Math.cos(r
 const DROP_STRUCT=/^(Abdominal aorta|Common iliac a\.|External iliac a\.|Internal iliac a\.|Coeliac trunk|Splenic a\.|Left gastric a\.|Hepatic a\.|Gastroduodenal a\.|Superior mesenteric a\.|Inferior mesenteric a\.|Renal a\.|Common carotid a\.|Internal carotid a\.|External carotid a\.|Subclavian a\.|Brachiocephalic trunk|Vertebral → basilar a\.|Inferior vena cava|Common iliac v\.|External iliac v\.|Internal iliac v\.|External iliac → femoral v\.|Portal v\.|Splenic v\.|Hepatic vv\.|Renal v\.|Internal jugular v\.|Subclavian v\.|Superior vena cava)/;
 const DROP_ORGAN=/^(Brain|Liver|Gallbladder|Spleen|Pancreas|Right kidney|Left kidney|Right adrenal|Left adrenal|Ureters|Thyroid \(|Hypothalamus|Stomach|Duodenum|Jejunum|Colon|Appendix|Larynx)/;
 /* ORG1 pack reader: see scratchpad/organs.js for the writer */
-function parseOrganPack(b64){const bin=atob(b64);const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);const dv=new DataView(u8.buffer);let o=4;const n=dv.getUint32(o,true);o+=4;const LAYERS=['organ','bone','artery','vein'];const parts=[];
+function parseOrganPack(b64){const bin=atob(b64);const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);const dv=new DataView(u8.buffer);let o=4;const n=dv.getUint32(o,true);o+=4;const LAYERS=['organ','bone','artery','vein','nerve','muscle','lymph'];const parts=[];
   for(let k=0;k<n;k++){const layer=LAYERS[u8[o++]];const nl=u8[o++];const name=new TextDecoder().decode(u8.subarray(o,o+nl));o+=nl;const r=u8[o++],g=u8[o++],b=u8[o++];const col=r===255&&g===255&&b===255?null:[r/254,g/254,b/254];const nv=dv.getUint32(o,true);o+=4;const nt=dv.getUint32(o,true);o+=4;const mn=[0,1,2].map(i=>dv.getFloat32(o+i*4,true));o+=12;const mx=[0,1,2].map(i=>dv.getFloat32(o+i*4,true));o+=12;
     const pos=new Float32Array(nv*3);for(let i=0;i<nv*3;i++){const a=i%3;const q=dv.getInt16(o+i*2,true);pos[i]=mn[a]+(q+32767)/65534*(mx[a]-mn[a]);}o+=nv*6;
     const wide=nv>65535;const idx=new Uint32Array(nt*3);for(let i=0;i<nt*3;i++){idx[i]=wide?dv.getUint32(o+i*4,true):dv.getUint16(o+i*2,true);}o+=nt*3*(wide?4:2);
@@ -261,17 +261,17 @@ window.Body3D={
   const gl=this.gl;const body={pos:this.pos,nrm:this.nrmArr,zone:this.zoneAttr,nv:this.pos.length/3};
   const src=(typeof window.BODY3D_ANATOMY==='function')?window.BODY3D_ANATOMY(window.BODY3D_JOINTS||{}):(window.BODY3D_ANATOMY||[]);
   const items=[];src.forEach(([layer,name,cal,pair,pts])=>{items.push({layer,name,cal,pts,side:pair?'L':null});if(pair)items.push({layer,name,cal,pts:pts.map(([x,y,z,d])=>[-x,y,z,d]),side:'R'});});
-  this.structs=[];const bufs={artery:[],vein:[],nerve:[],lymph:[],organ:[],bone:[]};this.ranges={organ:[],bone:[],artery:[],vein:[],nerve:[],lymph:[]};const hasPack=!!window.BODY3D_ORGANS_B64;
+  this.structs=[];const bufs={artery:[],vein:[],nerve:[],lymph:[],organ:[],bone:[],muscle:[]};this.ranges={organ:[],bone:[],artery:[],vein:[],nerve:[],lymph:[],muscle:[]};const hasPack=!!window.BODY3D_ORGANS_B64;const fullPack=hasPack&&atob(window.BODY3D_ORGANS_B64.slice(0,8)).slice(0,4)==='ORG2';this.fullPack=fullPack;
   const RAD={1:0.05,2:0.034,3:0.022};
   const zonesOf=(P,deep)=>{let m=0;P.forEach((p,i)=>{m|=zoneBits(body,p[0],p[1],p[2],deep?deep[i]:true);});return m;};
-  let nid=0;items.forEach((it,i)=>{if(hasPack&&DROP_STRUCT.test(it.name))return;const id=++nid;const P=it.pts.map(([x,y,z,d])=>d?snapPoint(body,x,y,z,d):[x,y,z]);const zm=zonesOf(P,it.pts.map(q=>!q[3]));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?" · patient's left":" · patient's right"):''),pts:P,zones:zm};this.structs.push(s);
+  let nid=0;items.forEach((it,i)=>{if(fullPack)return;if(hasPack&&DROP_STRUCT.test(it.name))return;const id=++nid;const P=it.pts.map(([x,y,z,d])=>d?snapPoint(body,x,y,z,d):[x,y,z]);const zm=zonesOf(P,it.pts.map(q=>!q[3]));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?" · patient's left":" · patient's right"):''),pts:P,zones:zm};this.structs.push(s);
     if(it.layer==='lymph'&&it.cal===0){P.forEach(c=>sphere(c,0.07,id,bufs.lymph,zm));}
     else{const sm=P.length>1?smoothLine(P,5):P;tube(sm,it.layer==='lymph'?0.018:(RAD[it.cal]||0.03),id,bufs[it.layer],zm);}
   });
   /* organs */
   ['artery','vein','nerve','lymph'].forEach(k=>{this.ranges[k].push({start:0,count:bufs[k].length/8,col:null});});
-  ORGANS.forEach(([name,c,rx,ry,rz,rot,col])=>{if(hasPack&&DROP_ORGAN.test(name))return;const id=++nid;const zm=zonesOf([c,[c[0],c[1]+ry*0.8,c[2]],[c[0],c[1]-ry*0.8,c[2]]]);const start=bufs.organ.length/8;ellipsoid(c,rx,ry,rz,rot,id,bufs.organ,zm);this.ranges.organ.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts:[c],zones:zm});});
-  ORGAN_TUBES.forEach(([name,pts,r,col])=>{if(hasPack&&DROP_ORGAN.test(name))return;const id=++nid;const zm=zonesOf(pts);const start=bufs.organ.length/8;tube(smoothLine(pts,5),r,id,bufs.organ,zm);this.ranges.organ.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts,zones:zm});});
+  ORGANS.forEach(([name,c,rx,ry,rz,rot,col])=>{if(fullPack)return;if(hasPack&&DROP_ORGAN.test(name))return;const id=++nid;const zm=zonesOf([c,[c[0],c[1]+ry*0.8,c[2]],[c[0],c[1]-ry*0.8,c[2]]]);const start=bufs.organ.length/8;ellipsoid(c,rx,ry,rz,rot,id,bufs.organ,zm);this.ranges.organ.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts:[c],zones:zm});});
+  ORGAN_TUBES.forEach(([name,pts,r,col])=>{if(fullPack)return;if(hasPack&&DROP_ORGAN.test(name))return;const id=++nid;const zm=zonesOf(pts);const start=bufs.organ.length/8;tube(smoothLine(pts,5),r,id,bufs.organ,zm);this.ranges.organ.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts,zones:zm});});
   /* real meshes from the SPL atlases */
   if(hasPack){const parts=parseOrganPack(window.BODY3D_ORGANS_B64);parts.forEach(pt=>{const id=++nid;const c=[(pt.mn[0]+pt.mx[0])/2,(pt.mn[1]+pt.mx[1])/2,(pt.mn[2]+pt.mx[2])/2];const samples=[c,[c[0],pt.mn[1],c[2]],[c[0],pt.mx[1],c[2]],[pt.mn[0],c[1],c[2]],[pt.mx[0],c[1],c[2]]];const zm=zonesOf(samples);
     const out=bufs[pt.layer];const start=out.length/8;const P=pt.pos,N=pt.nrm,I=pt.idx;for(let i=0;i<I.length;i++){const v=I[i]*3;out.push(P[v],P[v+1],P[v+2],N[v],N[v+1],N[v+2],id,zm);}
@@ -282,7 +282,7 @@ window.Body3D={
   const prog=gl.createProgram();const mk=(t,src2)=>{const sh=gl.createShader(t);gl.shaderSource(sh,src2);gl.compileShader(sh);gl.attachShader(prog,sh);};mk(gl.VERTEX_SHADER,SVS);mk(gl.FRAGMENT_SHADER,SFS);gl.linkProgram(prog);this.sprog=prog;
   this.su={};['uP','uV','uHi','uSel','uFocus','uCol','uAlpha'].forEach(n=>this.su[n]=gl.getUniformLocation(prog,n));this.sa={aPos:gl.getAttribLocation(prog,'aPos'),aNrm:gl.getAttribLocation(prog,'aNrm'),aId:gl.getAttribLocation(prog,'aId'),aZm:gl.getAttribLocation(prog,'aZm'),aFoc:gl.getAttribLocation(prog,'aFoc')};
   this.sbuf={};Object.entries(bufs).forEach(([k,arr])=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.STATIC_DRAW);const n=arr.length/8;const ids=new Float32Array(n);for(let i=0;i<n;i++)ids[i]=arr[i*8+6];const fb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,fb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(n).fill(1),gl.DYNAMIC_DRAW);this.sbuf[k]={buf:b,n,ids,fbuf:fb};});
-  this.layers={artery:false,vein:false,nerve:false,lymph:false,organ:false,bone:false,musclechart:false};this.hoverStruct=0;this.focus=null;
+  this.layers={artery:false,vein:false,nerve:false,lymph:false,organ:false,bone:false,muscle:false,musclechart:false};this.hoverStruct=0;this.focus=null;
  },
  /* focus: a RegExp (or null) — structures whose name matches stay bright, everything else fades */
  setFocus(re){const key=re?String(re):'';if(key===this.focusKey)return;this.focusKey=key;this.focus=re||null;if(!this.structs)return;const gl=this.gl;const set=new Set();if(re)this.structs.forEach(s=>{if(re.test(s.name))set.add(s.id);});this.focusSet=re?set:null;
@@ -293,14 +293,14 @@ window.Body3D={
  inZone(zoneName){const z=ZONE_IDS[zoneName]||0;if(!this.structs)return [];return this.structs.filter(s=>this.layers[s.layer]&&(!z||(s.zones&(1<<z))));},
  drawStructs(P,V){
   const gl=this.gl;if(!this.sprog)return;gl.useProgram(this.sprog);gl.uniformMatrix4fv(this.su.uP,false,P);gl.uniformMatrix4fv(this.su.uV,false,V);gl.uniform1f(this.su.uHi,this.hoverStruct||0);gl.uniform1f(this.su.uSel,this.zone||0);gl.uniform1f(this.su.uFocus,this.focusSet?1:0);
-  const cols={artery:cssColor('--artery'),vein:cssColor('--vein'),nerve:cssColor('--nerve'),lymph:cssColor('--accent'),organ:[0.8,0.5,0.5],bone:[0.9,0.87,0.78]};
+  const cols={artery:cssColor('--artery'),vein:cssColor('--vein'),nerve:this.fullPack?[0.78,0.6,0.12]:cssColor('--nerve'),lymph:cssColor('--accent'),organ:[0.8,0.5,0.5],bone:[0.9,0.87,0.78],muscle:[0.72,0.28,0.28]};
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.disable(gl.CULL_FACE);
   Object.entries(this.sbuf).forEach(([k,b])=>{if(!this.layers[k]||!b.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,b.buf);const st=32;gl.enableVertexAttribArray(this.sa.aPos);gl.vertexAttribPointer(this.sa.aPos,3,gl.FLOAT,false,st,0);gl.enableVertexAttribArray(this.sa.aNrm);gl.vertexAttribPointer(this.sa.aNrm,3,gl.FLOAT,false,st,12);gl.enableVertexAttribArray(this.sa.aId);gl.vertexAttribPointer(this.sa.aId,1,gl.FLOAT,false,st,24);gl.enableVertexAttribArray(this.sa.aZm);gl.vertexAttribPointer(this.sa.aZm,1,gl.FLOAT,false,st,28);gl.bindBuffer(gl.ARRAY_BUFFER,b.fbuf);gl.enableVertexAttribArray(this.sa.aFoc);gl.vertexAttribPointer(this.sa.aFoc,1,gl.FLOAT,false,0,0);
     const ranges=(this.ranges&&this.ranges[k]&&this.ranges[k].length)?this.ranges[k]:[{start:0,count:b.n,col:null}];
     /* pass A: anything in front of the skin, solid */
     gl.depthFunc(gl.LEQUAL);gl.uniform1f(this.su.uAlpha,1.0);ranges.forEach(r=>{if(!r.count)return;gl.uniform3fv(this.su.uCol,r.col||cols[k]);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});
     /* pass B: inside the body, seen through the skin (x-ray) */
-    gl.depthFunc(gl.GREATER);gl.depthMask(false);const xa=k==='organ'?0.72:k==='bone'?0.6:0.7;gl.uniform1f(this.su.uAlpha,xa);ranges.forEach(r=>{if(!r.count)return;gl.uniform3fv(this.su.uCol,r.col||cols[k]);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});gl.depthMask(true);gl.depthFunc(gl.LEQUAL);});
+    gl.depthFunc(gl.GREATER);gl.depthMask(false);const xa=k==='organ'?0.72:k==='bone'?0.6:k==='muscle'?0.42:0.7;gl.uniform1f(this.su.uAlpha,xa);ranges.forEach(r=>{if(!r.count)return;gl.uniform3fv(this.su.uCol,r.col||cols[k]);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});gl.depthMask(true);gl.depthFunc(gl.LEQUAL);});
   gl.disable(gl.BLEND);gl.enable(gl.CULL_FACE);gl.useProgram(this.prog);
   /* restore body attribute pointers */
   this.rebind();
@@ -328,7 +328,7 @@ window.Body3D={
   gl.uniformMatrix4fv(this.u.uP,false,P);gl.uniformMatrix4fv(this.u.uV,false,V);gl.uniformMatrix4fv(this.u.uM,false,[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
   gl.uniform3fv(this.u.uBase,cssColor('--figure'));gl.uniform3fv(this.u.uAccent,cssColor('--accent'));
   gl.uniform3fv(this.u.uLight,[eye[0]*0.4+6,eye[1]*0.4+10,eye[2]*0.4+6]);gl.uniform3fv(this.u.uEye,eye);
-  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform1f(this.u.uSec,this.hoverSec||0);gl.uniform1f(this.u.uSections,this.sections?1:0);gl.uniform1f(this.u.uMuscles,this.layers&&this.layers.musclechart?1:0);gl.uniform1f(this.u.uTint,(this.layers&&['artery','vein','nerve','lymph','organ','bone'].some(k=>this.layers[k]))?0.22:1);gl.uniform1f(this.u.uMusHov,this.layers&&(this.layers.muscle||this.layers.musclechart)?(this.hoverMuscle||0):0);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
+  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform1f(this.u.uSec,this.hoverSec||0);gl.uniform1f(this.u.uSections,this.sections?1:0);gl.uniform1f(this.u.uMuscles,this.layers&&this.layers.musclechart?1:0);gl.uniform1f(this.u.uTint,(this.layers&&['artery','vein','nerve','lymph','organ','bone','muscle'].some(k=>this.layers[k]))?0.22:1);gl.uniform1f(this.u.uMusHov,this.layers&&(this.layers.muscle||this.layers.musclechart)?(this.hoverMuscle||0):0);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
   if(this.texTheme&&this.texTheme!==cssVar('--figure-soft')&&!this.retex){this.retex=true;this.loadTextures().then(()=>{this.retex=false;this.draw();});}
   /* pass 1: inked silhouette (inverted hull) */
   gl.cullFace(gl.FRONT);gl.uniform1f(this.u.uOutline,1);gl.uniform1f(this.u.uOffset,0.05);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);
