@@ -42,7 +42,7 @@ P(A,'Superficial palmar arch',3,true,[add(fa(0.95),-0.12,0,-0.04),add(lerp(W,MC[
 P(A,'Deep palmar arch',3,true,[add(fa(0.95),0.1,0,0.12),add(lerp(W,MC[0],0.4),-0.05,0,0.05),add(lerp(W,MC[2],0.35),-0.06,0,0.0)]);
 [1,2,3,4].forEach((k,i)=>P(A,'Digital a. (finger '+(i+2)+')',3,true,[add(MC[i],-0.05,0,0),lerp(MC[i],TIP[i+1],0.5),TIP[i+1]]));
 P(A,'Princeps pollicis a. (thumb)',3,true,[add(lerp(W,MC[0],0.4),-0.05,0,0.05),lerp(TH,TIP[0],0.5),TIP[0]]);
-[5.05,4.55,4.05,3.55].forEach((y,i)=>P(A,'Posterior intercostal a. (T'+(4+i*2)+')',3,true,[[0.38,y,-0.25],[1.1,y-0.05,-0.45],[1.7,y-0.25,0.1],[1.45,y-0.45,0.8],[0.7,y-0.6,1.15]]));
+[5.05,4.3,3.55].forEach((y,i)=>P(A,'Posterior intercostal a. (T'+(4+i*3)+', runs along the rib to the anterior axillary line)',3,true,[[0.38,y,-0.25],[1.1,y-0.05,-0.45],[1.65,y-0.3,0.1],[1.5,y-0.5,0.55]]));
 P(A,'Coeliac trunk (→ hepatic, splenic, left gastric)',3,false,[[0.25,3.55,-0.1],[0.2,3.6,0.25]]);
 P(A,'Hepatic a.',3,false,[[0.2,3.6,0.25],[-0.6,3.8,0.35],[-1.0,3.95,0.35]]);
 P(A,'Splenic a.',3,false,[[0.2,3.6,0.25],[0.7,3.55,-0.05],[1.15,3.6,-0.25]]);
@@ -118,7 +118,7 @@ P(N,'Radial n. (spiral groove)',2,true,[add(S,-0.05,-0.35,0.05),add(arm(0.3),0.0
 P(N,'Superficial radial n. (dorsum of hand)',3,true,[add(E,0.15,-0.05,0.15),add(fa(0.4),0.2,0,0.1),add(fa(0.8),0.18,0,0.05),add(lerp(W,MC[0],0.5),0.14,0,0.0)]);
 P(N,'Posterior interosseous n.',3,true,[add(E,0.15,-0.05,0.15),add(fa(0.3),0.05,0,-0.15),add(fa(0.7),0.02,0,-0.15)]);
 P(N,'Axillary n. (surgical neck)',3,true,[add(S,-0.05,-0.35,0.05),add(S,0.15,-0.4,-0.15),add(S,0.3,-0.3,0.05)]);
-[5.05,4.55,4.05,3.55].forEach((y,i)=>P(N,'Intercostal n. (T'+(4+i*2)+')',3,true,[[0.3,y,-0.35],[1.05,y-0.05,-0.5],[1.68,y-0.25,0.05],[1.42,y-0.45,0.76],[0.65,y-0.6,1.1]]));
+[5.05,4.3,3.55].forEach((y,i)=>P(N,'Intercostal n. (T'+(4+i*3)+', with the rib to the anterior axillary line)',3,true,[[0.3,y,-0.35],[1.05,y-0.05,-0.5],[1.63,y-0.3,0.05],[1.47,y-0.5,0.5]]));
 P(N,'Lumbar plexus (L1–L4)',2,true,[[0.35,2.6,-0.3],[0.5,2.2,-0.3],[0.6,1.8,-0.25]]);
 P(N,'Femoral n. (lateral to the femoral artery)',2,true,[[0.6,1.8,-0.25],[0.85,1.45,0.3],[0.95,1.25,0.5],add(th(0.15),0.05,0,0.4)]);
 P(N,'Saphenous n. (medial leg)',3,true,[add(th(0.15),0.05,0,0.4),add(th(0.5),-0.24,0,0.22),add(K,-0.34,0,0.05),add(lg(0.5),-0.28,0,0.02),add(AN,-0.28,0.1,0.15)]);
