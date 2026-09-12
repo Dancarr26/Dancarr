@@ -9,6 +9,7 @@
   --flag:#B4392B; --flag-ink:#8F2C21; --flag-soft:#F9E4E0;
   --amber:#8F6400; --amber-soft:#F6ECD3;
   --figure:#B7C1C9; --figure-soft:#E4E9ED; --tissue:#F1E2D6; --tissue-2:#E6C9B5;
+  --artery:#B8352A; --vein:#2F5FA6; --nerve:#A8821A;
   --shadow:0 1px 2px rgba(23,32,41,.06),0 10px 28px rgba(23,32,41,.07);
   --display:'Newsreader',Georgia,'Times New Roman',serif;
   --body:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -22,6 +23,7 @@
     --flag:#F2917F; --flag-ink:#F7B0A3; --flag-soft:#3E211C;
     --amber:#E5B85A; --amber-soft:#3A2F12;
     --figure:#465563; --figure-soft:#232F39; --tissue:#4A3A31; --tissue-2:#5C4638;
+    --artery:#F08A7A; --vein:#8DB4F0; --nerve:#E8CB5C;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.35);
   }
 }
@@ -32,6 +34,7 @@
   --flag:#F2917F; --flag-ink:#F7B0A3; --flag-soft:#3E211C;
   --amber:#E5B85A; --amber-soft:#3A2F12;
   --figure:#465563; --figure-soft:#232F39; --tissue:#4A3A31; --tissue-2:#5C4638;
+  --artery:#F08A7A; --vein:#8DB4F0; --nerve:#E8CB5C;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
@@ -73,10 +76,40 @@ a{color:var(--accent-ink)}
 .halo{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:6 6;stroke-opacity:.85}
 .dotpt{fill:var(--accent);stroke:var(--surface);stroke-width:2}
 .joint{fill:var(--accent);fill-opacity:.35;stroke:var(--accent);stroke-width:2}
+.layers{display:flex;flex-wrap:wrap;gap:6px;padding:8px 6px 0}
+.lay{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px 3px 8px;font-size:12px;cursor:pointer;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.lay::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c,var(--accent));opacity:.35}
+.lay.on{color:var(--ink);border-color:var(--c,var(--accent))}
+.lay.on::before{opacity:1}
+.lay:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.st{fill:none;stroke-linecap:round;stroke-linejoin:round;cursor:pointer}
+.st.artery{stroke:var(--artery)}.st.vein{stroke:var(--vein)}.st.nerve{stroke:var(--nerve)}
+.st{stroke-width:2.2;stroke-opacity:.85}
+.st:hover{stroke-width:4}
+.stdot{stroke:var(--surface);stroke-width:1.5}
+.stdot.artery{fill:var(--artery)}.stdot.vein{fill:var(--vein)}.stdot.nerve{fill:var(--nerve)}
+.slabel{font-family:var(--body);font-weight:400;font-style:italic;pointer-events:none;paint-order:stroke;stroke:var(--surface-2);stroke-width:4px;stroke-linejoin:round}
+.slabel.artery{fill:var(--artery)}.slabel.vein{fill:var(--vein)}.slabel.nerve{fill:var(--nerve)}
+.mlabel{font-family:var(--mono);fill:var(--muted);pointer-events:none;paint-order:stroke;stroke:var(--surface-2);stroke-width:4px;stroke-linejoin:round}
+.body .mp.named:hover{fill:var(--accent);fill-opacity:.25}
 .backbtn{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--accent-ink)}
 .backbtn:hover{border-color:var(--accent)}
 .backbtn[hidden]{display:none}
 .vtoggle{display:inline-flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:2px}
+.vd{border:0;background:none;border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--muted);font-family:var(--mono)}
+.vd.on{background:var(--ink);color:var(--bg)}
+.vd:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.c3d{display:block;width:100%;height:440px;touch-action:none;cursor:grab;border-radius:10px}
+.c3d:active{cursor:grabbing}
+.c3d[hidden]{display:none}
+.views{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;padding:6px 0 0}
+.views[hidden]{display:none}
+.vp{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--muted)}
+.vp:hover{border-color:var(--accent);color:var(--accent-ink)}
+.vp:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.frag3d{padding:8px 4px 0;justify-content:center}
+.frag3d[hidden]{display:none}
+.figwrap[data-dim="3d"] #bodyfig,.figwrap[data-dim="3d"] .layers,.figwrap[data-dim="3d"] #vt2d,.figwrap[data-dim="3d"] #zoomout{display:none}
 .vt{border:0;background:none;border-radius:999px;padding:3px 12px;font-size:12.5px;cursor:pointer;color:var(--muted)}
 .vt.on{background:var(--accent);color:#fff}
 .vt:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -200,9 +233,13 @@ ol.steps input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer;color:var(--ink)}
 .chip:hover{border-color:var(--accent);color:var(--accent-ink)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .chip .n{font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:4px}
 .sources{margin:0;padding:0;list-style:none;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 .sources a{color:var(--muted)}
+.structlist{display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+.structlist b{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+.structlist b.sa{color:var(--artery)}.structlist b.sv{color:var(--vein)}.structlist b.sn{color:var(--nerve)}
 .callout.teal{border-left-color:var(--accent);background:var(--accent-soft)}
 .callout.teal h4{color:var(--accent-ink)}
 
@@ -324,14 +361,18 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
     <div class="brand"><h1>Bedside Assessment Atlas</h1><small>RN · head to toe</small></div>
     <div class="figwrap">
       <span class="side l">Patient's R</span><span class="side r">Patient's L</span>
-      <svg id="bodyfig" viewBox="40 80 700 1300" role="group" aria-label="Whole-body figure with numbered assessment regions"></svg>
-      <div class="figcap"><div class="vtoggle" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><button type="button" class="backbtn" id="zoomout" hidden>‹ Whole body</button><span id="figstate"></span></div>
+      <svg id="bodyfig" viewBox="40 80 700 1300" role="group" aria-label="Whole-body figure with tappable zones"></svg>
+      <canvas id="body3d" class="c3d" hidden aria-label="Three-dimensional body: drag to turn, tap a zone to select it"></canvas>
+      <div class="views" id="views3d" hidden role="group" aria-label="3D view presets"><button type="button" class="vp" data-p="front">Front</button><button type="button" class="vp" data-p="back">Back</button><button type="button" class="vp" data-p="left">Left</button><button type="button" class="vp" data-p="right">Right</button><button type="button" class="vp" data-p="top">Top</button><button type="button" class="vp" data-p="bottom">Bottom</button></div>
+      <div class="chips frag3d" id="frag3d" hidden></div>
+      <div class="layers" role="group" aria-label="Anatomy layers"><button type="button" class="lay on" data-layer="muscles" style="--c:var(--accent)" aria-pressed="true">Muscles</button><button type="button" class="lay" data-layer="artery" style="--c:var(--artery)" aria-pressed="false">Arteries</button><button type="button" class="lay" data-layer="vein" style="--c:var(--vein)" aria-pressed="false">Veins</button><button type="button" class="lay" data-layer="nerve" style="--c:var(--nerve)" aria-pressed="false">Nerves</button></div>
+      <div class="figcap"><div class="vtoggle dim" role="group" aria-label="Figure type"><button type="button" class="vd on" data-dim="2d" aria-pressed="true">2D</button><button type="button" class="vd" data-dim="3d" aria-pressed="false">3D</button></div><div class="vtoggle" id="vt2d" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><button type="button" class="backbtn" id="zoomout" hidden>‹ Whole body</button><span id="figstate"></span></div>
     </div>
     <div class="modes" role="tablist" aria-label="Navigation mode"><button type="button" class="mode on" role="tab" data-mode="regions" aria-selected="true">Regions</button><button type="button" class="mode" role="tab" data-mode="tools" aria-selected="false">Tools</button><button type="button" class="mode" role="tab" data-mode="conditions" aria-selected="false">Conditions</button></div>
     <input class="search" id="search" type="search" placeholder="Find a region, tool, condition or sign" aria-label="Search regions and tools" autocomplete="off">
     <ol class="list" id="list"></ol>
     <div class="atlas-foot"><span id="overall"></span><button class="linkbtn" id="reset" type="button">Reset this tab</button></div>
-    <p class="credit">Body figure adapted from <a href="https://github.com/HichamELBSI/react-native-body-highlighter">react-native-body-highlighter</a>, © 2022 ELABBASSI Hicham, MIT licence.</p>
+    <p class="credit">2D figure adapted from <a href="https://github.com/HichamELBSI/react-native-body-highlighter">react-native-body-highlighter</a>, © 2022 ELABBASSI Hicham, MIT licence. 3D body: <a href="https://github.com/makehumancommunity/makehuman">MakeHuman</a> base mesh, CC0. Vessels and nerves are schematic.</p>
   </aside>
   <main class="detail" id="detail" aria-live="polite"></main>
 </div>
@@ -344,6 +385,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
 <script src="body-art.js"></script>
 <script src="tools.js"></script>
 <script src="conditions.js"></script>
+<script src="body3d.js"></script>
 <script>
 /* ---------- shared drawing helpers ---------- */
 const SVG=(w,h,label,inner)=>`<svg class="dg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}">${inner}</svg>`;
@@ -835,6 +877,49 @@ const ZONES={
   {id:'legs',name:'Legs & heels',parts:[['adductors'],['hamstring'],['calves'],['ankles'],['feet']],label:[1084,1000,'middle'],box:[920,736,330,634],regions:['limbs'],labels:{limbs:[1084,1105,'middle','Legs & heels']}}
  ]
 };
+/* Muscle-group names for the figure's slugs */
+const MUSCLE_NAMES={chest:'Pectoralis major',abs:'Rectus abdominis',obliques:'External oblique',deltoids:'Deltoid',biceps:'Biceps brachii',triceps:'Triceps brachii',forearm:'Forearm flexors',hands:'Hand',neck:'Sternocleidomastoid',trapezius:'Trapezius',head:'Face',hair:'Cranium',quadriceps:'Quadriceps',adductors:'Adductors',tibialis:'Tibialis anterior',calves:'Gastrocnemius / soleus',knees:'Patella',ankles:'Malleoli',feet:'Foot','upper-back':'Latissimus dorsi / rhomboids','lower-back':'Erector spinae',gluteal:'Gluteus maximus / medius',hamstring:'Hamstrings'};
+const MUSCLE_NAMES_BACK={forearm:'Forearm extensors',neck:'Splenius / trapezius',head:'Occiput'};
+const MUSCLE_SKIP=new Set(['head','hair','neck','knees','ankles']);
+/* Schematic vessels and nerves drawn in figure coordinates. Right-side (patient's right) paths are mirrored to make the pair. */
+const mirrorD=(d,cx)=>d.replace(/(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g,(m,x,y)=>`${(2*cx-parseFloat(x)).toFixed(0)} ${y}`);
+const STRUCT_SRC=[
+ /* view, layer, name, d, label[x,y,anchor], pair?, zones */
+ ['front','artery','Aorta','M382 412 Q386 344 364 334 L364 636',[378,500,'start'],false,['chest','abdomen']],
+ ['front','artery','Common carotid a.','M352 332 L338 236 L330 200',[322,268,'end'],true,['neck']],
+ ['front','artery','Superficial temporal a.','M330 200 L320 176 L312 158',[304,164,'end'],true,['head']],
+ ['front','artery','Brachial a.','M362 332 L300 322 L250 332 L232 372 L216 500',[240,440,'end'],true,['armR']],
+ ['front','artery','Radial a.','M216 500 L200 560 L150 690',[170,640,'end'],true,['armR']],
+ ['front','artery','Ulnar a.','M216 500 L206 600 L196 690',[222,600,'start'],true,['armR']],
+ ['front','artery','Femoral a.','M364 636 L330 656 L300 670 L296 760 L300 900 L296 1000',[312,820,'start'],true,['pelvis','legs']],
+ ['front','artery','Popliteal a.','M296 1000 L296 1004',[312,1004,'start'],true,['legs']],
+ ['front','artery','Ant. tibial → dorsalis pedis a.','M296 1000 L288 1060 L282 1230 L276 1300',[292,1354,'middle'],true,['legs']],
+ ['front','artery','Posterior tibial a.','M296 1000 L304 1060 L312 1200 L314 1262',[322,1236,'start'],true,['legs']],
+ ['front','vein','Internal jugular v.','M330 236 L346 330',[318,306,'end'],true,['neck']],
+ ['front','vein','Cephalic v.','M238 330 L190 420 L140 690',[150,500,'end'],true,['armR']],
+ ['front','vein','Great saphenous v.','M304 1332 L318 1262 L326 1100 L328 900 L318 700',[336,1100,'start'],true,['legs']],
+ ['front','nerve','Brachial plexus','M350 300 L300 330 L262 350',[248,312,'end'],true,['neck','armR']],
+ ['front','nerve','Median n.','M262 350 L230 420 L214 500 L206 600 L190 690',[226,540,'start'],true,['armR']],
+ ['front','nerve','Ulnar n.','M262 350 L244 430 L232 505 L210 600 L200 690',[222,650,'start'],true,['armR']],
+ ['front','nerve','Facial n. (CN VII)','M425 200 L400 220 L385 236',[438,222,'start'],false,['head']],
+ ['front','nerve','Femoral n.','M330 656 L300 690 L292 800',[280,760,'end'],true,['pelvis','legs']],
+ ['front','nerve','Common peroneal n.','M296 1000 L262 1020 L256 1060',[250,1052,'end'],true,['legs']],
+ ['back','nerve','Spinal cord','M1084 230 L1084 640',[1100,500,'start'],false,['neck','back']],
+ ['back','nerve','Sciatic n.','M1050 680 L1020 760 L1008 900 L1004 1000',[1030,860,'start'],true,['pelvis','legs']],
+ ['back','nerve','Tibial n.','M1004 1000 L1006 1100 L1008 1280',[1020,1180,'start'],true,['legs']],
+ ['back','nerve','Common peroneal n.','M1004 1000 L980 1040 L976 1100',[960,1090,'end'],true,['legs']],
+ ['back','nerve','Ulnar n. (elbow)','M960 400 L936 525 L900 600 L870 690',[944,600,'start'],true,['armL']],
+ ['back','nerve','Radial n.','M975 380 L940 460 L920 520',[988,462,'start'],true,['armL']],
+ ['back','artery','Popliteal a.','M1010 940 L1006 1000 L1008 1060',[1020,1000,'start'],true,['legs']],
+ ['back','artery','Posterior tibial a.','M1008 1060 L1010 1200 L1014 1268',[1022,1230,'start'],true,['legs']],
+ ['back','vein','Small saphenous v.','M1000 1300 L1006 1180 L1010 1010',[962,1200,'end'],true,['legs']]
+];
+const STRUCTS=[];
+const swapArm=z=>z==='armR'?'armL':z==='armL'?'armR':z;
+STRUCT_SRC.forEach(([view,layer,name,d,label,pair,zones],i)=>{const cx=view==='front'?364:1084;STRUCTS.push({id:'s'+i+'a',view,layer,name,d,label,zones,primary:true});if(pair){const [lx,ly,la]=label;STRUCTS.push({id:'s'+i+'b',view,layer,name,d:mirrorD(d,cx),label:[2*cx-lx,ly,la==='end'?'start':la==='start'?'end':'middle'],zones:zones.map(swapArm),primary:false});}});
+/* which structure instances get a label in a zone: singles always; pairs once, except side-specific zones where the matching side is labelled */
+const labelIn=(st,zid)=>st.zones.includes(zid)&&(st.primary||zid==='armL'||zid==='armR');
+const inBox=(x,y,b)=>x>=b[0]&&x<=b[0]+b[2]&&y>=b[1]&&y<=b[1]+b[3];
 const partPaths=(view,slug,side)=>{const p=ART[view].find(x=>x.slug===slug);if(!p)return [];return side?(p.parts[side]||[]):Object.values(p.parts).flat();};
 const WHOLE=new Set(['vitals','skin','msk','pain']);
 const zoneFor=(rid,view)=>WHOLE.has(rid)?null:(ZONES[view].find(z=>z.regions.includes(rid))||null);
@@ -863,7 +948,11 @@ function drawBody(activeIds){
   const single=ids.length===1?ids[0]:null;
   const zone=state.zone?ZONES[view].find(z=>z.id===state.zone):null;
   let s=`<rect x="0" y="0" width="1448" height="1448" fill="transparent" stroke="none" id="bgclick"/>`;
-  s+=`<g class="body">`+ART[view].map(p=>Object.values(p.parts).flat().map(d=>`<path d="${d}" class="mp${p.slug==='hair'?' hair':''}"/>`).join('')).join('')+`<path d="${ART.outline[view]}" class="ol"/></g>`;
+  const L=state.layers||{};
+  const mname=slug=>(view==='back'&&MUSCLE_NAMES_BACK[slug])||MUSCLE_NAMES[slug]||slug;
+  s+=`<g class="body">`+ART[view].map(p=>Object.entries(p.parts).map(([side,ds])=>ds.map(d=>`<path d="${d}" class="mp${p.slug==='hair'?' hair':''}${L.muscles?' named':''}" data-slug="${p.slug}" data-side="${side}">${L.muscles?`<title>${mname(p.slug)}</title>`:''}</path>`).join('')).join('')).join('')+`<path d="${ART.outline[view]}" class="ol"/></g>`;
+  /* vessels and nerves */
+  s+=`<g class="structs">`+STRUCTS.filter(st=>st.view===view&&L[st.layer]).map(st=>`<path d="${st.d}" class="st ${st.layer}" data-sid="${st.id}"><title>${st.name}</title></path>`).join('')+`</g>`;
   if(!zone){
     /* overview: zones + whole-body overlays for the active region(s) */
     ZONES[view].forEach(z=>{let inner=(z.parts||[]).flatMap(([slug,side])=>partPaths(view,slug,side)).map(d=>`<path d="${d}" class="zp"/>`).join('');if(z.shapes)inner+=`<g class="zs">${z.shapes}</g>`;s+=`<g class="zone" data-zone="${z.id}" tabindex="0" role="button" aria-label="Zoom to ${z.name}"><title>${z.name}</title>${inner}</g>`;});
@@ -877,18 +966,41 @@ function drawBody(activeIds){
     const pxPerUnit=(svg.clientWidth||360)/fw0;const fs=Math.max(10,Math.round(15/pxPerUnit));
     zone.regions.forEach(rid=>{const r=REGIONS.find(q=>q.id===rid);const lab=zone.labels[rid]||[x+w/2,y+h/2,'middle',r.short];
       s+=`<g class="frag${ids.includes(rid)?' on':''}" data-id="${rid}" tabindex="0" role="button" aria-label="${r.n}. ${r.name}"><title>${r.name}</title>${regionOverlay(rid,view)}<text x="${lab[0]}" y="${lab[1]}" text-anchor="${lab[2]}" font-size="${fs}" class="flabel">${lab[3]||r.short}</text></g>`;});
+    /* structure labels inside the zone */
+    STRUCTS.filter(st=>st.view===view&&L[st.layer]&&labelIn(st,zone.id)).forEach(st=>{s+=`<text x="${st.label[0]}" y="${st.label[1]}" text-anchor="${st.label[2]}" font-size="${Math.round(fs*0.85)}" class="slabel ${st.layer}">${st.name}</text>`;});
     /* fit the zone with padding, keeping the panel's aspect */
     const pad=Math.max(w,h)*0.08;const bx=x-pad,by=y-pad,bw=w+2*pad,bh=h+2*pad;
     const ratio=VIEWBOX[view][2]/VIEWBOX[view][3];let fw=bw,fh=bh;if(bw/bh>ratio)fh=bw/ratio;else fw=bh*ratio;
     setViewBox([bx-(fw-bw)/2,by-(fh-bh)/2,fw,fh],true);
   }
   svg.innerHTML=s;
+  /* muscle-group names inside the zone (one per group, nudged apart) */
+  if(zone&&L.muscles){
+    const [zx,zy,zw,zh]=zone.box;const fs=parseFloat(svg.querySelector('.flabel')?.getAttribute('font-size')||16);
+    const best={};
+    svg.querySelectorAll('.body .mp[data-slug]').forEach(pth=>{const slug=pth.dataset.slug;if(MUSCLE_SKIP.has(slug))return;try{const b=pth.getBBox();const cx=b.x+b.width/2,cy=b.y+b.height/2;if(!inBox(cx,cy,zone.box))return;const area=b.width*b.height;if(!best[slug]||area>best[slug].area)best[slug]={area,cx,cy};}catch(e){}});
+    const labs=Object.entries(best).map(([slug,b])=>({t:mname(slug),x:b.cx,y:b.cy})).sort((a,b)=>a.y-b.y);
+    for(let i=1;i<labs.length;i++){const a=labs[i-1],c=labs[i];if(Math.abs(c.x-a.x)<140&&c.y-a.y<fs*1.4)c.y=a.y+fs*1.4;}
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.innerHTML=labs.map(l=>`<text x="${l.x}" y="${l.y}" text-anchor="middle" font-size="${Math.round(fs*0.8)}" class="mlabel">${l.t}</text>`).join('');
+    svg.appendChild(g);
+  }
+  /* one collision pass over every label in the zoom: fragments, structures, muscles */
+  if(zone){
+    const texts=[...svg.querySelectorAll('text.flabel, text.slabel, text.mlabel')].map(el=>{const fs=parseFloat(el.getAttribute('font-size'))||16;const x=parseFloat(el.getAttribute('x')),y=parseFloat(el.getAttribute('y'));const w=(el.textContent.length*fs*0.56);const a=el.getAttribute('text-anchor');const x0=a==='end'?x-w:a==='middle'?x-w/2:x;return {el,x0,x1:x0+w,y,fs,pri:el.classList.contains('flabel')?0:1};}).sort((a,b)=>a.y-b.y||a.pri-b.pri);
+    for(let i=0;i<texts.length;i++){for(let j=0;j<i;j++){const a=texts[j],c=texts[i];if(c.x0<a.x1&&c.x1>a.x0&&Math.abs(c.y-a.y)<c.fs*1.25){c.y=a.y+c.fs*1.25;}}}
+    texts.forEach(t=>t.el.setAttribute('y',t.y));
+  }
+  /* tapping a vessel or nerve names it in the caption */
+  svg.querySelectorAll('.st').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const st=STRUCTS.find(x=>x.id===el.dataset.sid);document.getElementById('figstate').textContent=st?st.name:'';}));
+  if(L.muscles)svg.querySelectorAll('.body .mp.named').forEach(el=>el.addEventListener('click',e=>{if(zone)return;document.getElementById('figstate').textContent=mname(el.dataset.slug);}));
   /* hit areas for small fragments */
   svg.querySelectorAll('.frag').forEach(g=>{try{const b=g.getBBox();const padp=Math.max(12,b.width*0.15);const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('x',b.x-padp);r.setAttribute('y',b.y-padp);r.setAttribute('width',b.width+2*padp);r.setAttribute('height',b.height+2*padp);r.setAttribute('rx',14);r.setAttribute('class','hit');g.insertBefore(r,g.firstChild);}catch(e){}});
   svg.querySelectorAll('.zone').forEach(el=>{const go=()=>{state.zone=el.dataset.zone;save();drawBody(ids);};el.addEventListener('click',go);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
   svg.querySelectorAll('.frag').forEach(el=>{const go=()=>show(el.dataset.id);el.addEventListener('click',e=>{e.stopPropagation();go();});el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
   document.getElementById('bgclick').addEventListener('click',()=>{if(state.zone){state.zone=null;save();drawBody(ids);}});
   const zb=document.getElementById('zoomout');zb.hidden=!zone;zb.onclick=()=>{state.zone=null;save();drawBody(ids);};
+  sync3D(ids);
   document.querySelectorAll('.vt').forEach(b=>{const on=b.dataset.view===view;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
   document.querySelector('.side.l').textContent=view==='front'?"Patient's R":"Patient's L";
   document.querySelector('.side.r').textContent=view==='front'?"Patient's L":"Patient's R";
@@ -899,7 +1011,7 @@ function setView(v){state.view=v;if(state.zone&&!ZONES[v].some(z=>z.id===state.z
 
 /* ---------- state ---------- */
 const KEY='bedside-atlas-v1';
-let state={mode:'regions',active:'vitals',tool:'drsabcd',cond:'cvrisk',view:'front',zone:null,checks:{},marks:[],answers:{},vitals:{}};
+let state={mode:'regions',active:'vitals',tool:'drsabcd',cond:'cvrisk',view:'front',zone:null,dim:'2d',layers:{muscles:true,artery:false,vein:false,nerve:false},checks:{},marks:[],answers:{},vitals:{}};
 try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&typeof s==='object')state={...state,...s};}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 const idx=id=>REGIONS.findIndex(r=>r.id===id);
@@ -992,6 +1104,12 @@ function renderRegion(){
   h+=`<section class="blk"><div class="callout"><h4>Red flags · what matters</h4><ul>${r.flags.map(f=>`<li>${f}</li>`).join('')}</ul></div></section>`;
   const rt=regionTools(r.id);if(rt.length)h+=`<section class="blk"><h3>Tools for this region</h3>${chipsT(rt)}</section>`;
   const rc=regionConds(r.id);if(rc.length)h+=`<section class="blk"><h3>Conditions seen here · ${rc.length}</h3>${chipsC(rc)}</section>`;
+  const zf=zoneFor(r.id,'front'),zb=zoneFor(r.id,'back');
+  if(zf||zb){const names={artery:[],vein:[],nerve:[]};[['front',zf],['back',zb]].forEach(([v,z])=>{if(!z)return;STRUCTS.filter(st=>st.view===v&&st.primary&&st.zones.includes(z.id)).forEach(st=>{if(!names[st.layer].includes(st.name))names[st.layer].push(st.name);});});
+    const mus=[];[['front',zf],['back',zb]].forEach(([v,z])=>{if(!z)return;(z.parts||[]).forEach(([slug])=>{const n=(v==='back'&&MUSCLE_NAMES_BACK[slug])||MUSCLE_NAMES[slug];if(n&&!mus.includes(n)&&!MUSCLE_SKIP.has(slug))mus.push(n);});});
+    const row=(l,arr,cls)=>arr.length?`<div><b class="${cls}">${l}</b> ${arr.join(' · ')}</div>`:'';
+    const inner=row('Muscles',mus,'')+row('Arteries',names.artery,'sa')+row('Veins',names.vein,'sv')+row('Nerves',names.nerve,'sn');
+    if(inner)h+=`<section class="blk"><h3>Structures in this zone</h3><div class="structlist">${inner}</div></section>`;}
   if(r.id==='pain')h+=`<div class="tools"><button type="button" class="btn" id="clearmarks">Clear pain marks</button></div>`;
   h+=pager(visibleRegions().length?visibleRegions():REGIONS,r.id);
   const d=document.getElementById('detail');
@@ -1152,5 +1270,26 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft')step(-1);
 });
 document.querySelectorAll('.vt').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
-renderList();renderDetail();
+/* ---------- 3D ---------- */
+function sync3D(ids){
+  const wrap=document.querySelector('.figwrap');wrap.dataset.dim=state.dim||'2d';
+  const c=document.getElementById('body3d'),vw=document.getElementById('views3d'),fr=document.getElementById('frag3d');
+  const on=state.dim==='3d';c.hidden=!on;vw.hidden=!on;fr.hidden=!on;
+  document.querySelectorAll('.vd').forEach(b=>{const o=b.dataset.dim===(state.dim||'2d');b.classList.toggle('on',o);b.setAttribute('aria-pressed',o);});
+  if(!on)return;
+  if(!window.Body3D)return;
+  if(!Body3D.ready&&!Body3D.loading){Body3D.loading=true;Body3D.init(c,{src:'body3d.bin',
+    onPick:(name,[view,zid])=>{state.view=view;state.zone=zid;const z=ZONES[view].find(x=>x.id===zid);if(z)show(z.regions[0]);},
+    onHover:name=>{const map={head:'Head',neck:'Neck',chest:'Chest',abdomen:'Abdomen',pelvis:'Pelvis',armR:"Arm (patient's right)",armL:"Arm (patient's left)",legs:'Legs',back:'Back',sacrum:'Sacrum & gluteal'};document.getElementById('figstate').textContent=name?map[name]:'';}
+  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);Body3D.draw();});}
+  else if(Body3D.ready){Body3D.setZone2D(state.view,state.zone);Body3D.draw();}
+  const zone=state.zone?ZONES[state.view].find(z=>z.id===state.zone):null;
+  fr.innerHTML=zone?zone.regions.map(rid=>{const r=REGIONS.find(q=>q.id===rid);const lab=(zone.labels[rid]||[])[3]||r.short;return `<button type="button" class="chip${ids.includes(rid)?' on':''}" data-region="${rid}">${lab}</button>`;}).join(''):'<span class="none" style="padding:0">Tap a part of the body to zoom its details</span>';
+  fr.querySelectorAll('[data-region]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.region)));
+}
+document.querySelectorAll('.vd').forEach(b=>b.addEventListener('click',()=>{state.dim=b.dataset.dim;save();drawBody(currentIds());}));
+document.querySelectorAll('.vp').forEach(b=>b.addEventListener('click',()=>{if(window.Body3D&&Body3D.ready)Body3D.setView(b.dataset.p);}));
+function syncLayers(){document.querySelectorAll('.lay').forEach(b=>{const on=!!(state.layers||{})[b.dataset.layer];b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});}
+document.querySelectorAll('.lay').forEach(b=>b.addEventListener('click',()=>{state.layers=state.layers||{};state.layers[b.dataset.layer]=!state.layers[b.dataset.layer];save();syncLayers();drawBody(currentIds());}));
+syncLayers();renderList();renderDetail();
 </script>
