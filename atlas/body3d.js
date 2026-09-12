@@ -127,7 +127,7 @@ const PRESETS={front:[0,0],back:[Math.PI,0],left:[Math.PI/2,0],right:[-Math.PI/2
 /* ---- vessels, nerves and lymph nodes as 3D geometry ---- */
 const SVS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aId;attribute float aZm;attribute float aFoc;uniform mat4 uP,uV;uniform float uHi,uSel,uFocus;varying float vL;varying float vHi;varying float vDim;
 void main(){vec3 n=normalize(aNrm);vL=0.6+0.4*max(dot(n,normalize(vec3(0.4,0.8,0.6))),0.0);vHi=step(abs(aId-uHi),0.5);
- float inZone=uSel<0.5?1.0:mod(floor(aZm/pow(2.0,uSel)+0.5),2.0);float inFoc=uFocus<0.5?1.0:aFoc;vDim=1.0-inZone*inFoc;gl_Position=uP*uV*vec4(aPos,1.0);}`;
+ float inZone=uSel<0.5?1.0:mod(floor(aZm/pow(2.0,uSel)+0.01),2.0);float inFoc=uFocus<0.5?1.0:aFoc;vDim=1.0-inZone*inFoc;gl_Position=uP*uV*vec4(aPos,1.0);}`;
 const SFS=`precision mediump float;uniform vec3 uCol;uniform float uAlpha;varying float vL;varying float vHi;varying float vDim;
 void main(){vec3 c=mix(uCol*vL,vec3(1.0),vHi*0.35);c=mix(c,vec3(0.6),vDim*0.5);gl_FragColor=vec4(c,uAlpha*(1.0-vDim*0.8));}`;
 const DIRV={F:[0,0,1],B:[0,0,-1],U:[0,1,0]};
@@ -155,32 +155,44 @@ function sphere(c,r,id,out,zm){const R=8,Q=6;const P=(i,j)=>{const th=i/R*Math.P
 function ellipsoid(c,rx,ry,rz,rot,id,out,zm){const R=14,Q=10;const cs=Math.cos(rot),sn=Math.sin(rot);
   const P=(i,j)=>{const th=i/R*Math.PI*2,ph=j/Q*Math.PI;let x=Math.sin(ph)*Math.cos(th)*rx,y=Math.cos(ph)*ry,z=Math.sin(ph)*Math.sin(th)*rz;const X=x*cs-y*sn,Y=x*sn+y*cs;let nx=X/(rx*rx),ny=Y/(ry*ry),nz=z/(rz*rz);const l=Math.hypot(nx,ny,nz)||1;return [c[0]+X,c[1]+Y,c[2]+z,nx/l,ny/l,nz/l];};
   for(let i=0;i<R;i++)for(let j=0;j<Q;j++){const a=P(i,j),b=P(i+1,j),cc=P(i,j+1),d=P(i+1,j+1);[a,cc,b,b,cc,d].forEach(q=>{out.push(q[0],q[1],q[2],q[3],q[4],q[5],id,zm);});}}
+/* procedural courses and blobs that the real meshes (body3d-organs.js) replace */
+const DROP_STRUCT=/^(Abdominal aorta|Common iliac a\.|External iliac a\.|Internal iliac a\.|Coeliac trunk|Splenic a\.|Left gastric a\.|Hepatic a\.|Gastroduodenal a\.|Superior mesenteric a\.|Inferior mesenteric a\.|Renal a\.|Common carotid a\.|Internal carotid a\.|External carotid a\.|Subclavian a\.|Brachiocephalic trunk|Vertebral → basilar a\.|Inferior vena cava|Common iliac v\.|External iliac v\.|Internal iliac v\.|External iliac → femoral v\.|Portal v\.|Splenic v\.|Hepatic vv\.|Renal v\.|Internal jugular v\.|Subclavian v\.|Superior vena cava)/;
+const DROP_ORGAN=/^(Brain|Liver|Gallbladder|Spleen|Pancreas|Right kidney|Left kidney|Right adrenal|Left adrenal|Ureters|Thyroid \(|Hypothalamus|Stomach|Duodenum|Jejunum|Colon|Appendix|Larynx)/;
+/* ORG1 pack reader: see scratchpad/organs.js for the writer */
+function parseOrganPack(b64){const bin=atob(b64);const u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);const dv=new DataView(u8.buffer);let o=4;const n=dv.getUint32(o,true);o+=4;const LAYERS=['organ','bone','artery','vein'];const parts=[];
+  for(let k=0;k<n;k++){const layer=LAYERS[u8[o++]];const nl=u8[o++];const name=new TextDecoder().decode(u8.subarray(o,o+nl));o+=nl;const r=u8[o++],g=u8[o++],b=u8[o++];const col=r===255&&g===255&&b===255?null:[r/254,g/254,b/254];const nv=dv.getUint32(o,true);o+=4;const nt=dv.getUint32(o,true);o+=4;const mn=[0,1,2].map(i=>dv.getFloat32(o+i*4,true));o+=12;const mx=[0,1,2].map(i=>dv.getFloat32(o+i*4,true));o+=12;
+    const pos=new Float32Array(nv*3);for(let i=0;i<nv*3;i++){const a=i%3;const q=dv.getInt16(o+i*2,true);pos[i]=mn[a]+(q+32767)/65534*(mx[a]-mn[a]);}o+=nv*6;
+    const wide=nv>65535;const idx=new Uint32Array(nt*3);for(let i=0;i<nt*3;i++){idx[i]=wide?dv.getUint32(o+i*4,true):dv.getUint16(o+i*2,true);}o+=nt*3*(wide?4:2);
+    const nrm=new Float32Array(nv*3);for(let t=0;t<nt;t++){const a=idx[t*3]*3,b2=idx[t*3+1]*3,c=idx[t*3+2]*3;const e1=[pos[b2]-pos[a],pos[b2+1]-pos[a+1],pos[b2+2]-pos[a+2]],e2=[pos[c]-pos[a],pos[c+1]-pos[a+1],pos[c+2]-pos[a+2]];const fn=cross(e1,e2);for(const v of [a,b2,c]){nrm[v]+=fn[0];nrm[v+1]+=fn[1];nrm[v+2]+=fn[2];}}
+    for(let i=0;i<nv;i++){const l=Math.hypot(nrm[i*3],nrm[i*3+1],nrm[i*3+2])||1;nrm[i*3]/=l;nrm[i*3+1]/=l;nrm[i*3+2]/=l;}
+    parts.push({layer,name,col,nv,nt,mn,mx,pos,idx,nrm});}
+  return parts;}
 /* organs: [name, centre, rx, ry, rz, tilt, colour] in model space (y up, +z front, +x patient's left) */
 const ORGANS=[
  ['Brain',[0,8.25,0.05],0.8,0.72,0.95,0,[0.85,0.72,0.74]],
- ['Heart (apex ~5th intercostal space, mid-clavicular line)',[0.3,4.55,0.42],0.62,0.85,0.5,-0.55,[0.8,0.2,0.22]],
- ['Right lung',[-1.2,4.7,-0.1],0.68,1.45,0.72,0,[0.9,0.62,0.62]],
- ['Left lung',[1.25,4.7,-0.1],0.6,1.4,0.7,0,[0.9,0.62,0.62]],
+ ['Heart (apex ~5th intercostal space, mid-clavicular line)',[0.25,4.98,0.55],0.58,0.78,0.48,-0.55,[0.8,0.2,0.22]],
+ ['Right lung',[-1.15,5.35,-0.12],0.66,1.15,0.6,0,[0.9,0.62,0.62]],
+ ['Left lung',[1.22,5.35,-0.12],0.56,1.12,0.58,0,[0.9,0.62,0.62]],
  ['Liver (RUQ; edge below right costal margin)',[-0.85,3.55,0.3],1.25,0.7,0.6,0.25,[0.6,0.28,0.2]],
  ['Gallbladder',[-0.55,3.15,0.75],0.18,0.3,0.15,0,[0.35,0.55,0.35]],
  ['Spleen (LUQ, posterolateral)',[1.3,3.6,-0.25],0.32,0.5,0.28,0.3,[0.5,0.25,0.4]],
  ['Pancreas (retroperitoneal, behind the stomach)',[0.2,3.2,-0.05],0.85,0.22,0.22,0.25,[0.85,0.75,0.55]],
  ['Right kidney (flank; sits lower than the left)',[-0.75,2.95,-0.35],0.3,0.55,0.25,0.15,[0.55,0.2,0.22]],
  ['Left kidney',[0.75,3.15,-0.35],0.3,0.55,0.25,-0.15,[0.55,0.2,0.22]],
- ['Bladder (suprapubic; palpable only when distended)',[0,1.3,0.45],0.45,0.35,0.35,0,[0.9,0.75,0.4]],
+ ['Bladder (suprapubic; palpable only when distended)',[0,1.1,0.5],0.45,0.35,0.35,0,[0.9,0.75,0.4]],
  ['Thyroid (anterior neck, below the cricoid)',[0,5.85,0.65],0.45,0.22,0.18,0,[0.7,0.35,0.35]],
- ['Parathyroid glands (posterior to the thyroid)',[-0.3,5.85,0.5],0.07,0.1,0.06,0,[0.85,0.7,0.35]],
- ['Parathyroid glands (posterior to the thyroid)',[0.3,5.85,0.5],0.07,0.1,0.06,0,[0.85,0.7,0.35]],
- ['Pituitary gland (sella turcica, base of brain)',[0,7.65,0.25],0.11,0.09,0.11,0,[0.9,0.55,0.4]],
+ ['Parathyroid glands (posterior to the thyroid)',[-0.2,6.42,0.3],0.06,0.09,0.05,0,[0.85,0.7,0.35]],
+ ['Parathyroid glands (posterior to the thyroid)',[0.18,6.42,0.3],0.06,0.09,0.05,0,[0.85,0.7,0.35]],
+ ['Pituitary gland (sella turcica, base of brain)',[0,7.97,0.6],0.11,0.09,0.11,0,[0.9,0.55,0.4]],
  ['Hypothalamus',[0,7.85,0.25],0.16,0.1,0.14,0,[0.9,0.65,0.5]],
- ['Pineal gland',[0,7.95,-0.35],0.07,0.07,0.09,0,[0.75,0.45,0.55]],
- ['Thymus (retrosternal; large in children, involutes in adults)',[0,5.15,0.55],0.35,0.3,0.15,0,[0.85,0.7,0.6]],
+ ['Pineal gland',[0,8.22,0.3],0.07,0.07,0.09,0,[0.75,0.45,0.55]],
+ ['Thymus (retrosternal; large in children, involutes in adults)',[0,5.75,0.6],0.35,0.3,0.15,0,[0.85,0.7,0.6]],
  ['Right adrenal (suprarenal) gland',[-0.75,3.6,-0.3],0.2,0.13,0.14,0,[0.9,0.7,0.3]],
  ['Left adrenal (suprarenal) gland',[0.75,3.8,-0.3],0.2,0.13,0.14,0,[0.9,0.7,0.3]],
- ['Gonads: ovaries (pelvis, lateral to the uterus) / testes (scrotum)',[-0.55,1.25,0.2],0.14,0.2,0.12,0,[0.85,0.55,0.6]],
- ['Gonads: ovaries (pelvis, lateral to the uterus) / testes (scrotum)',[0.55,1.25,0.2],0.14,0.2,0.12,0,[0.85,0.55,0.6]],
- ['Uterus / prostate (midline pelvis, behind the bladder)',[0,1.2,0.05],0.32,0.35,0.22,0,[0.85,0.5,0.55]],
- ['Diaphragm (dome; separates thorax from abdomen)',[0,3.75,0.05],1.75,0.16,0.85,0,[0.85,0.55,0.5]],
+ ['Gonads: ovaries (pelvis, lateral to the uterus) / testes (scrotum)',[-0.5,1.15,0.25],0.14,0.2,0.12,0,[0.85,0.55,0.6]],
+ ['Gonads: ovaries (pelvis, lateral to the uterus) / testes (scrotum)',[0.5,1.15,0.25],0.14,0.2,0.12,0,[0.85,0.55,0.6]],
+ ['Uterus / prostate (midline pelvis, behind the bladder)',[0,1.1,0.05],0.32,0.35,0.22,0,[0.85,0.5,0.55]],
+ ['Diaphragm (dome; separates thorax from abdomen)',[0,4.3,0.1],1.6,0.16,0.8,0,[0.85,0.55,0.5]],
 ];
 /* colon course and airway as tubes */
 /* jejunum and ileum: a winding course filling the umbilical region, ending at the caecum */
@@ -189,19 +201,19 @@ const ORGAN_TUBES=[
  ['Stomach: fundus → body → antrum → pylorus (epigastrium / LUQ)',[[0.45,3.55,0.2],[0.95,3.95,0.15],[1.05,3.5,0.4],[0.75,3.1,0.55],[0.25,3.0,0.55],[-0.15,3.15,0.5]],0.3,[0.85,0.6,0.5]],
  ['Duodenum (C-loop around the head of the pancreas)',[[-0.15,3.15,0.5],[-0.5,3.05,0.4],[-0.6,2.65,0.3],[-0.25,2.45,0.25],[0.2,2.62,0.25]],0.12,[0.88,0.65,0.5]],
  ['Jejunum and ileum (small bowel, central / umbilical; ends at the ileocaecal valve)',SMALL_BOWEL,0.15,[0.85,0.68,0.55]],
- ['Nasal cavity → nasopharynx',[[0,7.55,1.15],[0,7.5,0.75],[0,7.35,0.4]],0.1,[0.6,0.7,0.85]],
- ['Oropharynx → laryngopharynx',[[0,7.35,0.4],[0,7.0,0.45],[0,6.6,0.4]],0.11,[0.6,0.7,0.85]],
- ['Larynx (thyroid cartilage / cricoid)',[[0,6.6,0.4],[0,6.35,0.5],[0,6.05,0.42]],0.15,[0.6,0.7,0.85]],
- ['Trachea',[[0,6.05,0.42],[0,5.6,0.3],[0,5.35,0.25],[0,4.95,0.15]],0.13,[0.75,0.72,0.72]],
- ['Right upper lobe bronchus',[[-0.55,4.7,0.1],[-0.95,5.15,0.1],[-1.25,5.5,0.05]],0.06,[0.75,0.72,0.72]],
- ['Right middle lobe bronchus',[[-0.8,4.55,0.1],[-1.25,4.45,0.35],[-1.55,4.3,0.4]],0.05,[0.75,0.72,0.72]],
- ['Right lower lobe bronchus',[[-1.0,4.4,0.05],[-1.2,3.95,-0.05],[-1.35,3.55,-0.1]],0.06,[0.75,0.72,0.72]],
- ['Left upper lobe bronchus',[[0.55,4.65,0.1],[0.95,5.1,0.1],[1.25,5.45,0.05]],0.06,[0.75,0.72,0.72]],
- ['Lingular bronchus',[[0.8,4.55,0.1],[1.2,4.4,0.35],[1.5,4.25,0.4]],0.05,[0.75,0.72,0.72]],
- ['Left lower lobe bronchus',[[1.05,4.35,0.05],[1.25,3.9,-0.05],[1.4,3.5,-0.1]],0.06,[0.75,0.72,0.72]],
- ['Right main bronchus',[[0,4.95,0.15],[-0.55,4.7,0.1],[-1.0,4.4,0.05]],0.09,[0.75,0.72,0.72]],
- ['Left main bronchus',[[0,4.95,0.15],[0.55,4.65,0.1],[1.05,4.35,0.05]],0.09,[0.75,0.72,0.72]],
- ['Oesophagus',[[0,5.95,0.15],[0.05,5.0,-0.15],[0.1,4.0,-0.1],[0.45,3.55,0.2]],0.09,[0.85,0.6,0.5]],
+ ['Nasal cavity → nasopharynx',[[0,7.9,1.3],[0,7.85,0.95],[0,7.7,0.6]],0.09,[0.6,0.7,0.85]],
+ ['Oropharynx → laryngopharynx',[[0,7.7,0.6],[0,7.35,0.6],[0,7.0,0.55]],0.1,[0.6,0.7,0.85]],
+ ['Larynx (thyroid cartilage / cricoid)',[[0,7.0,0.55],[0,6.75,0.55],[0,6.5,0.48]],0.13,[0.6,0.7,0.85]],
+ ['Trachea',[[0,6.5,0.48],[0,6.1,0.35],[0,5.8,0.25],[0,5.5,0.18]],0.12,[0.75,0.72,0.72]],
+ ['Right upper lobe bronchus',[[-0.55,5.25,0.12],[-0.95,5.7,0.1],[-1.2,6.05,0.05]],0.06,[0.75,0.72,0.72]],
+ ['Right middle lobe bronchus',[[-0.8,5.1,0.1],[-1.2,5.0,0.35],[-1.5,4.85,0.4]],0.05,[0.75,0.72,0.72]],
+ ['Right lower lobe bronchus',[[-1.0,4.95,0.05],[-1.2,4.55,-0.05],[-1.35,4.25,-0.1]],0.06,[0.75,0.72,0.72]],
+ ['Left upper lobe bronchus',[[0.55,5.2,0.12],[0.95,5.65,0.1],[1.2,6.0,0.05]],0.06,[0.75,0.72,0.72]],
+ ['Lingular bronchus',[[0.8,5.05,0.1],[1.15,4.95,0.35],[1.45,4.8,0.4]],0.05,[0.75,0.72,0.72]],
+ ['Left lower lobe bronchus',[[1.05,4.9,0.05],[1.2,4.5,-0.05],[1.35,4.2,-0.1]],0.06,[0.75,0.72,0.72]],
+ ['Right main bronchus',[[0,5.5,0.18],[-0.55,5.25,0.12],[-1.0,4.95,0.05]],0.08,[0.75,0.72,0.72]],
+ ['Left main bronchus',[[0,5.5,0.18],[0.55,5.2,0.12],[1.05,4.9,0.05]],0.08,[0.75,0.72,0.72]],
+ ['Oesophagus (behind the trachea, through the diaphragm at T10)',[[0,7.0,0.3],[0,6.5,0.1],[0.05,5.6,-0.15],[0.1,4.7,-0.1],[0.3,4.2,0.1],[0.5,4.0,0.35]],0.09,[0.85,0.6,0.5]],
  ['Colon: caecum and ascending (RLQ → hepatic flexure, RUQ)',[[-1.15,1.45,0.45],[-1.25,2.0,0.45],[-1.3,2.6,0.4],[-1.25,3.1,0.3]],0.2,[0.8,0.62,0.5]],
  ['Colon: transverse (hepatic flexure → splenic flexure, drapes across the umbilical region)',[[-1.25,3.1,0.3],[-0.6,2.75,0.62],[0.1,2.6,0.68],[0.8,2.8,0.62],[1.35,3.2,0.3]],0.2,[0.8,0.62,0.5]],
  ['Colon: descending (splenic flexure, LUQ → LLQ)',[[1.35,3.2,0.3],[1.4,2.6,0.35],[1.35,2.0,0.4],[1.2,1.55,0.45]],0.2,[0.8,0.62,0.5]],
@@ -249,20 +261,28 @@ window.Body3D={
   const gl=this.gl;const body={pos:this.pos,nrm:this.nrmArr,zone:this.zoneAttr,nv:this.pos.length/3};
   const src=(typeof window.BODY3D_ANATOMY==='function')?window.BODY3D_ANATOMY(window.BODY3D_JOINTS||{}):(window.BODY3D_ANATOMY||[]);
   const items=[];src.forEach(([layer,name,cal,pair,pts])=>{items.push({layer,name,cal,pts,side:pair?'L':null});if(pair)items.push({layer,name,cal,pts:pts.map(([x,y,z,d])=>[-x,y,z,d]),side:'R'});});
-  this.structs=[];const bufs={artery:[],vein:[],nerve:[],lymph:[],organ:[]};this.organRanges=[];
+  this.structs=[];const bufs={artery:[],vein:[],nerve:[],lymph:[],organ:[],bone:[]};this.ranges={organ:[],bone:[],artery:[],vein:[],nerve:[],lymph:[]};const hasPack=!!window.BODY3D_ORGANS_B64;
   const RAD={1:0.05,2:0.034,3:0.022};
   const zonesOf=(P,deep)=>{let m=0;P.forEach((p,i)=>{m|=zoneBits(body,p[0],p[1],p[2],deep?deep[i]:true);});return m;};
-  items.forEach((it,i)=>{const id=i+1;const P=it.pts.map(([x,y,z,d])=>d?snapPoint(body,x,y,z,d):[x,y,z]);const zm=zonesOf(P,it.pts.map(q=>!q[3]));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?" · patient's left":" · patient's right"):''),pts:P,zones:zm};this.structs.push(s);
+  let nid=0;items.forEach((it,i)=>{if(hasPack&&DROP_STRUCT.test(it.name))return;const id=++nid;const P=it.pts.map(([x,y,z,d])=>d?snapPoint(body,x,y,z,d):[x,y,z]);const zm=zonesOf(P,it.pts.map(q=>!q[3]));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?" · patient's left":" · patient's right"):''),pts:P,zones:zm};this.structs.push(s);
     if(it.layer==='lymph'&&it.cal===0){P.forEach(c=>sphere(c,0.07,id,bufs.lymph,zm));}
     else{const sm=P.length>1?smoothLine(P,5):P;tube(sm,it.layer==='lymph'?0.018:(RAD[it.cal]||0.03),id,bufs[it.layer],zm);}
   });
   /* organs */
-  ORGANS.forEach(([name,c,rx,ry,rz,rot,col])=>{const id=this.structs.length+1;const zm=zonesOf([c,[c[0],c[1]+ry*0.8,c[2]],[c[0],c[1]-ry*0.8,c[2]]]);const start=bufs.organ.length/8;ellipsoid(c,rx,ry,rz,rot,id,bufs.organ,zm);this.organRanges.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts:[c],zones:zm});});
-  ORGAN_TUBES.forEach(([name,pts,r,col])=>{const id=this.structs.length+1;const zm=zonesOf(pts);const start=bufs.organ.length/8;tube(smoothLine(pts,5),r,id,bufs.organ,zm);this.organRanges.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts,zones:zm});});
+  ['artery','vein','nerve','lymph'].forEach(k=>{this.ranges[k].push({start:0,count:bufs[k].length/8,col:null});});
+  ORGANS.forEach(([name,c,rx,ry,rz,rot,col])=>{if(hasPack&&DROP_ORGAN.test(name))return;const id=++nid;const zm=zonesOf([c,[c[0],c[1]+ry*0.8,c[2]],[c[0],c[1]-ry*0.8,c[2]]]);const start=bufs.organ.length/8;ellipsoid(c,rx,ry,rz,rot,id,bufs.organ,zm);this.ranges.organ.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts:[c],zones:zm});});
+  ORGAN_TUBES.forEach(([name,pts,r,col])=>{if(hasPack&&DROP_ORGAN.test(name))return;const id=++nid;const zm=zonesOf(pts);const start=bufs.organ.length/8;tube(smoothLine(pts,5),r,id,bufs.organ,zm);this.ranges.organ.push({start,count:bufs.organ.length/8-start,col});this.structs.push({id,layer:'organ',name,pts,zones:zm});});
+  /* real meshes from the SPL atlases */
+  if(hasPack){const parts=parseOrganPack(window.BODY3D_ORGANS_B64);parts.forEach(pt=>{const id=++nid;const c=[(pt.mn[0]+pt.mx[0])/2,(pt.mn[1]+pt.mx[1])/2,(pt.mn[2]+pt.mx[2])/2];const samples=[c,[c[0],pt.mn[1],c[2]],[c[0],pt.mx[1],c[2]],[pt.mn[0],c[1],c[2]],[pt.mx[0],c[1],c[2]]];const zm=zonesOf(samples);
+    const out=bufs[pt.layer];const start=out.length/8;const P=pt.pos,N=pt.nrm,I=pt.idx;for(let i=0;i<I.length;i++){const v=I[i]*3;out.push(P[v],P[v+1],P[v+2],N[v],N[v+1],N[v+2],id,zm);}
+    this.ranges[pt.layer].push({start,count:out.length/8-start,col:pt.col});
+    /* pick points: a sparse sample of the vertices */
+    const pts=[];const step=Math.max(1,Math.floor(pt.nv/40));for(let i=0;i<pt.nv;i+=step)pts.push([P[i*3],P[i*3+1],P[i*3+2]]);
+    this.structs.push({id,layer:pt.layer,name:pt.name,pts,zones:zm,mesh:true});});}
   const prog=gl.createProgram();const mk=(t,src2)=>{const sh=gl.createShader(t);gl.shaderSource(sh,src2);gl.compileShader(sh);gl.attachShader(prog,sh);};mk(gl.VERTEX_SHADER,SVS);mk(gl.FRAGMENT_SHADER,SFS);gl.linkProgram(prog);this.sprog=prog;
   this.su={};['uP','uV','uHi','uSel','uFocus','uCol','uAlpha'].forEach(n=>this.su[n]=gl.getUniformLocation(prog,n));this.sa={aPos:gl.getAttribLocation(prog,'aPos'),aNrm:gl.getAttribLocation(prog,'aNrm'),aId:gl.getAttribLocation(prog,'aId'),aZm:gl.getAttribLocation(prog,'aZm'),aFoc:gl.getAttribLocation(prog,'aFoc')};
   this.sbuf={};Object.entries(bufs).forEach(([k,arr])=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.STATIC_DRAW);const n=arr.length/8;const ids=new Float32Array(n);for(let i=0;i<n;i++)ids[i]=arr[i*8+6];const fb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,fb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(n).fill(1),gl.DYNAMIC_DRAW);this.sbuf[k]={buf:b,n,ids,fbuf:fb};});
-  this.layers={artery:false,vein:false,nerve:false,lymph:false,organ:false,musclechart:false};this.hoverStruct=0;this.focus=null;
+  this.layers={artery:false,vein:false,nerve:false,lymph:false,organ:false,bone:false,musclechart:false};this.hoverStruct=0;this.focus=null;
  },
  /* focus: a RegExp (or null) — structures whose name matches stay bright, everything else fades */
  setFocus(re){const key=re?String(re):'';if(key===this.focusKey)return;this.focusKey=key;this.focus=re||null;if(!this.structs)return;const gl=this.gl;const set=new Set();if(re)this.structs.forEach(s=>{if(re.test(s.name))set.add(s.id);});this.focusSet=re?set:null;
@@ -273,14 +293,14 @@ window.Body3D={
  inZone(zoneName){const z=ZONE_IDS[zoneName]||0;if(!this.structs)return [];return this.structs.filter(s=>this.layers[s.layer]&&(!z||(s.zones&(1<<z))));},
  drawStructs(P,V){
   const gl=this.gl;if(!this.sprog)return;gl.useProgram(this.sprog);gl.uniformMatrix4fv(this.su.uP,false,P);gl.uniformMatrix4fv(this.su.uV,false,V);gl.uniform1f(this.su.uHi,this.hoverStruct||0);gl.uniform1f(this.su.uSel,this.zone||0);gl.uniform1f(this.su.uFocus,this.focusSet?1:0);
-  const cols={artery:cssColor('--artery'),vein:cssColor('--vein'),nerve:cssColor('--nerve'),lymph:cssColor('--accent'),organ:[0.8,0.5,0.5]};
+  const cols={artery:cssColor('--artery'),vein:cssColor('--vein'),nerve:cssColor('--nerve'),lymph:cssColor('--accent'),organ:[0.8,0.5,0.5],bone:[0.9,0.87,0.78]};
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.disable(gl.CULL_FACE);
   Object.entries(this.sbuf).forEach(([k,b])=>{if(!this.layers[k]||!b.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,b.buf);const st=32;gl.enableVertexAttribArray(this.sa.aPos);gl.vertexAttribPointer(this.sa.aPos,3,gl.FLOAT,false,st,0);gl.enableVertexAttribArray(this.sa.aNrm);gl.vertexAttribPointer(this.sa.aNrm,3,gl.FLOAT,false,st,12);gl.enableVertexAttribArray(this.sa.aId);gl.vertexAttribPointer(this.sa.aId,1,gl.FLOAT,false,st,24);gl.enableVertexAttribArray(this.sa.aZm);gl.vertexAttribPointer(this.sa.aZm,1,gl.FLOAT,false,st,28);gl.bindBuffer(gl.ARRAY_BUFFER,b.fbuf);gl.enableVertexAttribArray(this.sa.aFoc);gl.vertexAttribPointer(this.sa.aFoc,1,gl.FLOAT,false,0,0);
-    const ranges=k==='organ'?this.organRanges:[{start:0,count:b.n,col:cols[k]}];
+    const ranges=(this.ranges&&this.ranges[k]&&this.ranges[k].length)?this.ranges[k]:[{start:0,count:b.n,col:null}];
     /* pass A: anything in front of the skin, solid */
-    gl.depthFunc(gl.LEQUAL);gl.uniform1f(this.su.uAlpha,1.0);ranges.forEach(r=>{gl.uniform3fv(this.su.uCol,r.col);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});
+    gl.depthFunc(gl.LEQUAL);gl.uniform1f(this.su.uAlpha,1.0);ranges.forEach(r=>{if(!r.count)return;gl.uniform3fv(this.su.uCol,r.col||cols[k]);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});
     /* pass B: inside the body, seen through the skin (x-ray) */
-    gl.depthFunc(gl.GREATER);gl.depthMask(false);const xa=k==='organ'?0.42:0.62;gl.uniform1f(this.su.uAlpha,xa);ranges.forEach(r=>{gl.uniform3fv(this.su.uCol,r.col);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});gl.depthMask(true);gl.depthFunc(gl.LEQUAL);});
+    gl.depthFunc(gl.GREATER);gl.depthMask(false);const xa=k==='organ'?0.72:k==='bone'?0.6:0.7;gl.uniform1f(this.su.uAlpha,xa);ranges.forEach(r=>{if(!r.count)return;gl.uniform3fv(this.su.uCol,r.col||cols[k]);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});gl.depthMask(true);gl.depthFunc(gl.LEQUAL);});
   gl.disable(gl.BLEND);gl.enable(gl.CULL_FACE);gl.useProgram(this.prog);
   /* restore body attribute pointers */
   this.rebind();
@@ -308,7 +328,7 @@ window.Body3D={
   gl.uniformMatrix4fv(this.u.uP,false,P);gl.uniformMatrix4fv(this.u.uV,false,V);gl.uniformMatrix4fv(this.u.uM,false,[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
   gl.uniform3fv(this.u.uBase,cssColor('--figure'));gl.uniform3fv(this.u.uAccent,cssColor('--accent'));
   gl.uniform3fv(this.u.uLight,[eye[0]*0.4+6,eye[1]*0.4+10,eye[2]*0.4+6]);gl.uniform3fv(this.u.uEye,eye);
-  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform1f(this.u.uSec,this.hoverSec||0);gl.uniform1f(this.u.uSections,this.sections?1:0);gl.uniform1f(this.u.uMuscles,this.layers&&this.layers.musclechart?1:0);gl.uniform1f(this.u.uTint,(this.layers&&['artery','vein','nerve','lymph','organ'].some(k=>this.layers[k]))?0.4:1);gl.uniform1f(this.u.uMusHov,this.layers&&(this.layers.muscle||this.layers.musclechart)?(this.hoverMuscle||0):0);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
+  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform1f(this.u.uSec,this.hoverSec||0);gl.uniform1f(this.u.uSections,this.sections?1:0);gl.uniform1f(this.u.uMuscles,this.layers&&this.layers.musclechart?1:0);gl.uniform1f(this.u.uTint,(this.layers&&['artery','vein','nerve','lymph','organ','bone'].some(k=>this.layers[k]))?0.22:1);gl.uniform1f(this.u.uMusHov,this.layers&&(this.layers.muscle||this.layers.musclechart)?(this.hoverMuscle||0):0);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
   if(this.texTheme&&this.texTheme!==cssVar('--figure-soft')&&!this.retex){this.retex=true;this.loadTextures().then(()=>{this.retex=false;this.draw();});}
   /* pass 1: inked silhouette (inverted hull) */
   gl.cullFace(gl.FRONT);gl.uniform1f(this.u.uOutline,1);gl.uniform1f(this.u.uOffset,0.05);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);

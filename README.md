@@ -25,8 +25,13 @@
   built from the rig's joints (calibre-graded tubes: trunks, branches, twigs; superficial courses
   set just under the skin, deep ones inside), lymph-node groups, and an organs-and-glands layer
   (brain, airway and lungs, heart, gut from oesophagus to rectum, liver, pancreas, spleen,
-  kidneys and ureters, bladder, and the endocrine glands), all seen through the skin with an
-  x-ray pass. Selecting a body zone dims everything that does not run through it and lists what
+  kidneys and ureters, bladder, and the endocrine glands) and a bones layer, all seen through
+  the skin with an x-ray pass. The abdominal organs and vessels, the brain (by lobe), the
+  neck (thyroid, larynx, carotids, jugulars, subclavians, aortic arch) and the skeleton from
+  skull to pelvis are real CT/MR-segmented meshes from the Open Anatomy Project's SPL atlases
+  (`atlas/body3d-organs.js`, 3D Slicer licence, see `atlas/LICENSE-body3d-organs.txt`), fitted
+  to the rig by landmarks; the heart, lungs, airway, bladder and small glands are still
+  hand-shaped placeholders. Selecting a body zone dims everything that does not run through it and lists what
   does beneath the figure. The Muscles chip colours the 3D body as a muscle chart and names the
   group under the pointer. The 2D figure has named muscle groups and toggleable schematic artery,
   vein and nerve layers; the 3D view turns to show sides, back, top and bottom.

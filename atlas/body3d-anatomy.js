@@ -13,8 +13,8 @@ const H=j('upperleg01.L'),K=j('lowerleg01.L'),AN=j('foot.L'),FT=j('foot.L',1),TO
 const arm=t=>lerp(S,E,t),fa=t=>lerp(E,W,t),th=t=>lerp(H,K,t),lg=t=>lerp(K,AN,t);
 const L=[];const P=(layer,name,cal,pair,pts)=>L.push([layer,name,cal,pair,pts]);
 /* ================= ARTERIES ================= */
-P(A,'Ascending aorta and arch',1,false,[[0.25,4.85,0.5],[0.15,5.35,0.45],[0.0,5.65,0.2],[0.3,5.6,-0.1],[0.38,5.3,-0.2]]);
-P(A,'Thoracic aorta',1,false,[[0.38,5.3,-0.2],[0.38,4.6,-0.22],[0.32,3.9,-0.18],[0.25,3.4,-0.12]]);
+P(A,'Ascending aorta',1,false,[[0.25,5.05,0.55],[0.15,5.4,0.6],[0.05,5.65,0.6]]);
+P(A,'Thoracic (descending) aorta',1,false,[[0.32,5.62,-0.28],[0.3,5.1,-0.2],[0.25,4.62,0.0]]);
 P(A,'Abdominal aorta',1,false,[[0.25,3.4,-0.12],[0.2,2.9,-0.08],[0.15,2.35,-0.02]]);
 P(A,'Brachiocephalic trunk',2,false,[[0.05,5.62,0.15],[-0.35,5.85,0.15]]);
 P(A,'Common carotid a.',2,true,[[0.25,5.9,0.3],[0.4,6.4,0.42],[0.45,7.0,0.5]]);
