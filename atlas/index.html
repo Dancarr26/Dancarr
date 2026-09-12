@@ -93,10 +93,18 @@ a{color:var(--accent-ink)}
 .credit{font-size:11px;color:var(--muted);margin:0;line-height:1.4}
 .credit a{color:var(--muted)}
 
-.modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface-2);border-radius:10px;padding:3px}
+.modes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--surface-2);border-radius:10px;padding:3px}
 .mode{border:0;background:none;border-radius:8px;padding:7px 8px;font-size:13.5px;cursor:pointer;color:var(--muted)}
 .mode.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:700}
 .mode:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.cue{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.cue section{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px}
+.cue h4{margin:0 0 6px;font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cue h4.acc{color:var(--accent-ink)}
+.cue ul{margin:0;padding-left:16px;font-size:14.5px}
+.cue li{margin:3px 0}
+.site{font-size:14px;color:var(--muted);margin:4px 0 0}
+.site b{color:var(--ink)}
 .search{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:14px;background:var(--surface);color:var(--ink)}
 .search:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
 .list .cat{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 8px 4px}
@@ -286,6 +294,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
   .list{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px;scrollbar-width:thin}
   .row{grid-template-columns:24px auto;padding:6px 10px 6px 6px;border:1px solid var(--line);border-radius:999px;white-space:nowrap;flex:0 0 auto}
   .row .num{width:22px;height:22px;font-size:10px}
+  .list .cat{flex:0 0 auto;white-space:nowrap;padding:0 4px 0 6px;align-self:center;font-size:10px}
   .row .name{font-size:13.5px}.row .name small{display:none}.row .prog{display:none}
   .atlas-foot{margin-top:0}
   .detail{padding-bottom:120px}
@@ -304,8 +313,8 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
       <svg id="bodyfig" viewBox="40 80 700 1300" role="group" aria-label="Whole-body figure with numbered assessment regions"></svg>
       <div class="figcap"><div class="vtoggle" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><span id="figstate"></span></div>
     </div>
-    <div class="modes" role="tablist" aria-label="Navigation mode"><button type="button" class="mode on" role="tab" data-mode="regions" aria-selected="true">Body regions</button><button type="button" class="mode" role="tab" data-mode="tools" aria-selected="false">Tools &amp; frameworks</button></div>
-    <input class="search" id="search" type="search" placeholder="Find a region, tool, score or sign" aria-label="Search regions and tools" autocomplete="off">
+    <div class="modes" role="tablist" aria-label="Navigation mode"><button type="button" class="mode on" role="tab" data-mode="regions" aria-selected="true">Regions</button><button type="button" class="mode" role="tab" data-mode="tools" aria-selected="false">Tools</button><button type="button" class="mode" role="tab" data-mode="conditions" aria-selected="false">Conditions</button></div>
+    <input class="search" id="search" type="search" placeholder="Find a region, tool, condition or sign" aria-label="Search regions and tools" autocomplete="off">
     <ol class="list" id="list"></ol>
     <div class="atlas-foot"><span id="overall"></span><button class="linkbtn" id="reset" type="button">Reset this tab</button></div>
     <p class="credit">Body figure adapted from <a href="https://github.com/HichamELBSI/react-native-body-highlighter">react-native-body-highlighter</a>, © 2022 ELABBASSI Hicham, MIT licence.</p>
@@ -320,6 +329,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
 
 <script src="body-art.js"></script>
 <script src="tools.js"></script>
+<script src="conditions.js"></script>
 <script>
 /* ---------- shared drawing helpers ---------- */
 const SVG=(w,h,label,inner)=>`<svg class="dg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}">${inner}</svg>`;
@@ -503,18 +513,21 @@ D.chest=()=>{
 };
 D.abdomen=()=>{
   let g='';
-  g+=`<rect x="60" y="30" width="240" height="240" rx="42" class="grf"/>`;
-  g+=`<line x1="140" y1="30" x2="140" y2="270" class="lt"/><line x1="220" y1="30" x2="220" y2="270" class="lt"/><line x1="60" y1="110" x2="300" y2="110" class="lt"/><line x1="60" y1="190" x2="300" y2="190" class="lt"/>`;
-  g+=`<line x1="180" y1="30" x2="180" y2="270" class="ac"/><line x1="60" y1="150" x2="300" y2="150" class="ac"/><circle cx="180" cy="150" r="5" class="acf"/>`;
-  const R=(x,y,n)=>lbl(x,y,n,'t10 mu');
-  g+=R(66,44,'R hypochondriac')+R(146,44,'epigastric')+R(226,44,'L hypochondriac')+R(66,124,'R lumbar')+R(146,124,'umbilical')+R(226,124,'L lumbar')+R(66,204,'R iliac')+R(146,204,'hypogastric')+R(226,204,'L iliac');
-  const O=(x,y,lines,cls='t12 b')=>lines.map((t,i)=>lbl(x,y+i*13,t,i?'t10':cls)).join('');
-  g+=O(68,72,['RUQ','liver, gallbladder','hepatic flexure'])+O(228,72,['LUQ','stomach, spleen','pancreas tail'])+O(68,232,['RLQ','caecum, appendix','right ovary'])+O(228,232,['LLQ','sigmoid colon','left ovary']);
-  g+=O(146,72,['','stomach, duodenum'],'t10')+O(146,166,['','small bowel, aorta'],'t10')+O(146,232,['','bladder, uterus'],'t10');
-  g+=lbl(60,20,"Patient's R",'t10 mu')+lbl(300,20,"Patient's L",'t10 mu','end');
-  g+=lbl(320,60,'Order','t12 b')+lbl(320,78,'1  Inspect')+lbl(320,94,'2  Auscultate')+lbl(320,110,'3  Percuss')+lbl(320,126,'4  Palpate · light, then deep')+lbl(320,150,'Painful quadrant last.','t10 b')+lbl(320,164,'Watch the face, not the hand.','t10 mu');
-  g+=lbl(320,200,'Thick teal cross = quadrants','t10 mu')+lbl(320,214,'thin grid = nine regions','t10 mu');
-  return SVG(500,290,'Abdominal outline showing four quadrants and nine regions with the organ under each, and the examination order',g);
+  const X=40,W=330,c=W/3,Y=30,H=240,r=H/3;
+  g+=`<rect x="${X}" y="${Y}" width="${W}" height="${H}" rx="44" class="grf"/>`;
+  g+=`<line x1="${X+c}" y1="${Y}" x2="${X+c}" y2="${Y+H}" class="lt"/><line x1="${X+2*c}" y1="${Y}" x2="${X+2*c}" y2="${Y+H}" class="lt"/><line x1="${X}" y1="${Y+r}" x2="${X+W}" y2="${Y+r}" class="lt"/><line x1="${X}" y1="${Y+2*r}" x2="${X+W}" y2="${Y+2*r}" class="lt"/>`;
+  const mx=X+W/2,my=Y+H/2;
+  g+=`<line x1="${mx}" y1="${Y}" x2="${mx}" y2="${Y+H}" class="ac"/><line x1="${X}" y1="${my}" x2="${X+W}" y2="${my}" class="ac"/><circle cx="${mx}" cy="${my}" r="5" class="acf"/>`;
+  const R=(i,j,n)=>lbl(X+j*c+6,Y+i*r+13,n,'t10 mu');
+  R(0,0,'R hypochondriac');R(0,1,'epigastric');R(0,2,'L hypochondriac');R(1,0,'R lumbar');R(1,1,'umbilical');R(1,2,'L lumbar');R(2,0,'R iliac');R(2,1,'hypogastric');R(2,2,'L iliac');
+  g+=[[0,0,'R hypochondriac'],[0,1,'epigastric'],[0,2,'L hypochondriac'],[1,0,'R lumbar'],[1,1,'umbilical'],[1,2,'L lumbar'],[2,0,'R iliac'],[2,1,'hypogastric'],[2,2,'L iliac']].map(([i,j,n])=>lbl(X+j*c+6,Y+i*r+13,n,'t10 mu')).join('');
+  const O=(i,j,lines,cls)=>lines.map((t,k)=>lbl(X+j*c+6,Y+i*r+30+k*12,t,k===0&&cls?cls:'t10')).join('');
+  g+=O(0,0,['RUQ','liver','gallbladder','hepatic flexure'],'t12 b')+O(0,2,['LUQ','stomach','spleen','pancreas tail'],'t12 b')+O(2,0,['RLQ','caecum','appendix','right ovary'],'t12 b')+O(2,2,['LLQ','sigmoid colon','left ovary'],'t12 b');
+  g+=O(0,1,['stomach','duodenum'])+O(1,1,['small bowel','aorta'])+O(2,1,['bladder','uterus']);
+  g+=lbl(X,20,"Patient's R",'t10 mu')+lbl(X+W,20,"Patient's L",'t10 mu','end');
+  g+=lbl(390,60,'Order','t12 b')+lbl(390,78,'1  Inspect')+lbl(390,94,'2  Auscultate')+lbl(390,110,'3  Percuss')+lbl(390,126,'4  Palpate: light,')+lbl(390,140,'    then deep')+lbl(390,164,'Painful quadrant last.','t10 b')+lbl(390,178,'Watch the face,','t10 mu')+lbl(390,190,'not the hand.','t10 mu');
+  g+=lbl(390,220,'Thick teal cross =','t10 mu')+lbl(390,232,'quadrants; thin grid =','t10 mu')+lbl(390,244,'nine regions','t10 mu');
+  return SVG(540,290,'Abdominal outline showing four quadrants and nine regions with the organ under each, and the examination order',g);
 };
 D.colon=()=>{
   let g='';
@@ -827,11 +840,11 @@ function drawBody(activeIds){
   document.querySelector('.side.l').textContent=view==='front'?"Patient's R":"Patient's L";
   document.querySelector('.side.r').textContent=view==='front'?"Patient's L":"Patient's R";
 }
-function setView(v){state.view=v;save();drawBody(state.mode==='tools'&&toolById(state.tool)?toolById(state.tool).regions:[state.active]);}
+function setView(v){state.view=v;save();drawBody(state.mode==='tools'&&toolById(state.tool)?toolById(state.tool).regions:state.mode==='conditions'&&condById(state.cond)?condById(state.cond).regions:[state.active]);}
 
 /* ---------- state ---------- */
 const KEY='bedside-atlas-v1';
-let state={mode:'regions',active:'vitals',tool:'drsabcd',view:'front',checks:{},marks:[],answers:{},vitals:{}};
+let state={mode:'regions',active:'vitals',tool:'drsabcd',cond:'cvrisk',view:'front',checks:{},marks:[],answers:{},vitals:{}};
 try{const raw=localStorage.getItem(KEY);if(raw){const s=JSON.parse(raw);if(s&&typeof s==='object')state={...state,...s};}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 const idx=id=>REGIONS.findIndex(r=>r.id===id);
@@ -839,6 +852,12 @@ const doneCount=r=>(state.checks[r.id]||[]).length;
 
 /* ---------- render ---------- */
 const TOOLS=window.TOOLS||[];
+const CONDS=window.CONDITIONS||[];
+const SYSTEMS=[...new Set(CONDS.map(c=>c.sys))];
+const condById=id=>CONDS.find(c=>c.id===id);
+const regionConds=rid=>CONDS.filter(c=>c.regions.includes(rid));
+function matchC(c,t){if(!t)return true;return (c.name+' '+(c.aka||'')+' '+c.sys+' '+c.what+' '+(c.signs||[]).join(' ')+' '+(c.site||'')).toLowerCase().includes(t);}
+function visibleConds(){const t=q();return CONDS.filter(c=>matchC(c,t));}
 const CATS=[...new Set(TOOLS.map(t=>t.cat))];
 const toolById=id=>TOOLS.find(t=>t.id===id);
 const regionTools=rid=>TOOLS.filter(t=>t.regions.includes(rid));
@@ -857,6 +876,12 @@ function renderList(){
     ol.querySelectorAll('.row').forEach(b=>b.addEventListener('click',()=>show(b.dataset.id)));
     const total=REGIONS.reduce((a,r)=>a+r.assess.length,0),done=REGIONS.reduce((a,r)=>a+doneCount(r),0);
     document.getElementById('overall').textContent=`${done} of ${total} items ticked`;
+  } else if(state.mode==='conditions'){
+    const vis=visibleConds();let h='';
+    SYSTEMS.forEach(sy=>{const items=vis.filter(c=>c.sys===sy);if(!items.length)return;h+=`<li class="cat">${sy}</li>`+items.map(c=>`<li><button type="button" class="row${c.id===state.cond?' on':''}" data-id="${c.id}"><span class="num t">·</span><span class="name">${c.name}<small>${c.site?c.site.split(';')[0].split(',')[0]:c.sys}</small></span><span class="prog"></span></button></li>`).join('');});
+    ol.innerHTML=h||'<li class="none">Nothing matches. Try another tab.</li>';
+    ol.querySelectorAll('.row').forEach(b=>b.addEventListener('click',()=>showCond(b.dataset.id)));
+    document.getElementById('overall').textContent=`${CONDS.length} conditions · ${SYSTEMS.length} systems`;
   } else {
     const vis=visibleTools();let h='';
     CATS.forEach(c=>{const items=vis.filter(x=>x.cat===c);if(!items.length)return;h+=`<li class="cat">${c}</li>`+items.map(x=>{const p=toolProgress(x);const badge={steps:'✓',score:'Σ',vitals:'⚡',list:'≡',table:'⊞',cards:'▦'}[x.type]||'·';return `<li><button type="button" class="row${x.id===state.tool?' on':''}${p&&p[0]===p[1]?' done':''}" data-id="${x.id}"><span class="num t">${badge}</span><span class="name">${x.name}<small>${x.cat}</small></span><span class="prog">${p?p[0]+'/'+p[1]:''}</span></button></li>`;}).join('');});
@@ -869,12 +894,35 @@ function renderList(){
 }
 const chipsR=ids=>`<div class="chips">${ids.map(id=>{const r=REGIONS.find(x=>x.id===id);return r?`<button type="button" class="chip" data-region="${id}"><span class="n">${r.n}</span>${r.short}</button>`:'';}).join('')}</div>`;
 const chipsT=list=>`<div class="chips">${list.map(x=>`<button type="button" class="chip" data-tool="${x.id}">${x.short}</button>`).join('')}</div>`;
-function bindChips(root){root.querySelectorAll('[data-region]').forEach(c=>c.addEventListener('click',()=>{state.mode='regions';show(c.dataset.region);window.scrollTo({top:0});}));root.querySelectorAll('[data-tool]').forEach(c=>c.addEventListener('click',()=>{state.mode='tools';showTool(c.dataset.tool);window.scrollTo({top:0});}));}
+const chipsC=list=>`<div class="chips">${list.map(x=>`<button type="button" class="chip" data-cond="${x.id}">${x.name}</button>`).join('')}</div>`;
+function bindChips(root){root.querySelectorAll('[data-region]').forEach(c=>c.addEventListener('click',()=>{state.mode='regions';show(c.dataset.region);window.scrollTo({top:0});}));root.querySelectorAll('[data-tool]').forEach(c=>c.addEventListener('click',()=>{const t=toolById(c.dataset.tool);if(t){state.mode='tools';showTool(t.id);}else if(condById(c.dataset.tool)){showCond(c.dataset.tool);}window.scrollTo({top:0});}));root.querySelectorAll('[data-cond]').forEach(c=>c.addEventListener('click',()=>{showCond(c.dataset.cond);window.scrollTo({top:0});}));}
 function pager(list,cur,goFn){
   const i=list.findIndex(x=>x.id===cur),prev=list[i-1],next=list[i+1];
-  return `<nav class="pager">${prev?`<button type="button" class="btn" data-go="${prev.id}"><small>Previous</small>${prev.short}</button>`:'<span></span>'}${next?`<button type="button" class="btn primary" data-go="${next.id}"><small>Next</small>${next.short}</button>`:'<span></span>'}</nav>`;
+  const nm=x=>x.short||x.name;
+  return `<nav class="pager">${prev?`<button type="button" class="btn" data-go="${prev.id}"><small>Previous</small>${nm(prev)}</button>`:'<span></span>'}${next?`<button type="button" class="btn primary" data-go="${next.id}"><small>Next</small>${nm(next)}</button>`:'<span></span>'}</nav>`;
 }
-function renderDetail(){ if(state.mode==='tools'&&toolById(state.tool))renderTool(toolById(state.tool)); else {state.mode='regions';renderRegion();} }
+function renderDetail(){ if(state.mode==='tools'&&toolById(state.tool))renderTool(toolById(state.tool)); else if(state.mode==='conditions'&&condById(state.cond))renderCond(condById(state.cond)); else {state.mode='regions';renderRegion();} }
+function renderCond(c){
+  const sec=(h,items,cls)=>items&&items.length?`<section><h4 class="${cls||''}">${h}</h4><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></section>`:'';
+  let h=`<div class="eyebrow"><span>${c.sys}</span><span class="loc">Condition</span></div>`;
+  h+=`<h2 class="title">${c.name}</h2>`;
+  if(c.aka)h+=`<p class="when" style="margin-top:-6px">${c.aka}</p>`;
+  h+=`<p class="lede">${c.what}</p>`;
+  if(c.site)h+=`<p class="site"><b>Where.</b> ${c.site}</p>`;
+  h+=`<section class="blk"><h3>Cues</h3><div class="cue">${sec('Contributing factors & risks',c.risk)}${sec('Often travels with',c.comorb)}${sec('Signs & symptoms',c.signs)}${sec('How to assess',c.assess,'acc')}${sec('Complications',c.compl)}${sec('Nursing focus',c.nurse,'acc')}</div></section>`;
+  if(c.red&&c.red.length)h+=`<section class="blk"><div class="callout"><h4>Red flags</h4><ul>${c.red.map(f=>`<li>${f}</li>`).join('')}</ul></div></section>`;
+  if(c.regions&&c.regions.length)h+=`<section class="blk"><h3>Assess on the body</h3>${chipsR(c.regions)}</section>`;
+  const tl=(c.tools||[]).map(id=>toolById(id)||condById(id)).filter(Boolean);
+  if(tl.length)h+=`<section class="blk"><h3>Tools and related</h3><div class="chips">${tl.map(x=>x.short?`<button type="button" class="chip" data-tool="${x.id}">${x.short}</button>`:`<button type="button" class="chip" data-cond="${x.id}">${x.name}</button>`).join('')}</div></section>`;
+  h+=pager(visibleConds().length?visibleConds():CONDS,c.id);
+  const d=document.getElementById('detail');d.innerHTML=h;
+  d.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{showCond(b.dataset.go);window.scrollTo({top:0});}));
+  bindChips(d);
+  document.getElementById('mpos').textContent=c.name;
+  document.getElementById('figstate').innerHTML=`<b>Condition</b> ${c.name}`;
+  drawBody(c.regions||[]);
+}
+function showCond(id){ if(!condById(id))return; state.mode='conditions';state.cond=id;save();renderList();renderDetail();afterNav(id); }
 function renderRegion(){
   const r=REGIONS[idx(state.active)];
   const checks=state.checks[r.id]||[];
@@ -889,6 +937,7 @@ function renderRegion(){
   if(r.scales)h+=`<section class="blk"><h3>Scales</h3><div class="scales">${r.scales.map(([n,rows])=>`<div><h5>${n}</h5><dl class="scale">${rows.map(([k,v,c])=>`<dt class="${c||''}">${k}</dt><dd>${v}</dd>`).join('')}</dl></div>`).join('')}</div></section>`;
   h+=`<section class="blk"><div class="callout"><h4>Red flags · what matters</h4><ul>${r.flags.map(f=>`<li>${f}</li>`).join('')}</ul></div></section>`;
   const rt=regionTools(r.id);if(rt.length)h+=`<section class="blk"><h3>Tools for this region</h3>${chipsT(rt)}</section>`;
+  const rc=regionConds(r.id);if(rc.length)h+=`<section class="blk"><h3>Conditions seen here · ${rc.length}</h3>${chipsC(rc)}</section>`;
   if(r.id==='pain')h+=`<div class="tools"><button type="button" class="btn" id="clearmarks">Clear pain marks</button></div>`;
   h+=pager(visibleRegions().length?visibleRegions():REGIONS,r.id);
   const d=document.getElementById('detail');
@@ -1035,12 +1084,13 @@ function afterNav(id){
 }
 function step(dir){
   if(state.mode==='tools'){const l=visibleTools().length?visibleTools():TOOLS;const i=l.findIndex(x=>x.id===state.tool);const n=l[i+dir];if(n){showTool(n.id);window.scrollTo({top:0});}}
+  else if(state.mode==='conditions'){const l=visibleConds().length?visibleConds():CONDS;const i=l.findIndex(x=>x.id===state.cond);const n=l[i+dir];if(n){showCond(n.id);window.scrollTo({top:0});}}
   else{const l=visibleRegions().length?visibleRegions():REGIONS;const i=l.findIndex(x=>x.id===state.active);const n=l[i+dir];if(n){show(n.id);window.scrollTo({top:0});}}
 }
 document.getElementById('mprev').addEventListener('click',()=>step(-1));
 document.getElementById('mnext').addEventListener('click',()=>step(1));
 document.getElementById('reset').addEventListener('click',()=>{if(state.mode==='tools'){state.answers={};state.vitals={};}else state.checks={};save();renderList();renderDetail();});
-document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{state.mode=b.dataset.mode;if(state.mode==='tools'&&!toolById(state.tool))state.tool=TOOLS[0].id;save();renderList();renderDetail();}));
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{state.mode=b.dataset.mode;if(state.mode==='tools'&&!toolById(state.tool))state.tool=TOOLS[0].id;if(state.mode==='conditions'&&!condById(state.cond))state.cond=CONDS[0].id;save();renderList();renderDetail();}));
 document.getElementById('search').addEventListener('input',()=>renderList());
 document.addEventListener('keydown',e=>{
   if(e.target.matches('input,textarea,select,button,[contenteditable]'))return;
