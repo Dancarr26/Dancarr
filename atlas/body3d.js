@@ -69,7 +69,7 @@ function sectionizer(){
     if(inP(B.ubL,x,y))return 35;if(inP(B.ubR,x,y))return 34;if(inP(B.lbL,x,y))return 38;if(inP(B.lbR,x,y))return 37;
     if(inP(B.glL,x,y))return 41;if(inP(B.glR,x,y))return 40;
     if(y<240)return 1;if(y<330)return 4;
-    if(y>=600&&Math.abs(x-1084)<70)return 39;
+    if(y>=600&&y<820&&Math.abs(x-1084)<70)return 39;
     if(Math.abs(x-1084)<34)return 36;
     if(y<590)return x<1084?35:34;if(y<700)return x<1084?38:37;if(y<800)return x<1084?41:40;return x<1084?43:42;};
   /* limb segments: 3-5 L arm chain, 6-8 R, 9-11 L leg chain, 12-14 R (L = patient's left) */
