@@ -21,7 +21,9 @@
   share one look. The 3D body is sectioned anatomically (limbs at the joints from the rig's bone
   weights; torso by the muscle plate into pectoral, sternal, the nine abdominal regions, inguinal,
   scapular, interscapular, lumbar, sacral and gluteal; head into cranium and face), each named on
-  hover. The figure has named muscle groups and toggleable schematic
+  hover, and carries artery, vein, nerve and lymph-node courses (`atlas/body3d-anatomy.js`)
+  anchored to the rig's joints and snapped to the skin, drawn as tubes and nodes with an x-ray
+  pass for deep structures. The 2D figure has named muscle groups and toggleable schematic
   artery, vein and nerve layers; the 3D view turns to show sides, back, top and bottom.
 
 ## Documents

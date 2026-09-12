@@ -100,6 +100,26 @@ function cross(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[
 function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
 function cssColor(name){const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();const m=v.match(/^#([0-9a-f]{6})$/i);if(!m)return [0.75,0.78,0.8];const h=m[1];return [parseInt(h.slice(0,2),16)/255,parseInt(h.slice(2,4),16)/255,parseInt(h.slice(4,6),16)/255];}
 const PRESETS={front:[0,0],back:[Math.PI,0],left:[Math.PI/2,0],right:[-Math.PI/2,0],top:[0,Math.PI/2-0.01],bottom:[0,-Math.PI/2+0.01]};
+/* ---- vessels, nerves and lymph nodes as 3D geometry ---- */
+const SVS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aId;uniform mat4 uP,uV;uniform float uHi;varying float vL;varying float vHi;
+void main(){vec3 n=normalize(aNrm);vL=0.6+0.4*max(dot(n,normalize(vec3(0.4,0.8,0.6))),0.0);vHi=step(abs(aId-uHi),0.5);gl_Position=uP*uV*vec4(aPos,1.0);}`;
+const SFS=`precision mediump float;uniform vec3 uCol;uniform float uAlpha;varying float vL;varying float vHi;
+void main(){vec3 c=mix(uCol*vL,vec3(1.0),vHi*0.35);gl_FragColor=vec4(c,uAlpha);}`;
+const DIRV={F:[0,0,1],B:[0,0,-1],U:[0,1,0]};
+function snapPoint(body,x,y,z,dir){
+  if(dir==='D')return [x,y,z];
+  const d=dir==='M'?[x<0?1:-1,0,0]:dir==='L'?[x<0?-1:1,0,0]:DIRV[dir];
+  const p=body.pos,n=body.nrm;let best=-1,bs=-1e9;
+  for(let i=0;i<body.nv;i++){const dx=p[i*3]-x,dy=p[i*3+1]-y,dz=p[i*3+2]-z;const dd=dx*dx+dy*dy+dz*dz;if(dd>1.0)continue;const al=n[i*3]*d[0]+n[i*3+1]*d[1]+n[i*3+2]*d[2];const sc=al*0.9-dd*1.6;if(sc>bs){bs=sc;best=i;}}
+  if(best<0)return [x,y,z];
+  return [p[best*3]+n[best*3]*0.1,p[best*3+1]+n[best*3+1]*0.1,p[best*3+2]+n[best*3+2]*0.1];
+}
+function smoothLine(pts,sub){const out=[];const P=i=>pts[Math.max(0,Math.min(pts.length-1,i))];for(let i=0;i<pts.length-1;i++){const p0=P(i-1),p1=P(i),p2=P(i+1),p3=P(i+2);for(let k=0;k<sub;k++){const t=k/sub,t2=t*t,t3=t2*t;out.push([0,1,2].map(a=>0.5*((2*p1[a])+(-p0[a]+p2[a])*t+(2*p0[a]-5*p1[a]+4*p2[a]-p3[a])*t2+(-p0[a]+3*p1[a]-3*p2[a]+p3[a])*t3)));}}out.push(pts[pts.length-1]);return out;}
+function tube(pts,r,id,out){const S=6;let prevN=null;const rings=[];
+  for(let i=0;i<pts.length;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];let t=norm([b[0]-a[0],b[1]-a[1],b[2]-a[2]]);let u=prevN||norm(cross(t,Math.abs(t[1])<0.9?[0,1,0]:[1,0,0]));u=norm(cross(cross(t,u),t));const v=cross(t,u);prevN=u;const ring=[];for(let k=0;k<S;k++){const ang=k/S*Math.PI*2;const nx=u[0]*Math.cos(ang)+v[0]*Math.sin(ang),ny=u[1]*Math.cos(ang)+v[1]*Math.sin(ang),nz=u[2]*Math.cos(ang)+v[2]*Math.sin(ang);ring.push([pts[i][0]+nx*r,pts[i][1]+ny*r,pts[i][2]+nz*r,nx,ny,nz]);}rings.push(ring);}
+  for(let i=0;i<rings.length-1;i++)for(let k=0;k<S;k++){const a=rings[i][k],b=rings[i][(k+1)%S],c=rings[i+1][k],d=rings[i+1][(k+1)%S];[a,c,b,b,c,d].forEach(q=>{out.push(q[0],q[1],q[2],q[3],q[4],q[5],id);});}}
+function sphere(c,r,id,out){const R=8,Q=6;const P=(i,j)=>{const th=i/R*Math.PI*2,ph=j/Q*Math.PI;const nx=Math.sin(ph)*Math.cos(th),ny=Math.cos(ph),nz=Math.sin(ph)*Math.sin(th);return [c[0]+nx*r,c[1]+ny*r,c[2]+nz*r,nx,ny,nz];};
+  for(let i=0;i<R;i++)for(let j=0;j<Q;j++){const a=P(i,j),b=P(i+1,j),cc=P(i,j+1),d=P(i+1,j+1);[a,cc,b,b,cc,d].forEach(q=>{out.push(q[0],q[1],q[2],q[3],q[4],q[5],id);});}}
 window.Body3D={
  ready:false,yaw:0,pitch:0,dist:27.5,target:[0,0.45,0],zone:0,hover:0,
  async init(canvas,opts){
@@ -113,12 +133,13 @@ window.Body3D={
   const tag=String.fromCharCode(dv.getUint8(0),dv.getUint8(1),dv.getUint8(2),dv.getUint8(3));const v2=tag==='B3D2'||tag==='B3D3',v3=tag==='B3D3';const h=v2?4:0;
   const nv=dv.getUint32(h,true),nt=dv.getUint32(h+4,true);const o0=h+8;
   const pos=new Float32Array(buf,o0,nv*3);const nrmI=new Int8Array(buf,o0+nv*12,nv*3);const idx=new Uint32Array(buf.slice(o0+nv*12+nv*3,o0+nv*12+nv*3+nt*12));
-  const nrm=new Float32Array(nv*3);for(let i=0;i<nv*3;i++)nrm[i]=nrmI[i]/127;
+  const nrm=new Float32Array(nv*3);for(let i=0;i<nv*3;i++)nrm[i]=nrmI[i]/127;this.nrmArr=nrm;
   const zone=new Float32Array(nv);if(v2){const zb=new Uint8Array(buf,o0+nv*12+nv*3+nt*12,nv);for(let i=0;i<nv;i++)zone[i]=zb[i];}else{for(let i=0;i<nv;i++)zone[i]=classify(pos[i*3],pos[i*3+1],pos[i*3+2]);}
   const seg=new Uint8Array(nv);if(v3){seg.set(new Uint8Array(buf,o0+nv*12+nv*3+nt*12+nv,nv));}
   this.pos=pos;this.idx=idx;this.zoneAttr=zone;this.nt=nt;
   const prog=gl.createProgram();const mk=(t,src)=>{const sh=gl.createShader(t);gl.shaderSource(sh,src);gl.compileShader(sh);gl.attachShader(prog,sh);};mk(gl.VERTEX_SHADER,VS);mk(gl.FRAGMENT_SHADER,FS);gl.linkProgram(prog);gl.useProgram(prog);this.prog=prog;
-  const bind=(name,data,size)=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);const loc=gl.getAttribLocation(prog,name);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);};
+  this.bodyBinds=[];const bind=(name,data,size)=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);const loc=gl.getAttribLocation(prog,name);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);this.bodyBinds.push([b,loc,size]);};
+  this.rebind=()=>{this.bodyBinds.forEach(([b,loc,size])=>{gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);});gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,this.ibuf);};
   const uvF=new Float32Array(nv*2),uvB=new Float32Array(nv*2);
   for(let i=0;i<nv;i++){const [ux,uy]=unwarp(pos[i*3],pos[i*3+1]);const yy=(Y02D-uy*K2D)/1448;uvF[i*2]=(364+ux*K2D)/724;uvF[i*2+1]=yy;uvB[i*2]=(360-ux*K2D)/724;uvB[i*2+1]=yy;}
   /* anatomical sections: limbs from bone segments, torso and head from the muscle plate */
@@ -126,13 +147,49 @@ window.Body3D={
   this.secAttr=sec;
   bind('aPos',pos,3);bind('aNrm',nrm,3);bind('aZone',zone,1);bind('aSec',sec,1);bind('aUvF',uvF,2);bind('aUvB',uvB,2);
   await this.loadTextures();
-  const ext=gl.getExtension('OES_element_index_uint');const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
+  this.buildAnatomy();
+  const ext=gl.getExtension('OES_element_index_uint');const ib=gl.createBuffer();this.ibuf=ib;gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
   if(ext){gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);this.idxType=gl.UNSIGNED_INT;}else{gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);this.idxType=gl.UNSIGNED_SHORT;}
   this.u={};['uP','uV','uM','uBase','uAccent','uLight','uEye','uZone','uHover','uOffset','uInk','uOutline','uTexF','uTexB','uSec','uSections'].forEach(n=>this.u[n]=gl.getUniformLocation(prog,n));
   gl.uniform1i(this.u.uTexF,0);gl.uniform1i(this.u.uTexB,1);
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   this.bindEvents();this.ready=true;this.resize();this.draw();
  },
+ buildAnatomy(){
+  const gl=this.gl,src=window.BODY3D_ANATOMY||[];const body={pos:this.pos,nrm:this.nrmArr,nv:this.pos.length/3};
+  const items=[];src.forEach(([layer,name,pair,deep,pts],k)=>{items.push({layer,name,deep,pts,side:pair?'L':null});if(pair)items.push({layer,name,deep,pts:pts.map(([x,y,z,d])=>[-x,y,z,d]),side:'R'});});
+  this.structs=[];const bufs={artery:[],vein:[],nerve:[],lymph:[]};
+  items.forEach((it,i)=>{const id=i+1;const P=it.pts.map(([x,y,z,d])=>snapPoint(body,x,y,z,it.deep?'D':d));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?' · left':' · right'):''),deep:it.deep,pts:P};this.structs.push(s);
+    if(it.layer==='lymph'){P.forEach(c=>sphere(c,0.09,id,bufs.lymph));}
+    else{const sm=P.length>1?smoothLine(P,5):P;tube(sm,it.layer==='artery'?0.075:it.layer==='vein'?0.07:0.06,id,bufs[it.layer]);}
+  });
+  const prog=gl.createProgram();const mk=(t,src2)=>{const sh=gl.createShader(t);gl.shaderSource(sh,src2);gl.compileShader(sh);gl.attachShader(prog,sh);};mk(gl.VERTEX_SHADER,SVS);mk(gl.FRAGMENT_SHADER,SFS);gl.linkProgram(prog);this.sprog=prog;
+  this.su={};['uP','uV','uHi','uCol','uAlpha'].forEach(n=>this.su[n]=gl.getUniformLocation(prog,n));this.sa={aPos:gl.getAttribLocation(prog,'aPos'),aNrm:gl.getAttribLocation(prog,'aNrm'),aId:gl.getAttribLocation(prog,'aId')};
+  this.sbuf={};Object.entries(bufs).forEach(([k,arr])=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.STATIC_DRAW);this.sbuf[k]={buf:b,n:arr.length/7};});
+  this.layers={artery:false,vein:false,nerve:false,lymph:false};this.hoverStruct=0;
+ },
+ drawStructs(P,V){
+  const gl=this.gl;if(!this.sprog)return;gl.useProgram(this.sprog);gl.uniformMatrix4fv(this.su.uP,false,P);gl.uniformMatrix4fv(this.su.uV,false,V);gl.uniform1f(this.su.uHi,this.hoverStruct||0);
+  const cols={artery:cssColor('--artery'),vein:cssColor('--vein'),nerve:cssColor('--nerve'),lymph:cssColor('--accent')};
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.disable(gl.CULL_FACE);
+  Object.entries(this.sbuf).forEach(([k,b])=>{if(!this.layers[k]||!b.n)return;gl.bindBuffer(gl.ARRAY_BUFFER,b.buf);const st=28;gl.enableVertexAttribArray(this.sa.aPos);gl.vertexAttribPointer(this.sa.aPos,3,gl.FLOAT,false,st,0);gl.enableVertexAttribArray(this.sa.aNrm);gl.vertexAttribPointer(this.sa.aNrm,3,gl.FLOAT,false,st,12);gl.enableVertexAttribArray(this.sa.aId);gl.vertexAttribPointer(this.sa.aId,1,gl.FLOAT,false,st,24);
+    gl.uniform3fv(this.su.uCol,cols[k]);
+    /* visible parts solid */
+    gl.depthFunc(gl.LEQUAL);gl.uniform1f(this.su.uAlpha,1.0);gl.drawArrays(gl.TRIANGLES,0,b.n);
+    /* hidden parts faint (x-ray) */
+    gl.depthFunc(gl.GREATER);gl.depthMask(false);gl.uniform1f(this.su.uAlpha,0.28);gl.drawArrays(gl.TRIANGLES,0,b.n);gl.depthMask(true);gl.depthFunc(gl.LEQUAL);});
+  gl.disable(gl.BLEND);gl.enable(gl.CULL_FACE);gl.useProgram(this.prog);
+  /* restore body attribute pointers */
+  this.rebind();
+ },
+ pickStruct(px,py){/* nearest visible structure to the ray, within a small screen tolerance; returns struct or null */
+  if(!this.structs)return null;const c=this.canvas;const w=c.clientWidth,h=c.clientHeight;const nx=(px/w)*2-1,ny=1-(py/h)*2;
+  const {eye,up}=this.camera();const f=norm([this.target[0]-eye[0],this.target[1]-eye[1],this.target[2]-eye[2]]);const r=norm(cross(f,up));const u=cross(r,f);const t=Math.tan(0.31),a=w/h;const dir=norm([f[0]+r[0]*nx*t*a+u[0]*ny*t,f[1]+r[1]*nx*t*a+u[1]*ny*t,f[2]+r[2]*nx*t*a+u[2]*ny*t]);
+  let best=null,bd=0.16*this.dist/27;
+  for(const s of this.structs){if(!this.layers[s.layer])continue;for(const p of s.pts){const vx=p[0]-eye[0],vy=p[1]-eye[1],vz=p[2]-eye[2];const tt=vx*dir[0]+vy*dir[1]+vz*dir[2];if(tt<0)continue;const dx=vx-dir[0]*tt,dy=vy-dir[1]*tt,dz=vz-dir[2]*tt;const d=Math.hypot(dx,dy,dz);if(d<bd){bd=d;best=s;}}
+   /* also test segment midpoints for long courses */
+   for(let i=0;i<s.pts.length-1;i++){const p=[(s.pts[i][0]+s.pts[i+1][0])/2,(s.pts[i][1]+s.pts[i+1][1])/2,(s.pts[i][2]+s.pts[i+1][2])/2];const vx=p[0]-eye[0],vy=p[1]-eye[1],vz=p[2]-eye[2];const tt=vx*dir[0]+vy*dir[1]+vz*dir[2];if(tt<0)continue;const dx=vx-dir[0]*tt,dy=vy-dir[1]*tt,dz=vz-dir[2]*tt;const d=Math.hypot(dx,dy,dz);if(d<bd){bd=d;best=s;}}}
+  return best;},
  async loadTextures(){const gl=this.gl;const [cf,cb]=await Promise.all([rasterArt('front'),rasterArt('back')]);const mk=(unit,cv)=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);return t;};this.texF=mk(0,cf);this.texB=mk(1,cb);this.texTheme=cssVar('--figure-soft');},
  setView(name){const p=PRESETS[name];if(!p)return;this.animateTo(p[0],p[1]);},
  animateTo(yaw,pitch){const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;const y0=this.yaw,p0=this.pitch;let dy=yaw-y0;dy=Math.atan2(Math.sin(dy),Math.cos(dy));if(reduce){this.yaw=yaw;this.pitch=pitch;this.draw();return;}const t0=performance.now();const step=now=>{const k=Math.min(1,(now-t0)/380),e=1-Math.pow(1-k,3);this.yaw=y0+dy*e;this.pitch=p0+(pitch-p0)*e;this.draw();if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);},
@@ -150,7 +207,8 @@ window.Body3D={
   gl.cullFace(gl.FRONT);gl.uniform1f(this.u.uOutline,1);gl.uniform1f(this.u.uOffset,0.05);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);
   /* pass 2: the plate */
   gl.cullFace(gl.BACK);gl.uniform1f(this.u.uOutline,0);gl.uniform1f(this.u.uOffset,0);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);
-  this.P=P;this.V=V;this.eye=eye;},
+  this.P=P;this.V=V;this.eye=eye;
+  this.drawStructs(P,V);},
  pick(px,py){/* returns zone id under canvas pixel (px,py) or 0 */
   const c=this.canvas;const w=c.clientWidth,h=c.clientHeight;const nx=(px/w)*2-1,ny=1-(py/h)*2;
   const {eye,up}=this.camera();const f=norm([this.target[0]-eye[0],this.target[1]-eye[1],this.target[2]-eye[2]]);const r=norm(cross(f,up));const u=cross(r,f);
@@ -168,11 +226,11 @@ window.Body3D={
   c.addEventListener('pointermove',e=>{if(pts.has(e.pointerId))pts.set(e.pointerId,[e.clientX,e.clientY]);
    if(pts.size===2){const a=[...pts.values()];const d=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);this.dist=Math.min(60,Math.max(8,dist0*pinch0/d));this.draw();return;}
    if(down){const dx=e.clientX-down[0],dy=e.clientY-down[1];if(Math.abs(dx)+Math.abs(dy)>4)moved=true;this.yaw=down[2]+dx*0.01;this.pitch=Math.max(-1.5,Math.min(1.5,down[3]+dy*0.01));this.draw();}
-   else if(e.pointerType==='mouse'){const r=c.getBoundingClientRect();const z=this.pick(e.clientX-r.left,e.clientY-r.top);const sc=this.lastSec||0;if(z!==this.hover||sc!==this.hoverSec){this.hover=z;this.hoverSec=sc;this.draw();if(this.opts.onHover)this.opts.onHover(ZONE_BY_ID[z]||null,SEC_NAMES[sc]||null);}}});
-  const up=e=>{pts.delete(e.pointerId);if(down&&!moved&&pts.size===0){const r=c.getBoundingClientRect();const z=this.pick(e.clientX-r.left,e.clientY-r.top);if(z&&this.opts.onPick){const name=ZONE_BY_ID[z];this.opts.onPick(name,TO2D[name]);}}if(pts.size===0)down=null;};
+   else if(e.pointerType==='mouse'){const r=c.getBoundingClientRect();const z=this.pick(e.clientX-r.left,e.clientY-r.top);const sc=this.lastSec||0;const st=this.pickStruct(e.clientX-r.left,e.clientY-r.top);const sid=st?st.id:0;if(z!==this.hover||sc!==this.hoverSec||sid!==this.hoverStruct){this.hover=z;this.hoverSec=sc;this.hoverStruct=sid;this.draw();if(this.opts.onHover)this.opts.onHover(ZONE_BY_ID[z]||null,st?st.name:(SEC_NAMES[sc]||null));}}});
+  const up=e=>{pts.delete(e.pointerId);if(down&&!moved&&pts.size===0){const r=c.getBoundingClientRect();const st=this.pickStruct(e.clientX-r.left,e.clientY-r.top);if(st){this.hoverStruct=st.id;this.draw();if(this.opts.onHover)this.opts.onHover(null,st.name);}else{const z=this.pick(e.clientX-r.left,e.clientY-r.top);if(z&&this.opts.onPick){const name=ZONE_BY_ID[z];this.opts.onPick(name,TO2D[name]);}}}if(pts.size===0)down=null;};
   c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
   c.addEventListener('wheel',e=>{e.preventDefault();this.dist=Math.min(60,Math.max(8,this.dist*(1+Math.sign(e.deltaY)*0.08)));this.draw();},{passive:false});
-  c.addEventListener('pointerleave',()=>{if(this.hover||this.hoverSec){this.hover=0;this.hoverSec=0;this.draw();}});
+  c.addEventListener('pointerleave',()=>{if(this.hover||this.hoverSec||this.hoverStruct){this.hover=0;this.hoverSec=0;this.hoverStruct=0;this.draw();}});
   window.addEventListener('resize',()=>this.draw());
  }
 };

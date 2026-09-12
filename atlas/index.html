@@ -111,7 +111,8 @@ a{color:var(--accent-ink)}
 .vp:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .frag3d{padding:8px 4px 0;justify-content:center}
 .frag3d[hidden]{display:none}
-.figwrap[data-dim="3d"] #bodyfig,.figwrap[data-dim="3d"] .layers,.figwrap[data-dim="3d"] #vt2d,.figwrap[data-dim="3d"] #zoomout{display:none}
+.figwrap[data-dim="3d"] #bodyfig,.figwrap[data-dim="3d"] #vt2d,.figwrap[data-dim="3d"] #zoomout,.figwrap[data-dim="3d"] .lay[data-layer="muscles"]{display:none}
+.lay.only3d{display:none}.figwrap[data-dim="3d"] .lay.only3d{display:inline-flex}
 .vt{border:0;background:none;border-radius:999px;padding:3px 12px;font-size:12.5px;cursor:pointer;color:var(--muted)}
 .vt.on{background:var(--accent);color:#fff}
 .vt:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -367,7 +368,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
       <canvas id="body3d" class="c3d" hidden aria-label="Three-dimensional body: drag to turn, tap a zone to select it"></canvas>
       <div class="views" id="views3d" hidden role="group" aria-label="3D view presets"><button type="button" class="vp" data-p="front">Front</button><button type="button" class="vp" data-p="back">Back</button><button type="button" class="vp" data-p="left">Left</button><button type="button" class="vp" data-p="right">Right</button><button type="button" class="vp" data-p="top">Top</button><button type="button" class="vp" data-p="bottom">Bottom</button><button type="button" class="vp sec" id="sec3d" aria-pressed="false">Sections</button></div>
       <div class="chips frag3d" id="frag3d" hidden></div>
-      <div class="layers" role="group" aria-label="Anatomy layers"><button type="button" class="lay on" data-layer="muscles" style="--c:var(--accent)" aria-pressed="true">Muscles</button><button type="button" class="lay" data-layer="artery" style="--c:var(--artery)" aria-pressed="false">Arteries</button><button type="button" class="lay" data-layer="vein" style="--c:var(--vein)" aria-pressed="false">Veins</button><button type="button" class="lay" data-layer="nerve" style="--c:var(--nerve)" aria-pressed="false">Nerves</button></div>
+      <div class="layers" role="group" aria-label="Anatomy layers"><button type="button" class="lay on" data-layer="muscles" style="--c:var(--accent)" aria-pressed="true">Muscles</button><button type="button" class="lay" data-layer="artery" style="--c:var(--artery)" aria-pressed="false">Arteries</button><button type="button" class="lay" data-layer="vein" style="--c:var(--vein)" aria-pressed="false">Veins</button><button type="button" class="lay" data-layer="nerve" style="--c:var(--nerve)" aria-pressed="false">Nerves</button><button type="button" class="lay only3d" data-layer="lymph" style="--c:var(--accent)" aria-pressed="false">Lymph nodes</button></div>
       <div class="figcap"><div class="vtoggle dim" role="group" aria-label="Figure type"><button type="button" class="vd on" data-dim="2d" aria-pressed="true">2D</button><button type="button" class="vd" data-dim="3d" aria-pressed="false">3D</button></div><div class="vtoggle" id="vt2d" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><button type="button" class="backbtn" id="zoomout" hidden>‹ Whole body</button><span id="figstate"></span></div>
     </div>
     <div class="modes" role="tablist" aria-label="Navigation mode"><button type="button" class="mode on" role="tab" data-mode="regions" aria-selected="true">Regions</button><button type="button" class="mode" role="tab" data-mode="tools" aria-selected="false">Tools</button><button type="button" class="mode" role="tab" data-mode="conditions" aria-selected="false">Conditions</button></div>
@@ -388,6 +389,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
 <script src="tools.js"></script>
 <script src="conditions.js"></script>
 <script src="body3d-data.js"></script>
+<script src="body3d-anatomy.js"></script>
 <script src="body3d.js"></script>
 <script>
 /* ---------- shared drawing helpers ---------- */
@@ -1284,8 +1286,8 @@ function sync3D(ids){
   if(!Body3D.ready&&!Body3D.loading){Body3D.loading=true;Body3D.init(c,{src:'body3d.bin',
     onPick:(name,[view,zid])=>{state.view=view;state.zone=zid;const z=ZONES[view].find(x=>x.id===zid);if(z)show(z.regions[0]);},
     onHover:(name,secName)=>{const map={head:'Head',neck:'Neck',chest:'Chest',abdomen:'Abdomen',pelvis:'Pelvis',armR:"Arm (patient's right)",armL:"Arm (patient's left)",legs:'Legs',back:'Back',sacrum:'Sacrum & gluteal'};document.getElementById('figstate').textContent=secName||(name?map[name]:'');}
-  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);Body3D.draw();});}
-  else if(Body3D.ready){Body3D.setZone2D(state.view,state.zone);Body3D.draw();}
+  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);const L=state.layers||{};if(Body3D.layers){Body3D.layers.artery=!!L.artery;Body3D.layers.vein=!!L.vein;Body3D.layers.nerve=!!L.nerve;Body3D.layers.lymph=!!L.lymph;}Body3D.draw();});}
+  else if(Body3D.ready){Body3D.setZone2D(state.view,state.zone);if(Body3D.layers){const L=state.layers||{};Body3D.layers.artery=!!L.artery;Body3D.layers.vein=!!L.vein;Body3D.layers.nerve=!!L.nerve;Body3D.layers.lymph=!!L.lymph;}Body3D.draw();}
   const zone=state.zone?ZONES[state.view].find(z=>z.id===state.zone):null;
   fr.innerHTML=zone?zone.regions.map(rid=>{const r=REGIONS.find(q=>q.id===rid);const lab=(zone.labels[rid]||[])[3]||r.short;return `<button type="button" class="chip${ids.includes(rid)?' on':''}" data-region="${rid}">${lab}</button>`;}).join(''):'<span class="none" style="padding:0">Tap a part of the body to zoom its details</span>';
   fr.querySelectorAll('[data-region]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.region)));
