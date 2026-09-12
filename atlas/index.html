@@ -43,6 +43,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font
 button{font:inherit;color:inherit}
 a{color:var(--accent-ink)}
 .app{display:grid;grid-template-columns:372px minmax(0,1fr);min-height:100vh}
+@media (min-width:1200px){.app{grid-template-columns:440px minmax(0,1fr)}}
+@media (min-width:1500px){.app{grid-template-columns:520px minmax(0,1fr)}}
+.app[data-big]{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
 
 /* ---------- Atlas column ---------- */
 .atlas{position:sticky;top:0;height:100vh;overflow:auto;background:var(--surface);border-right:1px solid var(--line);padding:18px 18px 22px;display:flex;flex-direction:column;gap:14px}
@@ -50,7 +53,8 @@ a{color:var(--accent-ink)}
 .brand h1{font-family:var(--display);font-weight:600;font-size:23px;margin:0;letter-spacing:-.01em;text-wrap:balance}
 .brand small{white-space:nowrap;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .figwrap{position:relative;background:var(--surface-2);border-radius:14px;padding:26px 8px 8px}
-.figwrap svg{display:block;width:100%;height:auto;max-height:440px;margin:0 auto}
+.figwrap svg{display:block;width:100%;height:auto;max-height:min(58vh,560px);margin:0 auto}
+.app[data-big] .figwrap svg{max-height:78vh}
 .figwrap .side{position:absolute;top:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .figwrap .side.l{left:12px}.figwrap .side.r{right:12px}
 .figwrap svg *{vector-effect:non-scaling-stroke}
@@ -99,7 +103,10 @@ a{color:var(--accent-ink)}
 .vd{border:0;background:none;border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--muted);font-family:var(--mono)}
 .vd.on{background:var(--ink);color:var(--bg)}
 .vd:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.c3d{display:block;width:100%;height:440px;touch-action:none;cursor:grab;border-radius:10px}
+.c3d{display:block;width:100%;height:min(58vh,560px);touch-action:none;cursor:grab;border-radius:10px}
+.app[data-big] .c3d{height:78vh}
+.bigbtn{margin-left:6px;background:none;border:1px solid var(--line);border-radius:999px;padding:3px 9px;font:inherit;font-size:12px;color:var(--muted);cursor:pointer}.bigbtn:hover,.bigbtn.on{color:var(--accent);border-color:var(--accent)}
+@media (max-width:900px){.bigbtn{display:none}}
 .c3d:active{cursor:grabbing}
 .c3d[hidden]{display:none}
 .views{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;padding:6px 0 0}
@@ -370,8 +377,8 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
       <div class="views" id="views3d" hidden role="group" aria-label="3D view presets"><button type="button" class="vp" data-p="front">Front</button><button type="button" class="vp" data-p="back">Back</button><button type="button" class="vp" data-p="left">Left</button><button type="button" class="vp" data-p="right">Right</button><button type="button" class="vp" data-p="top">Top</button><button type="button" class="vp" data-p="bottom">Bottom</button><button type="button" class="vp sec" id="sec3d" aria-pressed="false">Sections</button></div>
       <div class="chips frag3d" id="frag3d" hidden></div>
       <div class="structlist" id="struct3d" hidden></div>
-      <div class="layers" role="group" aria-label="Anatomy layers"><button type="button" class="lay on" data-layer="muscles" style="--c:var(--accent)" aria-pressed="true">Muscles</button><button type="button" class="lay" data-layer="artery" style="--c:var(--artery)" aria-pressed="false">Arteries</button><button type="button" class="lay" data-layer="vein" style="--c:var(--vein)" aria-pressed="false">Veins</button><button type="button" class="lay" data-layer="nerve" style="--c:var(--nerve)" aria-pressed="false">Nerves</button><button type="button" class="lay only3d" data-layer="lymph" style="--c:var(--accent)" aria-pressed="false">Lymph nodes</button></div>
-      <div class="figcap"><div class="vtoggle dim" role="group" aria-label="Figure type"><button type="button" class="vd on" data-dim="2d" aria-pressed="true">2D</button><button type="button" class="vd" data-dim="3d" aria-pressed="false">3D</button></div><div class="vtoggle" id="vt2d" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><button type="button" class="backbtn" id="zoomout" hidden>‹ Whole body</button><span id="figstate"></span></div>
+      <div class="layers" role="group" aria-label="Anatomy layers"><button type="button" class="lay on" data-layer="muscles" style="--c:var(--accent)" aria-pressed="true">Muscles</button><button type="button" class="lay" data-layer="artery" style="--c:var(--artery)" aria-pressed="false">Arteries</button><button type="button" class="lay" data-layer="vein" style="--c:var(--vein)" aria-pressed="false">Veins</button><button type="button" class="lay" data-layer="nerve" style="--c:var(--nerve)" aria-pressed="false">Nerves</button><button type="button" class="lay only3d" data-layer="lymph" style="--c:var(--accent)" aria-pressed="false">Lymph</button><button type="button" class="lay only3d" data-layer="organ" style="--c:var(--amber)" aria-pressed="false">Organs &amp; glands</button><button type="button" class="lay only3d" data-layer="musclechart" style="--c:var(--flag)" aria-pressed="false">Muscle chart</button></div>
+      <div class="figcap"><div class="vtoggle dim" role="group" aria-label="Figure type"><button type="button" class="vd on" data-dim="2d" aria-pressed="true">2D</button><button type="button" class="vd" data-dim="3d" aria-pressed="false">3D</button></div><div class="vtoggle" id="vt2d" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><button type="button" class="backbtn" id="zoomout" hidden>‹ Whole body</button><button type="button" class="bigbtn" id="figbig" aria-pressed="false" title="Give the figure more room">⤢ Bigger</button><span id="figstate"></span></div>
     </div>
     <div class="modes" role="tablist" aria-label="Navigation mode"><button type="button" class="mode on" role="tab" data-mode="regions" aria-selected="true">Regions</button><button type="button" class="mode" role="tab" data-mode="tools" aria-selected="false">Tools</button><button type="button" class="mode" role="tab" data-mode="conditions" aria-selected="false">Conditions</button></div>
     <input class="search" id="search" type="search" placeholder="Find a region, tool, condition or sign" aria-label="Search regions and tools" autocomplete="off">
@@ -1095,7 +1102,7 @@ function renderCond(c){
   document.getElementById('mpos').textContent=c.name;
   drawBody(c.regions||[]);
 }
-function showCond(id){ if(!condById(id))return; state.mode='conditions';state.cond=id;state.zone=null;save();renderList();renderDetail();afterNav(id); }
+function showCond(id){ if(!condById(id))return; state.mode='conditions';state.cond=id;state.zone=null;applyScene(SYS_SCENE[condById(id).sys]||'none');save();renderList();renderDetail();afterNav(id); }
 function renderRegion(){
   const r=REGIONS[idx(state.active)];
   const checks=state.checks[r.id]||[];
@@ -1254,9 +1261,9 @@ function show(id){
   if(!(MAP[id]||{})[state.view]&&(MAP[id]||{})[other])state.view=other;
   const cz=state.zone?ZONES[state.view].find(z=>z.id===state.zone):null;
   if(WHOLE.has(id))state.zone=null;else if(!cz||!cz.regions.includes(id)){const z=zoneFor(id,state.view);state.zone=z?z.id:null;}
-  save();renderList();renderDetail();afterNav(id);
+  applyScene(id);save();renderList();renderDetail();afterNav(id);
 }
-function showTool(id){ if(!toolById(id))return; state.mode='tools';state.tool=id;state.zone=null;save();renderList();renderDetail();afterNav(id); }
+function showTool(id){ if(!toolById(id))return; state.mode='tools';state.tool=id;state.zone=null;applyScene(TOOL_SCENE[id]||'none');save();renderList();renderDetail();afterNav(id); }
 function afterNav(id){
   if(window.innerWidth<=900){document.getElementById('detail').scrollIntoView({block:'start'});}
   const row=document.querySelector(`.row[data-id="${id}"]`);if(row&&window.innerWidth<=900)row.scrollIntoView({inline:'center',block:'nearest'});
@@ -1278,6 +1285,42 @@ document.addEventListener('keydown',e=>{
 });
 document.querySelectorAll('.vt').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
 /* ---------- 3D ---------- */
+/* Scenes: what the 3D body shows for each region, tool and condition system.
+   layers: which anatomy layers switch on · focus: names that stay bright (everything else fades) · cam: [target, distance] */
+const CAM={whole:[[0,0.45,0],27.5],head:[[0,7.7,0],9],neck:[[0,6.3,0],9.5],chest:[[0,4.5,0],13.5],trunk:[[0,3.4,0],17],abdomen:[[0,2.6,0],13],pelvis:[[0,1.3,0],11],legs:[[0,-3.5,0],19]};
+const SCENES={
+ vitals:{layers:['artery','organ'],focus:/Heart|aorta|Aorta|carotid|brachial a|radial a|femoral a|popliteal a|dorsalis|posterior tibial a|temporal a|lung|Lung|Trachea/i,cam:'whole'},
+ neuro:{layers:['nerve','organ'],focus:/Brain|Spinal cord|cauda|Cauda|Pituitary|Hypothalamus|plexus|n\.|nerve|Nerve|Cervical|Intercostal n/i,cam:'whole'},
+ eyes:{layers:['nerve','organ'],focus:/Brain|Trigeminal|ophthalmic|V1|Facial n|Pituitary/i,cam:'head'},
+ ears:{layers:['nerve','lymph','organ'],focus:/Brain|Facial n|auricular|Preauricular|Postauricular|Temporal a|Occipital/i,cam:'head'},
+ nose:{layers:['organ','artery'],focus:/Nasal|pharynx|Facial a|Maxillary|Brain/i,cam:'head'},
+ mouth:{layers:['organ','nerve','lymph'],focus:/Oropharynx|Larynx|Thyroid|Lingual|mandibular|V3|Facial n|Submandibular|Submental|Tonsillar|Parotid/i,cam:'head'},
+ neck:{layers:['artery','vein','organ','lymph'],focus:/carotid|jugular|Jugular|Thyroid|Parathyroid|Trachea|Larynx|Oesophagus|cervical|Cervical|Supraclavicular|Submandibular|Submental|Tonsillar|Vagus|Phrenic|Accessory|Vertebral/i,cam:'neck'},
+ chest:{layers:['organ','artery','vein'],focus:/Heart|lung|Lung|Trachea|bronch|Bronch|Diaphragm|Oesophagus|Thymus|aorta|Aorta|cava|Pulmonary|Brachiocephalic|Intercostal|Mediastinal|Thoracic duct|Azygos/i,cam:'chest'},
+ abdomen:{layers:['organ','artery','vein','lymph'],focus:/Liver|Gallbladder|Stomach|Duodenum|Jejunum|Colon|Appendix|Spleen|Pancreas|kidney|Kidney|adrenal|Ureter|Bladder|Diaphragm|Abdominal aorta|Coeliac|mesenteric|Hepatic|Portal|Splenic|Renal|Cisterna|Para-aortic|Iliac|iliac|cava/i,cam:'abdomen'},
+ bowel:{layers:['organ','artery'],focus:/Oesophagus|Stomach|Duodenum|Jejunum|Colon|Appendix|Rectum|Sigmoid|Liver|Gallbladder|Pancreas|Coeliac|mesenteric|Portal/i,cam:'abdomen'},
+ urinary:{layers:['organ','artery'],focus:/kidney|Kidney|Ureter|Bladder|Uterus|prostate|Gonads|Renal|adrenal/i,cam:'abdomen'},
+ limbs:{layers:['artery','vein','nerve','lymph'],focus:/Brachial|brachial|Axillary|axillary|Radial|radial|Ulnar|ulnar|Median|median|Musculocutaneous|interosseous|Palmar|palmar|digital|Digital|Cephalic|Basilic|cubital|Epitrochlear|Femoral|femoral|Profunda|Popliteal|popliteal|Saphenous|saphenous|Tibial|tibial|Fibular|fibular|Sciatic|Obturator|cutaneous|Sural|Plantar|plantar|Dorsalis|dorsal|Inguinal|inguinal|Lymphatics of the/i,cam:'whole'},
+ skin:{layers:[],focus:null,cam:'whole'},
+ msk:{layers:['musclechart'],focus:null,cam:'whole'},
+ pain:{layers:['nerve'],focus:/Spinal cord|cauda|plexus|Sciatic|Median|Ulnar|Radial|Femoral|Tibial|Intercostal n|Trigeminal|Occipital/i,cam:'whole'},
+ /* tools */
+ airway:{layers:['organ','artery'],focus:/Nasal|pharynx|Larynx|Trachea|bronch|Bronch|lung|Lung|Heart|carotid|Aorta|aorta|Brain|Diaphragm/i,cam:'trunk'},
+ brain:{layers:['organ','nerve'],focus:/Brain|Pituitary|Hypothalamus|Pineal|Spinal cord|carotid|cerebral|basilar/i,cam:'head'},
+ stroke:{layers:['organ','artery'],focus:/Brain|carotid|cerebral|Vertebral|basilar|Heart/i,cam:'head'},
+ sepsis:{layers:['organ','artery'],focus:/Heart|lung|Lung|kidney|Kidney|Bladder|Liver|Spleen|aorta|Aorta|carotid|radial a|femoral a/i,cam:'trunk'},
+ endocrine:{layers:['organ'],focus:/Thyroid|Parathyroid|Pituitary|Hypothalamus|Pineal|Thymus|adrenal|Pancreas|Gonads|Uterus/i,cam:'trunk'},
+ lymph:{layers:['lymph','organ'],focus:/nodes|node|Lymphatic|lymph|Thoracic duct|Cisterna|trunk|Spleen|Thymus|Tonsillar/i,cam:'whole'},
+ mind:{layers:['organ'],focus:/Brain|Pituitary|Hypothalamus|Pineal/i,cam:'head'},
+ respiratory:{layers:['organ'],focus:/Nasal|pharynx|Larynx|Trachea|bronch|Bronch|lung|Lung|Diaphragm/i,cam:'chest'},
+ cardio:{layers:['organ','artery','vein'],focus:/Heart|aorta|Aorta|artery|a\.|v\.|vv\.|vein|Vein|cava|jugular|Jugular|carotid|Pulmonary|lung|Lung|kidney|Kidney/i,cam:'whole'},
+ none:{layers:[],focus:null,cam:'whole'}
+};
+const TOOL_SCENE={drsabcd:'airway',primary:'airway',secondary:'none',tertiary:'none',anaphylaxis:'airway',stroke:'stroke',chestpain:'chest',hypo:'brain',seizure:'brain',isbar:'none',vitalscalc:'vitals',softsigns:'sepsis',sepsis:'sepsis',gcs:'brain',acvpu:'brain',qsofa:'sepsis',mse:'mind','4at':'mind','3ds':'mind',minicog:'mind',braden:'skin',frat:'msk',must:'bowel',abbey:'pain',painad:'pain',cfs:'msk',disease:'vitals',atypical:'vitals',trajectory:'vitals',lastdays:'airway'};
+const SYS_SCENE={'Cardiovascular':'cardio','Respiratory':'respiratory','Gut & bowel':'bowel','Kidney & bladder':'urinary','Endocrine & metabolic':'endocrine','Brain & nerves':'neuro','Mind':'mind','Skin':'skin','Bones & joints':'msk','Blood & immune':'lymph','Eyes & ENT':'eyes','Infections & other':'sepsis'};
+let sceneKey='';
+function apply3DScene(){const sc=SCENES[state.scene]||SCENES.none;Body3D.setFocus(sc.focus);const key=state.scene||'';if(key!==sceneKey){sceneKey=key;const cam=CAM[sc.cam];if(cam)Body3D.flyTo(cam[0],cam[1]);}}
+function applyScene(name){const sc=SCENES[name]||SCENES.none;state.layers=state.layers||{};['artery','vein','nerve','lymph','organ','musclechart'].forEach(k=>{state.layers[k]=sc.layers.includes(k);});state.scene=name;save();syncLayers();}
 function sync3D(ids){
   const wrap=document.querySelector('.figwrap');wrap.dataset.dim=state.dim||'2d';
   const c=document.getElementById('body3d'),vw=document.getElementById('views3d'),fr=document.getElementById('frag3d'),sl=document.getElementById('struct3d');
@@ -1288,22 +1331,25 @@ function sync3D(ids){
   if(!Body3D.ready&&!Body3D.loading){Body3D.loading=true;Body3D.init(c,{src:'body3d.bin',
     onPick:(name,[view,zid])=>{state.view=view;state.zone=zid;const z=ZONES[view].find(x=>x.id===zid);if(z)show(z.regions[0]);},
     onHover:(name,secName)=>{const map={head:'Head',neck:'Neck',chest:'Chest',abdomen:'Abdomen',pelvis:'Pelvis',armR:"Arm (patient's right)",armL:"Arm (patient's left)",legs:'Legs',back:'Back',sacrum:'Sacrum & gluteal'};document.getElementById('figstate').textContent=secName||(name?map[name]:'');}
-  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();structList();});}
+  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();apply3DScene();structList();});}
   else if(Body3D.ready){Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();}
+  if(Body3D.ready)apply3DScene();
   structList();
   const zone=state.zone?ZONES[state.view].find(z=>z.id===state.zone):null;
   fr.innerHTML=zone?zone.regions.map(rid=>{const r=REGIONS.find(q=>q.id===rid);const lab=(zone.labels[rid]||[])[3]||r.short;return `<button type="button" class="chip${ids.includes(rid)?' on':''}" data-region="${rid}">${lab}</button>`;}).join(''):'<span class="none" style="padding:0">Tap a part of the body to zoom its details</span>';
   fr.querySelectorAll('[data-region]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.region)));
 }
-function setLayers3D(){if(!window.Body3D||!Body3D.layers)return;const L=state.layers||{};Body3D.layers.artery=!!L.artery;Body3D.layers.vein=!!L.vein;Body3D.layers.nerve=!!L.nerve;Body3D.layers.lymph=!!L.lymph;Body3D.layers.organ=!!L.organ;Body3D.layers.muscle=!!L.muscles;}
+function setLayers3D(){if(!window.Body3D||!Body3D.layers)return;const L=state.layers||{};Body3D.layers.artery=!!L.artery;Body3D.layers.vein=!!L.vein;Body3D.layers.nerve=!!L.nerve;Body3D.layers.lymph=!!L.lymph;Body3D.layers.organ=!!L.organ;Body3D.layers.muscle=!!L.muscles;Body3D.layers.musclechart=!!L.musclechart;}
 /* what runs through the selected zone, per switched-on layer */
-function structList(){const sl=document.getElementById('struct3d');if(!window.Body3D||!Body3D.ready||!Body3D.inZone){sl.innerHTML='';return;}
-  const zoneName=state.zone?({'front:head':'head','front:neck':'neck','front:chest':'chest','front:abdomen':'abdomen','front:pelvis':'pelvis','front:armR':'armR','front:armL':'armL','front:legs':'legs','back:head':'head','back:neck':'neck','back:back':'back','back:pelvis':'sacrum','back:armR':'armR','back:armL':'armL','back:legs':'legs'})[state.view+':'+state.zone]:null;
-  if(!zoneName){sl.innerHTML='';return;}
-  const groups={artery:'Arteries',vein:'Veins',nerve:'Nerves',lymph:'Lymph',organ:'Organs'};const items=Body3D.inZone(zoneName);
+function structList(){const sl=document.getElementById('struct3d');if(!window.Body3D||!Body3D.ready||!Body3D.visible){sl.innerHTML='';return;}
+  const groups={organ:'Organs',artery:'Arteries',vein:'Veins',nerve:'Nerves',lymph:'Lymph'};const items=Body3D.visible();
   const seen=new Set();const uniq=items.filter(s=>{const k=s.layer+'|'+s.name.replace(/ · patient's (left|right)$/,'');if(seen.has(k))return false;seen.add(k);return true;});
+  if(!uniq.length||(!state.zone&&uniq.length>60)){sl.innerHTML='';return;}
   sl.innerHTML=Object.entries(groups).map(([k,lab])=>{const xs=uniq.filter(s=>s.layer===k);if(!xs.length)return '';return `<p><b>${lab}</b>${xs.map(s=>`<button type="button" data-sid="${s.id}">${s.name.replace(/ · patient's (left|right)$/,'')}</button>`).join(', ')}</p>`;}).join('');
   sl.querySelectorAll('[data-sid]').forEach(b=>b.addEventListener('click',()=>{Body3D.hoverStruct=+b.dataset.sid;Body3D.draw();sl.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('figstate').textContent=b.textContent;}));}
+document.getElementById('figbig').addEventListener('click',()=>{state.big=!state.big;save();syncBig();if(window.Body3D&&Body3D.ready)requestAnimationFrame(()=>Body3D.draw());});
+function syncBig(){const app=document.querySelector('.app');if(state.big)app.dataset.big='1';else delete app.dataset.big;const b=document.getElementById('figbig');b.classList.toggle('on',!!state.big);b.setAttribute('aria-pressed',!!state.big);}
+syncBig();
 document.querySelectorAll('.vd').forEach(b=>b.addEventListener('click',()=>{state.dim=b.dataset.dim;save();drawBody(currentIds());}));
 document.querySelectorAll('.vp[data-p]').forEach(b=>b.addEventListener('click',()=>{if(window.Body3D&&Body3D.ready)Body3D.setView(b.dataset.p);}));
 document.getElementById('sec3d').addEventListener('click',()=>{if(!window.Body3D)return;Body3D.sections=!Body3D.sections;const b=document.getElementById('sec3d');b.classList.toggle('on',Body3D.sections);b.setAttribute('aria-pressed',Body3D.sections);if(Body3D.ready)Body3D.draw();});
