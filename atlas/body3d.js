@@ -19,7 +19,7 @@ const TO2D={head:['front','head'],neck:['front','neck'],chest:['front','chest'],
 const FROM2D={'front:head':'head','front:neck':'neck','front:chest':'chest','front:abdomen':'abdomen','front:pelvis':'pelvis','front:armR':'armR','front:armL':'armL','front:legs':'legs','back:head':'head','back:neck':'neck','back:back':'back','back:pelvis':'sacrum','back:armR':'armR','back:armL':'armL','back:legs':'legs'};
 const VS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aZone;attribute float aSec;attribute vec2 aUvF;attribute vec2 aUvB;uniform mat4 uP,uV,uM;uniform float uZone,uHover,uOffset,uSec;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;varying float vSh;varying float vPar;varying vec2 vUvF;varying vec2 vUvB;varying float vNz;
 void main(){float hf=(abs(aZone-1.0)<0.5)?0.35:((abs(aZone-6.0)<0.5||abs(aZone-7.0)<0.5)?0.7:1.0);vec3 p=aPos+aNrm*uOffset*hf;vec4 w=uM*vec4(p,1.0);vW=w.xyz;vN=mat3(uM)*aNrm;vNz=aNrm.z;vOn=step(abs(aZone-uZone),0.5);vHv=step(abs(aZone-uHover),0.5);vSh=step(abs(aSec-uSec),0.5);vPar=mod(aSec,2.0);vUvF=aUvF;vUvB=aUvB;gl_Position=uP*uV*w;}`;
-const FS=`precision mediump float;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;varying float vSh;varying float vPar;varying vec2 vUvF;varying vec2 vUvB;varying float vNz;uniform vec3 uBase,uAccent,uLight,uEye,uInk;uniform float uOutline,uSections,uMuscles,uMusHov,uTint,uSkin,uBack;uniform sampler2D uTexF,uTexB,uMusF,uMusB,uMusCF,uMusCB;
+const FS=`precision mediump float;varying vec3 vN;varying vec3 vW;varying float vOn;varying float vHv;varying float vSh;varying float vPar;varying vec2 vUvF;varying vec2 vUvB;varying float vNz;uniform vec3 uBase,uAccent,uLight,uEye,uInk;uniform float uOutline,uSections,uMuscles,uMusHov,uTint,uSkin,uBack,uSkinMode;uniform vec3 uSkinCol;uniform sampler2D uTexF,uTexB,uMusF,uMusB,uMusCF,uMusCB;
 vec3 hsv(float h,float s,float v){vec3 k=vec3(1.0,2.0/3.0,1.0/3.0);vec3 p=abs(fract(vec3(h)+k)*6.0-3.0);return v*mix(vec3(1.0),clamp(p-1.0,0.0,1.0),s);}
 void main(){
  if(uOutline>0.5){gl_FragColor=vec4(uInk,1.0);return;}
@@ -30,6 +30,9 @@ void main(){
  float d=dot(n,l);float band=d>0.3?1.0:(d>-0.15?0.88:0.76);
  float rim=pow(1.0-max(dot(n,e),0.0),4.0);
  vec3 col=tex*band;
+ if(uSkinMode>0.5){/* shaded skin: soft lambert, warm shadow, gentle speculars */
+   float dd=max(dot(n,l),0.0);float wrap=(dot(n,l)+0.35)/1.35;wrap=max(wrap,0.0);vec3 hh=normalize(l+e);float sp=pow(max(dot(n,hh),0.0),18.0)*0.12;float fl=max(dot(n,normalize(vec3(-0.4,0.2,0.9))),0.0)*0.15;
+   vec3 shade=uSkinCol*vec3(0.62,0.5,0.48);col=mix(shade,uSkinCol,0.35+0.65*wrap)+uSkinCol*fl+vec3(1.0,0.95,0.9)*sp;float ao=smoothstep(-0.2,0.6,vNz*0.0+dot(n,vec3(0.0,1.0,0.0))*0.15+0.5);col*=0.93+0.07*ao;}
  /* muscle chart: colour each muscle group from the id map, name-highlight the hovered one */
  vec4 mm=mix(texture2D(uMusB,vUvB),texture2D(uMusF,vUvF),step(0.5,k));float mid=floor(mm.r*255.0+0.5);
  vec4 mc=mix(texture2D(uMusCB,vUvB),texture2D(uMusCF,vUvF),k);col=mix(col,mc.rgb*band,mc.a*uMuscles*0.9);
@@ -259,7 +262,7 @@ window.Body3D={
   this.buildAnatomy();
   const ext=gl.getExtension('OES_element_index_uint');const ib=gl.createBuffer();this.ibuf=ib;gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
   if(ext){gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);this.idxType=gl.UNSIGNED_INT;}else{gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);this.idxType=gl.UNSIGNED_SHORT;}
-  this.u={};['uP','uV','uM','uBase','uAccent','uLight','uEye','uZone','uHover','uOffset','uInk','uOutline','uTexF','uTexB','uSec','uSections','uMuscles','uMusHov','uMusF','uMusB','uMusCF','uMusCB','uTint','uSkin','uBack'].forEach(n=>this.u[n]=gl.getUniformLocation(prog,n));
+  this.u={};['uP','uV','uM','uBase','uAccent','uLight','uEye','uZone','uHover','uOffset','uInk','uOutline','uTexF','uTexB','uSec','uSections','uMuscles','uMusHov','uMusF','uMusB','uMusCF','uMusCB','uTint','uSkin','uBack','uSkinMode','uSkinCol'].forEach(n=>this.u[n]=gl.getUniformLocation(prog,n));
   gl.uniform1i(this.u.uTexF,0);gl.uniform1i(this.u.uTexB,1);gl.uniform1i(this.u.uMusF,2);gl.uniform1i(this.u.uMusB,3);gl.uniform1i(this.u.uMusCF,4);gl.uniform1i(this.u.uMusCB,5);
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
   this.bindEvents();this.ready=true;this.resize();this.draw();
@@ -344,7 +347,7 @@ window.Body3D={
   gl.uniformMatrix4fv(this.u.uP,false,P);gl.uniformMatrix4fv(this.u.uV,false,V);gl.uniformMatrix4fv(this.u.uM,false,[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
   gl.uniform3fv(this.u.uBase,cssColor('--figure'));gl.uniform3fv(this.u.uAccent,cssColor('--accent'));
   gl.uniform3fv(this.u.uLight,[eye[0]*0.4+6,eye[1]*0.4+10,eye[2]*0.4+6]);gl.uniform3fv(this.u.uEye,eye);
-  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform1f(this.u.uSec,this.hoverSec||0);gl.uniform1f(this.u.uSections,this.sections?1:0);gl.uniform1f(this.u.uMuscles,this.layers&&this.layers.musclechart?1:0);gl.uniform1f(this.u.uTint,(this.layers&&['artery','vein','nerve','lymph','organ','bone','muscle'].some(k=>this.layers[k]))?0.22:1);gl.uniform1f(this.u.uMusHov,this.layers&&(this.layers.muscle||this.layers.musclechart)?(this.hoverMuscle||0):0);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
+  gl.uniform1f(this.u.uZone,this.zone);gl.uniform1f(this.u.uHover,this.hover);gl.uniform1f(this.u.uSec,this.hoverSec||0);gl.uniform1f(this.u.uSections,this.sections?1:0);gl.uniform1f(this.u.uMuscles,this.layers&&this.layers.musclechart?1:0);gl.uniform1f(this.u.uSkinMode,this.layers&&this.layers.plate?0:1);gl.uniform3fv(this.u.uSkinCol,this.skinCol||[0.87,0.7,0.6]);gl.uniform1f(this.u.uTint,(this.layers&&['artery','vein','nerve','lymph','organ','bone','muscle'].some(k=>this.layers[k]))?0.22:1);gl.uniform1f(this.u.uMusHov,this.layers&&(this.layers.muscle||this.layers.musclechart)?(this.hoverMuscle||0):0);gl.uniform3fv(this.u.uInk,cssColor('--ink'));
   if(this.texTheme&&this.texTheme!==cssVar('--figure-soft')&&!this.retex){this.retex=true;this.loadTextures().then(()=>{this.retex=false;this.draw();});}
   this.ghost=this.anyLayer()&&this.mode!=='xray';
   /* pass 1: inked silhouette (inverted hull) */
@@ -353,7 +356,7 @@ window.Body3D={
   if(this.ghost){/* inside of the back wall as an opaque backdrop, solid anatomy, then the front skin as a translucent shell */
     gl.cullFace(gl.FRONT);gl.uniform1f(this.u.uOutline,0);gl.uniform1f(this.u.uOffset,0);gl.uniform1f(this.u.uBack,1);gl.uniform1f(this.u.uSkin,1);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);gl.uniform1f(this.u.uBack,0);
     this.drawStructs(P,V,eye);
-    gl.cullFace(gl.BACK);gl.uniform1f(this.u.uOutline,0);gl.uniform1f(this.u.uOffset,0);gl.uniform1f(this.u.uSkin,0.34);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);gl.depthMask(true);gl.disable(gl.BLEND);}
+    gl.cullFace(gl.BACK);gl.uniform1f(this.u.uOutline,0);gl.uniform1f(this.u.uOffset,0);gl.uniform1f(this.u.uSkin,0.3);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);gl.depthMask(true);gl.disable(gl.BLEND);}
   else{gl.cullFace(gl.BACK);gl.uniform1f(this.u.uOutline,0);gl.uniform1f(this.u.uOffset,0);gl.uniform1f(this.u.uSkin,1);gl.drawElements(gl.TRIANGLES,this.nt*3,this.idxType,0);this.drawStructs(P,V,eye);}
   if(this.opts.onDraw)this.opts.onDraw();},
  pick(px,py){/* returns zone id under canvas pixel (px,py) or 0 */
