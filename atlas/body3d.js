@@ -129,10 +129,13 @@ const PRESETS={front:[0,0],back:[Math.PI,0],left:[Math.PI/2,0],right:[-Math.PI/2
 const SVS=`attribute vec3 aPos;attribute vec3 aNrm;attribute float aId;attribute float aZm;attribute float aFoc;uniform mat4 uP,uV;uniform float uHi,uSel,uFocus;varying vec3 vN;varying vec3 vW;varying float vHi;varying float vDim;
 void main(){vN=aNrm;vW=aPos;vHi=step(abs(aId-uHi),0.5);
  float inZone=uSel<0.5?1.0:mod(floor(aZm/pow(2.0,uSel)+0.01),2.0);float inFoc=uFocus<0.5?1.0:aFoc;vDim=1.0-inZone*inFoc;gl_Position=uP*uV*vec4(aPos,1.0);}`;
-const SFS=`precision mediump float;uniform vec3 uCol,uEye,uLight;uniform float uAlpha,uDimA,uPass;varying vec3 vN;varying vec3 vW;varying float vHi;varying float vDim;
+const SFS=`precision mediump float;uniform vec3 uCol,uEye,uLight;uniform float uAlpha,uDimA,uPass,uWet;varying vec3 vN;varying vec3 vW;varying float vHi;varying float vDim;
+float hash(vec3 p){p=fract(p*0.3183099+vec3(0.1,0.2,0.3));p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float noise(vec3 x){vec3 i=floor(x);vec3 f=fract(x);f=f*f*(3.0-2.0*f);return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
 void main(){if(uPass>0.5&&vDim>0.5)discard;if(uPass<-0.5&&vDim<0.5)discard;vec3 n=normalize(vN);vec3 e=normalize(uEye-vW);if(dot(n,e)<0.0)n=-n;vec3 l=normalize(uLight-vW);vec3 h=normalize(l+e);
- float d=max(dot(n,l),0.0);float fill=max(dot(n,normalize(vec3(-0.5,0.3,0.8))),0.0);float spec=pow(max(dot(n,h),0.0),36.0);float rim=pow(1.0-max(dot(n,e),0.0),3.0);
- vec3 c=uCol*(0.32+0.55*d+0.18*fill)+vec3(1.0,0.97,0.92)*spec*0.28+uCol*rim*0.25;c=mix(c,vec3(1.0),vHi*0.35);
+ float d=max(dot(n,l),0.0);float fill=max(dot(n,normalize(vec3(-0.5,0.3,0.8))),0.0);float spec=pow(max(dot(n,h),0.0),48.0)*uWet+pow(max(dot(n,h),0.0),8.0)*0.08;float rim=pow(1.0-max(dot(n,e),0.0),3.0);
+ float mot=noise(vW*9.0)*0.6+noise(vW*23.0)*0.4;vec3 base=uCol*(0.9+0.2*(mot-0.5));vec3 deep=base*vec3(0.75,0.62,0.62);
+ vec3 c=mix(deep,base,0.45+0.55*d)+base*0.18*fill+vec3(1.0,0.97,0.92)*spec+base*rim*0.3;c=mix(c,vec3(1.0),vHi*0.35);
  float g=dot(c,vec3(0.33));c=mix(c,vec3(g)*0.9+0.1,vDim*0.7);float a=mix(uAlpha,uDimA,vDim);gl_FragColor=vec4(c,a);}`;
 const DIRV={F:[0,0,1],B:[0,0,-1],U:[0,1,0]};
 function snapPoint(body,x,y,z,dir){
@@ -284,7 +287,7 @@ window.Body3D={
     const pts=[];const step=Math.max(1,Math.floor(pt.nv/40));for(let i=0;i<pt.nv;i+=step)pts.push([P[i*3],P[i*3+1],P[i*3+2]]);
     this.structs.push({id,layer:pt.layer,name:pt.name,pts,zones:zm,mesh:true,anchor:c,size:Math.hypot(pt.mx[0]-pt.mn[0],pt.mx[1]-pt.mn[1],pt.mx[2]-pt.mn[2])});});}
   const prog=gl.createProgram();const mk=(t,src2)=>{const sh=gl.createShader(t);gl.shaderSource(sh,src2);gl.compileShader(sh);gl.attachShader(prog,sh);};mk(gl.VERTEX_SHADER,SVS);mk(gl.FRAGMENT_SHADER,SFS);gl.linkProgram(prog);this.sprog=prog;
-  this.su={};['uP','uV','uHi','uSel','uFocus','uCol','uAlpha','uDimA','uEye','uLight','uPass'].forEach(n=>this.su[n]=gl.getUniformLocation(prog,n));this.sa={aPos:gl.getAttribLocation(prog,'aPos'),aNrm:gl.getAttribLocation(prog,'aNrm'),aId:gl.getAttribLocation(prog,'aId'),aZm:gl.getAttribLocation(prog,'aZm'),aFoc:gl.getAttribLocation(prog,'aFoc')};
+  this.su={};['uP','uV','uHi','uSel','uFocus','uCol','uAlpha','uDimA','uEye','uLight','uPass','uWet'].forEach(n=>this.su[n]=gl.getUniformLocation(prog,n));this.sa={aPos:gl.getAttribLocation(prog,'aPos'),aNrm:gl.getAttribLocation(prog,'aNrm'),aId:gl.getAttribLocation(prog,'aId'),aZm:gl.getAttribLocation(prog,'aZm'),aFoc:gl.getAttribLocation(prog,'aFoc')};
   this.sbuf={};Object.entries(bufs).forEach(([k,arr])=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.STATIC_DRAW);const n=arr.length/8;const ids=new Float32Array(n);for(let i=0;i<n;i++)ids[i]=arr[i*8+6];const fb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,fb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(n).fill(1),gl.DYNAMIC_DRAW);this.sbuf[k]={buf:b,n,ids,fbuf:fb};});
   this.layers={artery:false,vein:false,nerve:false,lymph:false,organ:false,bone:false,muscle:false,musclechart:false};this.hoverStruct=0;this.focus=null;
  },
@@ -303,7 +306,7 @@ window.Body3D={
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.disable(gl.CULL_FACE);
   const ghost=this.ghost;
   const bindLayer=(k,b)=>{gl.bindBuffer(gl.ARRAY_BUFFER,b.buf);const st=32;gl.enableVertexAttribArray(this.sa.aPos);gl.vertexAttribPointer(this.sa.aPos,3,gl.FLOAT,false,st,0);gl.enableVertexAttribArray(this.sa.aNrm);gl.vertexAttribPointer(this.sa.aNrm,3,gl.FLOAT,false,st,12);gl.enableVertexAttribArray(this.sa.aId);gl.vertexAttribPointer(this.sa.aId,1,gl.FLOAT,false,st,24);gl.enableVertexAttribArray(this.sa.aZm);gl.vertexAttribPointer(this.sa.aZm,1,gl.FLOAT,false,st,28);gl.bindBuffer(gl.ARRAY_BUFFER,b.fbuf);gl.enableVertexAttribArray(this.sa.aFoc);gl.vertexAttribPointer(this.sa.aFoc,1,gl.FLOAT,false,0,0);};
-  const drawRanges=(k,b)=>{const ranges=(this.ranges&&this.ranges[k]&&this.ranges[k].length)?this.ranges[k]:[{start:0,count:b.n,col:null}];ranges.forEach(r=>{if(!r.count)return;gl.uniform3fv(this.su.uCol,r.col||cols[k]);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});};
+  const drawRanges=(k,b)=>{gl.uniform1f(this.su.uWet,k==='organ'?0.45:k==='bone'?0.08:k==='muscle'?0.22:0.3);const ranges=(this.ranges&&this.ranges[k]&&this.ranges[k].length)?this.ranges[k]:[{start:0,count:b.n,col:null}];ranges.forEach(r=>{if(!r.count)return;gl.uniform3fv(this.su.uCol,r.col||cols[k]);gl.drawArrays(gl.TRIANGLES,r.start,r.count);});};
   if(ghost){/* faded structures first as ghosts (no depth writes), then the bright ones solid and lit */
     gl.depthFunc(gl.LEQUAL);const dimming=!!(this.focusSet||this.zone);
     if(dimming){gl.depthMask(false);gl.uniform1f(this.su.uPass,-1);Object.entries(this.sbuf).forEach(([k,b])=>{if(!this.layers[k]||!b.n)return;bindLayer(k,b);gl.uniform1f(this.su.uAlpha,1.0);gl.uniform1f(this.su.uDimA,0.14);drawRanges(k,b);});gl.depthMask(true);}
