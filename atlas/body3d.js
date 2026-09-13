@@ -274,7 +274,7 @@ window.Body3D={
   this.structs=[];const bufs={artery:[],vein:[],nerve:[],lymph:[],organ:[],bone:[],muscle:[]};this.ranges={organ:[],bone:[],artery:[],vein:[],nerve:[],lymph:[],muscle:[]};const hasPack=!!window.BODY3D_ORGANS_B64;const fullPack=hasPack&&atob(window.BODY3D_ORGANS_B64.slice(0,8)).slice(0,4)==='ORG2';this.fullPack=fullPack;
   const RAD={1:0.05,2:0.034,3:0.022};
   const zonesOf=(P,deep)=>{let m=0;P.forEach((p,i)=>{m|=zoneBits(body,p[0],p[1],p[2],deep?deep[i]:true);});return m;};
-  let nid=0;items.forEach((it,i)=>{if(fullPack)return;if(hasPack&&DROP_STRUCT.test(it.name))return;const id=++nid;const P=it.pts.map(([x,y,z,d])=>d?snapPoint(body,x,y,z,d):[x,y,z]);const zm=zonesOf(P,it.pts.map(q=>!q[3]));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?" · patient's left":" · patient's right"):''),pts:P,zones:zm};this.structs.push(s);
+  let nid=0;items.forEach((it,i)=>{if(fullPack&&!(it.layer==='lymph'&&it.cal>0))return;/* Z-Anatomy has no lymph vessels: keep the drawn ducts and trunks */if(hasPack&&DROP_STRUCT.test(it.name))return;const id=++nid;const P=it.pts.map(([x,y,z,d])=>d?snapPoint(body,x,y,z,d):[x,y,z]);const zm=zonesOf(P,it.pts.map(q=>!q[3]));const s={id,layer:it.layer,name:it.name+(it.side?(it.side==='L'?" · patient's left":" · patient's right"):''),pts:P,zones:zm};this.structs.push(s);
     if(it.layer==='lymph'&&it.cal===0){P.forEach(c=>sphere(c,0.07,id,bufs.lymph,zm));}
     else{const sm=P.length>1?smoothLine(P,5):P;tube(sm,it.layer==='lymph'?0.018:(RAD[it.cal]||0.03),id,bufs[it.layer],zm);}
   });

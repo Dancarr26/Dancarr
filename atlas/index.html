@@ -1375,7 +1375,7 @@ function drawLabels(){const svg=document.getElementById('lbl3d');const c=documen
     const score=it=>it.size/(1+Math.hypot(it.x-W/2,it.y-H/2)/(H/2));if(items.length>MAX)items=items.sort((a,b)=>score(b)-score(a)).slice(0,MAX);
     const left=items.filter(i=>i.x<W/2).sort((a,b)=>a.y-b.y),right=items.filter(i=>i.x>=W/2).sort((a,b)=>a.y-b.y);
     const layout=col=>{const gap=15;let ys=col.map(i=>i.y);for(let k=1;k<ys.length;k++)ys[k]=Math.max(ys[k],ys[k-1]+gap);const over=ys.length?ys[ys.length-1]-(H-8):0;if(over>0){for(let k=ys.length-1;k>=0;k--)ys[k]-=over;for(let k=1;k<ys.length;k++)ys[k]=Math.max(ys[k],ys[k-1]+gap);}return ys;};
-    const short=n=>n.replace(/\s*\(.*?\)/g,'').replace(/ · patient's (left|right)$/,'').slice(0,30);
+    const short=n=>{const t=n.replace(/\s*\(.*?\)/g,'').replace(/ · patient's (left|right)$/,'').replace(/ lymph nodes$/,' nodes').replace(/^Lymphatics of the /,'Lymph: ');return t.length>32?t.slice(0,31)+'…':t;};
     const ly=layout(left),ry=layout(right);
     left.forEach((it,k)=>{const y=Math.max(10,ly[k]);out+=`<line x1="${8}" y1="${y}" x2="${it.x}" y2="${it.y}"/><circle cx="${it.x}" cy="${it.y}" r="2"/><text x="6" y="${y-3}" text-anchor="start">${short(it.name)}</text>`;});
     right.forEach((it,k)=>{const y=Math.max(10,ry[k]);out+=`<line x1="${W-8}" y1="${y}" x2="${it.x}" y2="${it.y}"/><circle cx="${it.x}" cy="${it.y}" r="2"/><text x="${W-6}" y="${y-3}" text-anchor="end">${short(it.name)}</text>`;});}
