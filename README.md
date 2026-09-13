@@ -30,9 +30,11 @@
   and the whole skeleton come from Z-Anatomy (`atlas/body3d-organs.js`, CC BY-SA 4.0, see
   `atlas/LICENSE-body3d-organs.txt`), retargeted onto the rig: the torso by a landmark warp and
   each limb by its bone chain, so the straight Z-Anatomy arms follow the mesh's bent forearms.
-  Structures are drawn solid and lit under a translucent skin (an X-ray chip restores the see-through
-  look), with label callouts and leader lines for what a scene lights, and a spinal-level ladder
-  (C1 to S5) for the neuro and pain scenes. Selecting a body zone dims everything that does not run through it and lists what
+  The body wears shaded skin (a Plate chip shows the projected 2D muscle plate instead). Structures are
+  drawn solid and lit under the translucent skin (an X-ray chip restores the see-through look), with
+  label callouts and leader lines for what a scene lights, a spinal-level ladder (C1 to S5) for the
+  neuro and pain scenes, and a Systems row that isolates the skeletal, muscular, cardiovascular,
+  respiratory, digestive, nervous, urinary, endocrine and lymphatic systems one at a time. Selecting a body zone dims everything that does not run through it and lists what
   does beneath the figure. The Muscles chip colours the 3D body as a muscle chart and names the
   group under the pointer. The 2D figure has named muscle groups and toggleable schematic artery,
   vein and nerve layers; the 3D view turns to show sides, back, top and bottom.
