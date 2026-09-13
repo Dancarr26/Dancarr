@@ -133,6 +133,8 @@ a{color:var(--accent-ink)}
 .pin:focus-visible circle{stroke-width:3}
 .structcard{font-size:14px;line-height:1.55;color:var(--muted)}.structcard b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;margin-right:6px}.structcard button{background:none;border:0;padding:0;font:inherit;color:var(--ink);cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}.structcard button:hover,.structcard button.on{color:var(--accent)}.structcard p{margin:0 0 6px}
 ul.plain{margin:0;padding-left:20px;font-size:15px;line-height:1.55}ul.plain li{margin:4px 0}
+.anat{list-style:none;margin:0;padding:0}.anat li{margin:0 0 8px}.anat button{display:block;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:8px;padding:6px 8px;font:inherit;color:var(--ink);cursor:pointer;line-height:1.5}.anat button:hover,.anat button.on{border-color:var(--accent-line);background:var(--accent-soft)}.anat b{display:block;font-weight:600;margin-bottom:1px}.anat span{color:var(--muted);font-size:14px}
+.organ-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
 .structlist{padding:6px 6px 0;font-size:12px;color:var(--muted);line-height:1.5}.structlist b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;margin-right:4px}.structlist button{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}.structlist button:hover,.structlist button.on{color:var(--accent)}.structlist p{margin:0 0 3px}
 .figcap{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 0;font-size:12.5px;color:var(--muted)}
 .figcap #figstate{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;text-align:right}
@@ -409,6 +411,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
 <script src="body3d-anatomy.js"></script>
 <script src="body3d-organs.js"></script>
 <script src="systems.js"></script>
+<script src="organs.js"></script>
 <script src="body3d.js"></script>
 <script>
 /* ---------- shared drawing helpers ---------- */
@@ -1061,7 +1064,7 @@ function visibleTools(){const t=q();return TOOLS.filter(x=>matchT(x,t));}
 function toolProgress(x){const a=state.answers[x.id]||{};if(x.type==='steps')return [Object.values(a).filter(Boolean).length,x.steps.length];if(x.type==='score')return [Object.keys(a).length,x.items.length];return null;}
 function renderList(){
   const ol=document.getElementById('list');
-  if(state.mode==='regions'||state.mode==='systems'){
+  if(state.mode==='regions'||state.mode==='systems'||state.mode==='organ'){
     const vis=visibleRegions();
     ol.innerHTML=vis.length?vis.map(r=>{const d=doneCount(r),t=r.assess.length;return `<li><button type="button" class="row${r.id===state.active?' on':''}${d===t?' done':''}" data-id="${r.id}"><span class="num">${r.n}</span><span class="name">${r.name}<small>${r.loc}</small></span><span class="prog">${d}/${t}</span></button></li>`;}).join(''):'<li class="none">Nothing matches. Try the Tools tab.</li>';
     ol.querySelectorAll('.row').forEach(b=>b.addEventListener('click',()=>show(b.dataset.id)));
@@ -1092,7 +1095,7 @@ function pager(list,cur,goFn){
   const nm=x=>x.short||x.name;
   return `<nav class="pager">${prev?`<button type="button" class="btn" data-go="${prev.id}"><small>Previous</small>${nm(prev)}</button>`:'<span></span>'}${next?`<button type="button" class="btn primary" data-go="${next.id}"><small>Next</small>${nm(next)}</button>`:'<span></span>'}</nav>`;
 }
-function renderDetail(){ if(state.mode==='tools'&&toolById(state.tool))renderTool(toolById(state.tool)); else if(state.mode==='conditions'&&condById(state.cond))renderCond(condById(state.cond)); else if(state.mode==='systems'&&(window.SYSTEMS||[]).some(x=>x.id===state.sys))renderSystem((window.SYSTEMS||[]).find(x=>x.id===state.sys)); else {state.mode='regions';renderRegion();} }
+function renderDetail(){ if(state.mode==='tools'&&toolById(state.tool))renderTool(toolById(state.tool)); else if(state.mode==='conditions'&&condById(state.cond))renderCond(condById(state.cond)); else if(state.mode==='systems'&&(window.SYSTEMS||[]).some(x=>x.id===state.sys))renderSystem((window.SYSTEMS||[]).find(x=>x.id===state.sys)); else if(state.mode==='organ'&&organView())renderOrgan(organView()); else {state.mode='regions';renderRegion();} }
 function renderCond(c){
   const sec=(h,items,cls)=>items&&items.length?`<section><h4 class="${cls||''}">${h}</h4><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></section>`:'';
   let h=`<div class="eyebrow"><span>${c.sys}</span><span class="loc">Condition</span></div>`;
@@ -1333,8 +1336,8 @@ const SCENES={
 const TOOL_SCENE={drsabcd:'airway',primary:'airway',secondary:'none',tertiary:'none',anaphylaxis:'airway',stroke:'stroke',chestpain:'chest',hypo:'brain',seizure:'brain',isbar:'none',vitalscalc:'vitals',softsigns:'sepsis',sepsis:'sepsis',gcs:'brain',acvpu:'brain',qsofa:'sepsis',mse:'mind','4at':'mind','3ds':'mind',minicog:'mind',braden:'skin',frat:'msk',must:'bowel',abbey:'pain',painad:'pain',cfs:'msk',disease:'vitals',atypical:'vitals',trajectory:'vitals',lastdays:'airway'};
 const SYS_SCENE={'Cardiovascular':'cardio','Respiratory':'respiratory','Gut & bowel':'bowel','Kidney & bladder':'urinary','Endocrine & metabolic':'endocrine','Brain & nerves':'neuro','Mind':'mind','Skin':'skin','Bones & joints':'msk','Blood & immune':'lymph','Eyes & ENT':'eyes','Infections & other':'sepsis'};
 let sceneKey='';
-function apply3DScene(){const sc=sceneOf(state.scene);Body3D.setFocus(sc.focus);const key=state.scene||'';if(key!==sceneKey){sceneKey=key;const cam=CAM[sc.cam];if(cam)Body3D.flyTo(cam[0],cam[1]);}}
-function sceneOf(name){if(name&&name.startsWith('sys:')){const [,id,part]=name.split(':');const S=(window.SYSTEMS||[]).find(x=>x.id===id);if(!S)return SCENES.none;const P=part?S.parts.find(x=>x.id===part):null;return {layers:(P&&P.layers)||S.layers,focus:P?P.focus:S.focus,cam:(P&&P.cam)||S.cam};}return SCENES[name]||SCENES.none;}
+function apply3DScene(){const sc=sceneOf(state.scene);Body3D.setFocus(sc.focus);const key=state.scene||'';if(key!==sceneKey){sceneKey=key;const cam=Array.isArray(sc.cam)?sc.cam:CAM[sc.cam];if(cam)Body3D.flyTo(cam[0],cam[1]);else if(sc.fit){const b=Body3D.boundsOf(sc.fit);if(b)Body3D.flyTo(b.target,b.dist);}}}
+function sceneOf(name){if(name&&name.startsWith('organ:')){const V=organView();if(!V)return SCENES.none;return {layers:V.layers,focus:V.match,cam:V.cam||null,fit:V.cam?null:V.match};}if(name&&name.startsWith('sys:')){const [,id,part]=name.split(':');const S=(window.SYSTEMS||[]).find(x=>x.id===id);if(!S)return SCENES.none;const P=part?S.parts.find(x=>x.id===part):null;return {layers:(P&&P.layers)||S.layers,focus:P?P.focus:S.focus,cam:(P&&P.cam)||S.cam};}return SCENES[name]||SCENES.none;}
 function applyScene(name){const sc=sceneOf(name);state.layers=state.layers||{};['artery','vein','nerve','lymph','organ','bone','muscle','musclechart','levels'].forEach(k=>{state.layers[k]=sc.layers.includes(k);});if(state.layers.labels===undefined)state.layers.labels=true;state.scene=name;save();syncLayers();}
 function sync3D(ids){
   const wrap=document.querySelector('.figwrap');wrap.dataset.dim=state.dim||'2d';
@@ -1346,8 +1349,9 @@ function sync3D(ids){
   if(!Body3D.ready&&!Body3D.loading){Body3D.loading=true;Body3D.init(c,{src:'body3d.bin',
     onPick:(name,[view,zid])=>{state.view=view;state.zone=zid;const z=ZONES[view].find(x=>x.id===zid);if(z)show(z.regions[0]);},
     onDraw:()=>drawLabels(),
+    onStruct:st=>{const name=st.name.replace(/ · patient's (left|right)$/,'');if(state.mode==='organ'){const V=organView();if(V&&V.match.test(name)){selectOrganPart(name);return;}}showOrgan(name);},
     onHover:(name,secName)=>{const map={head:'Head',neck:'Neck',chest:'Chest',abdomen:'Abdomen',pelvis:'Pelvis',armR:"Arm (patient's right)",armL:"Arm (patient's left)",legs:'Legs',back:'Back',sacrum:'Sacrum & gluteal'};document.getElementById('figstate').textContent=secName||(name?map[name]:'');}
-  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();apply3DScene();structList();drawLabels();fillSystemList();});}
+  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();apply3DScene();structList();drawLabels();fillSystemList();if(state.mode==='organ'&&organView())fillOrganAlso(organView());});}
   else if(Body3D.ready){Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();}
   if(Body3D.ready)apply3DScene();
   structList();drawLabels();if(state.mode==='systems')fillSystemList();
@@ -1362,7 +1366,7 @@ function structList(){const sl=document.getElementById('struct3d');if(!window.Bo
   const seen=new Set();const uniq=items.filter(s=>{const k=s.layer+'|'+s.name.replace(/ · patient's (left|right)$/,'');if(seen.has(k))return false;seen.add(k);return true;});
   if(!uniq.length||(!state.zone&&uniq.length>60)){sl.innerHTML='';return;}
   sl.innerHTML=Object.entries(groups).map(([k,lab])=>{const xs=uniq.filter(s=>s.layer===k);if(!xs.length)return '';return `<p><b>${lab}</b>${xs.map(s=>`<button type="button" data-sid="${s.id}">${s.name.replace(/ · patient's (left|right)$/,'')}</button>`).join(', ')}</p>`;}).join('');
-  sl.querySelectorAll('[data-sid]').forEach(b=>b.addEventListener('click',()=>{Body3D.hoverStruct=+b.dataset.sid;Body3D.draw();sl.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('figstate').textContent=b.textContent;}));}
+  sl.querySelectorAll('[data-sid]').forEach(b=>{b.addEventListener('mouseenter',()=>{Body3D.hoverStruct=+b.dataset.sid;Body3D.draw();});b.addEventListener('click',()=>showOrgan(b.textContent));});}
 document.getElementById('figbig').addEventListener('click',()=>{state.big=!state.big;save();syncBig();if(window.Body3D&&Body3D.ready)requestAnimationFrame(()=>Body3D.draw());});
 /* label callouts: bright structures get a name in the margin with a leader line to the structure; spinal levels form a ladder */
 function drawLabels(){const svg=document.getElementById('lbl3d');const c=document.getElementById('body3d');const L=state.layers||{};const on=state.dim==='3d'&&window.Body3D&&Body3D.ready&&(L.labels||L.levels);svg.toggleAttribute('hidden',!on);if(!on){svg.innerHTML='';return;}
@@ -1401,7 +1405,34 @@ function renderSystem(S){const P=state.sysPart?S.parts.find(x=>x.id===state.sysP
   document.getElementById('mpos').textContent=S.name;drawBody([]);fillSystemList();}
 function fillSystemList(){const el=document.getElementById('syslist');if(!el||!window.Body3D||!Body3D.ready||!Body3D.visible)return;const items=Body3D.visible();const seen=new Set();const uniq=items.filter(s=>{const k=s.name.replace(/ · patient's (left|right)$/,'');if(seen.has(k))return false;seen.add(k);return true;});
   const groups={organ:'Organs',bone:'Bones',muscle:'Muscles',artery:'Arteries',vein:'Veins',nerve:'Nerves',lymph:'Lymph'};el.innerHTML=Object.entries(groups).map(([k,lab])=>{const xs=uniq.filter(s=>s.layer===k);if(!xs.length)return '';return `<p><b>${lab}</b>${xs.map(s=>`<button type="button" data-sid="${s.id}">${s.name.replace(/ · patient's (left|right)$/,'')}</button>`).join(', ')}</p>`;}).join('')||'<span class="none">Nothing lit yet — switch on a layer.</span>';
-  el.querySelectorAll('[data-sid]').forEach(b=>b.addEventListener('click',()=>{Body3D.hoverStruct=+b.dataset.sid;Body3D.draw();el.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('figstate').textContent=b.textContent;}));}
+  el.querySelectorAll('[data-sid]').forEach(b=>{b.addEventListener('mouseenter',()=>{Body3D.hoverStruct=+b.dataset.sid;Body3D.draw();});b.addEventListener('click',()=>showOrgan(b.textContent));});}
+/* ---- organ views: one structure and everything that belongs with it ---- */
+const cleanName=n=>String(n||'').replace(/ · patient's (left|right)$/,'').trim();
+const reEsc=t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function organView(){const VS=window.ORGAN_VIEWS||[];if(state.organ&&state.organ!=='~')return VS.find(v=>v.id===state.organ)||null;const name=cleanName(state.organName);if(!name)return null;
+  const st=window.Body3D&&Body3D.structs?Body3D.structs.find(s=>cleanName(s.name)===name):null;const layer=st?st.layer:'organ';const sysOf={organ:'digestive',bone:'skeletal',muscle:'muscular',artery:'cardio',vein:'cardio',nerve:'neuro',lymph:'lymph'};
+  const blurbs={muscle:'A named skeletal muscle. Tone, bulk, strength and tenderness here are read against the other side; see the muscular system for the assessment set.',bone:'A bone of the skeleton: look for pain, deformity, swelling and loss of function after a fall, and compare with the other side.',artery:'An artery. Follow it for pulses, bruits and the tissue it supplies.',vein:'A vein. Watch for tenderness, swelling and the line or cannula that sits in it.',nerve:'A nerve. Test the power, sensation and reflexes it serves and compare sides.',lymph:'A lymph node group. Site, size, tenderness and mobility tell you where the trouble is.',organ:'An organ. Where it sits, what it does and what changes at the bedside.'};
+  return {id:'~',name,sys:sysOf[layer]||'digestive',layers:[layer],match:new RegExp('^'+reEsc(name)+'( · patient\'s (left|right))?$','i'),parts:[[new RegExp('^'+reEsc(name),'i'),name,'']],blurb:blurbs[layer]||blurbs.organ,where:'',assess:[],regions:[],tools:[],conds:[],generic:true};}
+function showOrgan(key){key=cleanName(key);if(!key)return;const VS=window.ORGAN_VIEWS||[];const V=VS.find(v=>v.id===key)||VS.find(v=>(v.own||v.match).test(key));
+  state.mode='organ';state.organ=V?V.id:'~';state.organName=V?'':key;state.zone=null;if(state.dim!=='3d')state.dim='3d';
+  applyScene('organ:'+(V?V.id:'~'+key));sceneKey='';save();renderList();renderDetail();afterNav(state.organ);}
+function selectOrganPart(name){const d=document.getElementById('detail');let hit=null;d.querySelectorAll('.anat button').forEach(b=>{const re=b._re;const on=!!(re&&re.test(name));b.classList.toggle('on',on);if(on&&!hit)hit=b;});if(hit)hit.scrollIntoView({block:'nearest'});document.getElementById('figstate').textContent=name;}
+function renderOrgan(V){const S=(window.SYSTEMS||[]).find(x=>x.id===V.sys);
+  let h=`<div class="eyebrow"><span>${V.generic?'Structure':'Organ'}</span><span class="loc">${S?S.name:''}</span></div><h2 class="title">${V.name}</h2><p class="lede">${V.blurb}</p>`;
+  h+=`<div class="organ-nav">${S?`<button type="button" class="chip" data-sys="${S.id}">← ${S.name}</button>`:''}<button type="button" class="chip" data-scene="everything">Whole body</button></div>`;
+  h+=`<section class="blk"><h3>Anatomy</h3><p class="hint" style="margin:0 0 6px;color:var(--muted);font-size:13px">Tap a part to light it on the figure, or tap the figure itself.</p><ul class="anat" id="anat">${V.parts.map((p,i)=>`<li><button type="button" data-pi="${i}"><b>${p[1]}</b>${p[2]?`<span>${p[2]}</span>`:''}</button></li>`).join('')}</ul><div class="structcard" id="alsolist"></div></section>`;
+  if(V.where)h+=`<section class="blk"><h3>Where it sits</h3><p class="lede" style="font-size:15px">${V.where}</p></section>`;
+  if(V.assess&&V.assess.length)h+=`<section class="blk"><h3>What to assess</h3><ul class="plain">${V.assess.map(a=>`<li>${a}</li>`).join('')}</ul></section>`;
+  if(V.regions&&V.regions.length)h+=`<section class="blk"><h3>Assess on the body</h3>${chipsR(V.regions)}</section>`;
+  const tl=(V.tools||[]).map(id=>toolById(id)).filter(Boolean);const cl=(V.conds||[]).map(id=>condById(id)).filter(Boolean);
+  if(tl.length||cl.length)h+=`<section class="blk"><h3>Tools and conditions</h3><div class="chips">${tl.map(x=>`<button type="button" class="chip" data-tool="${x.id}">${x.short}</button>`).join('')}${cl.map(x=>`<button type="button" class="chip" data-cond="${x.id}">${x.name}</button>`).join('')}</div></section>`;
+  const d=document.getElementById('detail');d.innerHTML=h;bindChips(d);
+  d.querySelectorAll('[data-sys]').forEach(b=>b.addEventListener('click',()=>showSystem(b.dataset.sys)));d.querySelectorAll('[data-scene]').forEach(b=>b.addEventListener('click',()=>{state.mode='regions';applyScene(b.dataset.scene);sceneKey='';save();renderList();renderDetail();}));
+  d.querySelectorAll('.anat button').forEach(b=>{const p=V.parts[+b.dataset.pi];b._re=p[0];b.addEventListener('click',()=>{if(!window.Body3D||!Body3D.ready)return;const xs=Body3D.visible().filter(s=>p[0].test(s.name));d.querySelectorAll('.anat button').forEach(x=>x.classList.toggle('on',x===b));if(xs.length){Body3D.hoverStruct=xs[0].id;Body3D.draw();document.getElementById('figstate').textContent=p[1];}});});
+  document.getElementById('mpos').textContent=V.name;drawBody([]);fillOrganAlso(V);}
+function fillOrganAlso(V){const el=document.getElementById('alsolist');if(!el||!window.Body3D||!Body3D.ready||!Body3D.visible)return;const seen=new Set();const rest=Body3D.visible().filter(s=>{const k=cleanName(s.name);if(seen.has(k))return false;seen.add(k);return !V.parts.some(p=>p[0].test(s.name));});
+  el.innerHTML=rest.length?`<p><b>Also lit</b>${rest.map(s=>`<button type="button" data-sid="${s.id}">${cleanName(s.name)}</button>`).join(', ')}</p>`:'';
+  el.querySelectorAll('[data-sid]').forEach(b=>{b.addEventListener('mouseenter',()=>{Body3D.hoverStruct=+b.dataset.sid;Body3D.draw();});b.addEventListener('click',()=>showOrgan(b.textContent));});}
 function syncBig(){const app=document.querySelector('.app');if(state.big)app.dataset.big='1';else delete app.dataset.big;const b=document.getElementById('figbig');b.classList.toggle('on',!!state.big);b.setAttribute('aria-pressed',!!state.big);}
 syncBig();
 document.querySelectorAll('#sys3d .chip').forEach(b=>b.addEventListener('click',()=>{applyScene(b.dataset.sys);sceneKey='';drawBody(currentIds());}));
