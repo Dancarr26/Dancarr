@@ -34,7 +34,10 @@
   drawn solid and lit under the translucent skin (an X-ray chip restores the see-through look), with
   label callouts and leader lines for what a scene lights, a spinal-level ladder (C1 to S5) for the
   neuro and pain scenes, and a Systems row that isolates the skeletal, muscular, cardiovascular,
-  respiratory, digestive, nervous, urinary, endocrine and lymphatic systems one at a time. Selecting a body zone dims everything that does not run through it and lists what
+  respiratory, digestive, nervous, urinary, endocrine and lymphatic systems one at a time. Each
+  system opens a card (`atlas/systems.js`) with sub-views (heart, arteries, veins, pulse points, lobes,
+  cranial nerves and so on), bedside cues, the structures lit in the view, and links to the related
+  regions, tools and conditions. Selecting a body zone dims everything that does not run through it and lists what
   does beneath the figure. The Muscles chip colours the 3D body as a muscle chart and names the
   group under the pointer. The 2D figure has named muscle groups and toggleable schematic artery,
   vein and nerve layers; the 3D view turns to show sides, back, top and bottom.

@@ -131,6 +131,8 @@ a{color:var(--accent-ink)}
 .pin.on text{fill:#fff}
 .pin:focus{outline:none}
 .pin:focus-visible circle{stroke-width:3}
+.structcard{font-size:14px;line-height:1.55;color:var(--muted)}.structcard b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;margin-right:6px}.structcard button{background:none;border:0;padding:0;font:inherit;color:var(--ink);cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}.structcard button:hover,.structcard button.on{color:var(--accent)}.structcard p{margin:0 0 6px}
+ul.plain{margin:0;padding-left:20px;font-size:15px;line-height:1.55}ul.plain li{margin:4px 0}
 .structlist{padding:6px 6px 0;font-size:12px;color:var(--muted);line-height:1.5}.structlist b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;margin-right:4px}.structlist button{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}.structlist button:hover,.structlist button.on{color:var(--accent)}.structlist p{margin:0 0 3px}
 .figcap{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 0;font-size:12.5px;color:var(--muted)}
 .figcap #figstate{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;text-align:right}
@@ -382,7 +384,8 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
       <div class="chips frag3d" id="frag3d" hidden></div>
       <div class="structlist" id="struct3d" hidden></div>
       <div class="layers" role="group" aria-label="Anatomy layers"><button type="button" class="lay on" data-layer="muscles" style="--c:var(--accent)" aria-pressed="true">Muscles</button><button type="button" class="lay" data-layer="artery" style="--c:var(--artery)" aria-pressed="false">Arteries</button><button type="button" class="lay" data-layer="vein" style="--c:var(--vein)" aria-pressed="false">Veins</button><button type="button" class="lay" data-layer="nerve" style="--c:var(--nerve)" aria-pressed="false">Nerves</button><button type="button" class="lay only3d" data-layer="lymph" style="--c:var(--accent)" aria-pressed="false">Lymph</button><button type="button" class="lay only3d" data-layer="organ" style="--c:var(--amber)" aria-pressed="false">Organs &amp; glands</button><button type="button" class="lay only3d" data-layer="bone" style="--c:var(--muted)" aria-pressed="false">Bones</button><button type="button" class="lay only3d" data-layer="muscle" style="--c:var(--flag)" aria-pressed="false">Muscles</button><button type="button" class="lay only3d" data-layer="labels" style="--c:var(--ink)" aria-pressed="false">Labels</button><button type="button" class="lay only3d" data-layer="levels" style="--c:var(--ink)" aria-pressed="false">Spinal levels</button><button type="button" class="lay only3d" data-layer="xray" style="--c:var(--muted)" aria-pressed="false">X-ray</button><button type="button" class="lay only3d" data-layer="plate" style="--c:var(--muted)" aria-pressed="false">Plate</button></div>
-      <div class="chips systems" id="sys3d" hidden role="group" aria-label="Body systems"><button type="button" class="chip" data-sys="skeletal">Skeletal</button><button type="button" class="chip" data-sys="muscular">Muscular</button><button type="button" class="chip" data-sys="cardio">Cardiovascular</button><button type="button" class="chip" data-sys="respiratory">Respiratory</button><button type="button" class="chip" data-sys="digestive">Digestive</button><button type="button" class="chip" data-sys="neuro">Nervous</button><button type="button" class="chip" data-sys="urinary">Urinary</button><button type="button" class="chip" data-sys="endocrine">Endocrine</button><button type="button" class="chip" data-sys="lymph">Lymphatic</button><button type="button" class="chip" data-sys="everything">Everything</button><button type="button" class="chip" data-sys="none">Skin only</button></div>
+      <div class="chips systems" id="sys3d" hidden role="group" aria-label="Body systems"></div>
+      <div class="chips systems" id="sysparts" hidden role="group" aria-label="Views within the system"></div>
       <div class="figcap"><div class="vtoggle dim" role="group" aria-label="Figure type"><button type="button" class="vd on" data-dim="2d" aria-pressed="true">2D</button><button type="button" class="vd" data-dim="3d" aria-pressed="false">3D</button></div><div class="vtoggle" id="vt2d" role="group" aria-label="Figure view"><button type="button" class="vt" data-view="front" aria-pressed="true">Front</button><button type="button" class="vt" data-view="back" aria-pressed="false">Back</button></div><button type="button" class="backbtn" id="zoomout" hidden>‹ Whole body</button><button type="button" class="bigbtn" id="figbig" aria-pressed="false" title="Give the figure more room">⤢ Bigger</button><span id="figstate"></span></div>
     </div>
     <div class="modes" role="tablist" aria-label="Navigation mode"><button type="button" class="mode on" role="tab" data-mode="regions" aria-selected="true">Regions</button><button type="button" class="mode" role="tab" data-mode="tools" aria-selected="false">Tools</button><button type="button" class="mode" role="tab" data-mode="conditions" aria-selected="false">Conditions</button></div>
@@ -405,6 +408,7 @@ figure.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-widt
 <script src="body3d-data.js"></script>
 <script src="body3d-anatomy.js"></script>
 <script src="body3d-organs.js"></script>
+<script src="systems.js"></script>
 <script src="body3d.js"></script>
 <script>
 /* ---------- shared drawing helpers ---------- */
@@ -1057,7 +1061,7 @@ function visibleTools(){const t=q();return TOOLS.filter(x=>matchT(x,t));}
 function toolProgress(x){const a=state.answers[x.id]||{};if(x.type==='steps')return [Object.values(a).filter(Boolean).length,x.steps.length];if(x.type==='score')return [Object.keys(a).length,x.items.length];return null;}
 function renderList(){
   const ol=document.getElementById('list');
-  if(state.mode==='regions'){
+  if(state.mode==='regions'||state.mode==='systems'){
     const vis=visibleRegions();
     ol.innerHTML=vis.length?vis.map(r=>{const d=doneCount(r),t=r.assess.length;return `<li><button type="button" class="row${r.id===state.active?' on':''}${d===t?' done':''}" data-id="${r.id}"><span class="num">${r.n}</span><span class="name">${r.name}<small>${r.loc}</small></span><span class="prog">${d}/${t}</span></button></li>`;}).join(''):'<li class="none">Nothing matches. Try the Tools tab.</li>';
     ol.querySelectorAll('.row').forEach(b=>b.addEventListener('click',()=>show(b.dataset.id)));
@@ -1088,7 +1092,7 @@ function pager(list,cur,goFn){
   const nm=x=>x.short||x.name;
   return `<nav class="pager">${prev?`<button type="button" class="btn" data-go="${prev.id}"><small>Previous</small>${nm(prev)}</button>`:'<span></span>'}${next?`<button type="button" class="btn primary" data-go="${next.id}"><small>Next</small>${nm(next)}</button>`:'<span></span>'}</nav>`;
 }
-function renderDetail(){ if(state.mode==='tools'&&toolById(state.tool))renderTool(toolById(state.tool)); else if(state.mode==='conditions'&&condById(state.cond))renderCond(condById(state.cond)); else {state.mode='regions';renderRegion();} }
+function renderDetail(){ if(state.mode==='tools'&&toolById(state.tool))renderTool(toolById(state.tool)); else if(state.mode==='conditions'&&condById(state.cond))renderCond(condById(state.cond)); else if(state.mode==='systems'&&(window.SYSTEMS||[]).some(x=>x.id===state.sys))renderSystem((window.SYSTEMS||[]).find(x=>x.id===state.sys)); else {state.mode='regions';renderRegion();} }
 function renderCond(c){
   const sec=(h,items,cls)=>items&&items.length?`<section><h4 class="${cls||''}">${h}</h4><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></section>`:'';
   let h=`<div class="eyebrow"><span>${c.sys}</span><span class="loc">Condition</span></div>`;
@@ -1329,12 +1333,13 @@ const SCENES={
 const TOOL_SCENE={drsabcd:'airway',primary:'airway',secondary:'none',tertiary:'none',anaphylaxis:'airway',stroke:'stroke',chestpain:'chest',hypo:'brain',seizure:'brain',isbar:'none',vitalscalc:'vitals',softsigns:'sepsis',sepsis:'sepsis',gcs:'brain',acvpu:'brain',qsofa:'sepsis',mse:'mind','4at':'mind','3ds':'mind',minicog:'mind',braden:'skin',frat:'msk',must:'bowel',abbey:'pain',painad:'pain',cfs:'msk',disease:'vitals',atypical:'vitals',trajectory:'vitals',lastdays:'airway'};
 const SYS_SCENE={'Cardiovascular':'cardio','Respiratory':'respiratory','Gut & bowel':'bowel','Kidney & bladder':'urinary','Endocrine & metabolic':'endocrine','Brain & nerves':'neuro','Mind':'mind','Skin':'skin','Bones & joints':'msk','Blood & immune':'lymph','Eyes & ENT':'eyes','Infections & other':'sepsis'};
 let sceneKey='';
-function apply3DScene(){const sc=SCENES[state.scene]||SCENES.none;Body3D.setFocus(sc.focus);const key=state.scene||'';if(key!==sceneKey){sceneKey=key;const cam=CAM[sc.cam];if(cam)Body3D.flyTo(cam[0],cam[1]);}}
-function applyScene(name){const sc=SCENES[name]||SCENES.none;state.layers=state.layers||{};['artery','vein','nerve','lymph','organ','bone','muscle','musclechart','levels'].forEach(k=>{state.layers[k]=sc.layers.includes(k);});if(state.layers.labels===undefined)state.layers.labels=true;state.scene=name;save();syncLayers();}
+function apply3DScene(){const sc=sceneOf(state.scene);Body3D.setFocus(sc.focus);const key=state.scene||'';if(key!==sceneKey){sceneKey=key;const cam=CAM[sc.cam];if(cam)Body3D.flyTo(cam[0],cam[1]);}}
+function sceneOf(name){if(name&&name.startsWith('sys:')){const [,id,part]=name.split(':');const S=(window.SYSTEMS||[]).find(x=>x.id===id);if(!S)return SCENES.none;const P=part?S.parts.find(x=>x.id===part):null;return {layers:(P&&P.layers)||S.layers,focus:P?P.focus:S.focus,cam:(P&&P.cam)||S.cam};}return SCENES[name]||SCENES.none;}
+function applyScene(name){const sc=sceneOf(name);state.layers=state.layers||{};['artery','vein','nerve','lymph','organ','bone','muscle','musclechart','levels'].forEach(k=>{state.layers[k]=sc.layers.includes(k);});if(state.layers.labels===undefined)state.layers.labels=true;state.scene=name;save();syncLayers();}
 function sync3D(ids){
   const wrap=document.querySelector('.figwrap');wrap.dataset.dim=state.dim||'2d';
   const c=document.getElementById('body3d'),vw=document.getElementById('views3d'),fr=document.getElementById('frag3d'),sl=document.getElementById('struct3d');
-  const on=state.dim==='3d';c.hidden=!on;vw.hidden=!on;fr.hidden=!on;sl.hidden=!on;document.getElementById('sys3d').hidden=!on;document.querySelectorAll('#sys3d .chip').forEach(b=>b.classList.toggle('on',b.dataset.sys===state.scene));
+  const on=state.dim==='3d';c.hidden=!on;vw.hidden=!on;fr.hidden=!on;sl.hidden=!on;renderSystemsRow(on);
   document.querySelectorAll('.vd').forEach(b=>{const o=b.dataset.dim===(state.dim||'2d');b.classList.toggle('on',o);b.setAttribute('aria-pressed',o);});
   if(!on)return;
   if(!window.Body3D)return;
@@ -1342,10 +1347,10 @@ function sync3D(ids){
     onPick:(name,[view,zid])=>{state.view=view;state.zone=zid;const z=ZONES[view].find(x=>x.id===zid);if(z)show(z.regions[0]);},
     onDraw:()=>drawLabels(),
     onHover:(name,secName)=>{const map={head:'Head',neck:'Neck',chest:'Chest',abdomen:'Abdomen',pelvis:'Pelvis',armR:"Arm (patient's right)",armL:"Arm (patient's left)",legs:'Legs',back:'Back',sacrum:'Sacrum & gluteal'};document.getElementById('figstate').textContent=secName||(name?map[name]:'');}
-  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();apply3DScene();structList();drawLabels();});}
+  }).then(()=>{Body3D.loading=false;Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();apply3DScene();structList();drawLabels();fillSystemList();});}
   else if(Body3D.ready){Body3D.setZone2D(state.view,state.zone);setLayers3D();Body3D.draw();}
   if(Body3D.ready)apply3DScene();
-  structList();drawLabels();
+  structList();drawLabels();if(state.mode==='systems')fillSystemList();
   const zone=state.zone?ZONES[state.view].find(z=>z.id===state.zone):null;
   fr.innerHTML=zone?zone.regions.map(rid=>{const r=REGIONS.find(q=>q.id===rid);const lab=(zone.labels[rid]||[])[3]||r.short;return `<button type="button" class="chip${ids.includes(rid)?' on':''}" data-region="${rid}">${lab}</button>`;}).join(''):'<span class="none" style="padding:0">Tap a part of the body to zoom its details</span>';
   fr.querySelectorAll('[data-region]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.region)));
@@ -1376,6 +1381,27 @@ function drawLabels(){const svg=document.getElementById('lbl3d');const c=documen
     right.forEach((it,k)=>{const y=Math.max(10,ry[k]);out+=`<line x1="${W-8}" y1="${y}" x2="${it.x}" y2="${it.y}"/><circle cx="${it.x}" cy="${it.y}" r="2"/><text x="${W-6}" y="${y-3}" text-anchor="end">${short(it.name)}</text>`;});}
   if(L.levels&&window.BODY3D_LEVELS){const LV=window.BODY3D_LEVELS;const ORD=['C1','C2','C3','C4','C5','C6','C7','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12','L1','L2','L3','L4','L5','S1','S2','S3','S4','S5'];const keys=ORD.filter(k=>LV[k]);let last=-99;keys.forEach(k=>{const q=Body3D.project(LV[k]);if(!q||q.y<0||q.y>H)return;if(Math.abs(q.y-last)<11)return;last=q.y;out+=`<line x1="${q.x+6}" y1="${q.y}" x2="${q.x+22}" y2="${q.y}"/><text class="lv" x="${q.x+25}" y="${q.y+3}" text-anchor="start">${k}</text>`;});}
   svg.innerHTML=out;}
+function renderSystemsRow(on){const row=document.getElementById('sys3d'),pr=document.getElementById('sysparts');row.hidden=!on;if(!on){pr.hidden=true;return;}
+  const cur=(state.scene||'').split(':');const sysId=cur[0]==='sys'?cur[1]:null,partId=cur[2]||'';
+  row.innerHTML=(window.SYSTEMS||[]).map(S=>`<button type="button" class="chip${S.id===sysId?' on':''}" data-sys="${S.id}">${S.name.replace(/ (and immune )?system$/,'')}</button>`).join('')+`<button type="button" class="chip${state.scene==='everything'?' on':''}" data-scene="everything">Everything</button><button type="button" class="chip${state.scene==='none'?' on':''}" data-scene="none">Skin only</button>`;
+  row.querySelectorAll('[data-sys]').forEach(b=>b.addEventListener('click',()=>showSystem(b.dataset.sys)));row.querySelectorAll('[data-scene]').forEach(b=>b.addEventListener('click',()=>{applyScene(b.dataset.scene);sceneKey='';drawBody(currentIds());}));
+  const S=sysId?(window.SYSTEMS||[]).find(x=>x.id===sysId):null;pr.hidden=!S;if(S)pr.innerHTML=`<button type="button" class="chip${partId?'':' on'}" data-part="">Whole system</button>`+S.parts.map(P=>`<button type="button" class="chip${P.id===partId?' on':''}" data-part="${P.id}">${P.name}</button>`).join('');
+  if(S)pr.querySelectorAll('[data-part]').forEach(b=>b.addEventListener('click',()=>showSystem(S.id,b.dataset.part)));}
+/* a system view: 3D scene plus a card in the detail panel */
+function showSystem(id,part){const S=(window.SYSTEMS||[]).find(x=>x.id===id);if(!S)return;state.mode='systems';state.sys=id;state.sysPart=part||'';state.zone=null;if(state.dim!=='3d')state.dim='3d';applyScene('sys:'+id+(part?':'+part:''));sceneKey='';save();renderList();renderDetail();afterNav(id);}
+function renderSystem(S){const P=state.sysPart?S.parts.find(x=>x.id===state.sysPart):null;
+  let h=`<div class="eyebrow"><span>Body system</span><span class="loc">${P?P.name:'Whole system'}</span></div><h2 class="title">${S.name}</h2><p class="lede">${S.blurb}</p>`;
+  h+=`<section class="blk"><h3>Views</h3><div class="chips"><button type="button" class="chip${P?'':' on'}" data-part="">Whole system</button>${S.parts.map(x=>`<button type="button" class="chip${P&&P.id===x.id?' on':''}" data-part="${x.id}">${x.name}</button>`).join('')}</div></section>`;
+  h+=`<section class="blk"><h3>What to assess</h3><ul class="plain">${S.assess.map(a=>`<li>${a}</li>`).join('')}</ul></section>`;
+  h+=`<section class="blk"><h3>Structures in this view</h3><div class="structcard" id="syslist"><span class="none">Loading the 3D body…</span></div></section>`;
+  if(S.regions&&S.regions.length)h+=`<section class="blk"><h3>Assess on the body</h3>${chipsR(S.regions)}</section>`;
+  const tl=(S.tools||[]).map(id=>toolById(id)).filter(Boolean);const cl=CONDS.filter(c=>c.sys===S.condSys).slice(0,12);
+  if(tl.length||cl.length)h+=`<section class="blk"><h3>Tools and conditions</h3><div class="chips">${tl.map(x=>`<button type="button" class="chip" data-tool="${x.id}">${x.short}</button>`).join('')}${cl.map(x=>`<button type="button" class="chip" data-cond="${x.id}">${x.name}</button>`).join('')}</div></section>`;
+  const d=document.getElementById('detail');d.innerHTML=h;bindChips(d);d.querySelectorAll('[data-part]').forEach(b=>b.addEventListener('click',()=>showSystem(S.id,b.dataset.part)));
+  document.getElementById('mpos').textContent=S.name;drawBody([]);fillSystemList();}
+function fillSystemList(){const el=document.getElementById('syslist');if(!el||!window.Body3D||!Body3D.ready||!Body3D.visible)return;const items=Body3D.visible();const seen=new Set();const uniq=items.filter(s=>{const k=s.name.replace(/ · patient's (left|right)$/,'');if(seen.has(k))return false;seen.add(k);return true;});
+  const groups={organ:'Organs',bone:'Bones',muscle:'Muscles',artery:'Arteries',vein:'Veins',nerve:'Nerves',lymph:'Lymph'};el.innerHTML=Object.entries(groups).map(([k,lab])=>{const xs=uniq.filter(s=>s.layer===k);if(!xs.length)return '';return `<p><b>${lab}</b>${xs.map(s=>`<button type="button" data-sid="${s.id}">${s.name.replace(/ · patient's (left|right)$/,'')}</button>`).join(', ')}</p>`;}).join('')||'<span class="none">Nothing lit yet — switch on a layer.</span>';
+  el.querySelectorAll('[data-sid]').forEach(b=>b.addEventListener('click',()=>{Body3D.hoverStruct=+b.dataset.sid;Body3D.draw();el.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('figstate').textContent=b.textContent;}));}
 function syncBig(){const app=document.querySelector('.app');if(state.big)app.dataset.big='1';else delete app.dataset.big;const b=document.getElementById('figbig');b.classList.toggle('on',!!state.big);b.setAttribute('aria-pressed',!!state.big);}
 syncBig();
 document.querySelectorAll('#sys3d .chip').forEach(b=>b.addEventListener('click',()=>{applyScene(b.dataset.sys);sceneKey='';drawBody(currentIds());}));
