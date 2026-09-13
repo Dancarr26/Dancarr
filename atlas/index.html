@@ -1359,7 +1359,8 @@ function drawLabels(){const svg=document.getElementById('lbl3d');const c=documen
   const W=cr.width,H=cr.height;let out='';
   if(L.labels){let items=Body3D.labels().filter(it=>it.x>-20&&it.x<W+20&&it.y>0&&it.y<H);
     /* keep the biggest few so the figure stays readable */
-    const MAX=Math.max(6,Math.min(16,Math.floor(H/26)));if(items.length>40&&Body3D.dist>16)items=[];/* too busy at whole-body scale */
+    const MAX=Math.max(6,Math.min(16,Math.floor(H/26)));if(items.length>40&&Body3D.dist>=16)items=[];/* too busy at whole-body scale */
+    if(items.filter(i=>i.layer==='muscle').length>20)items=items.filter(i=>i.layer!=='muscle');/* muscles are named on hover instead */
     const score=it=>it.size/(1+Math.hypot(it.x-W/2,it.y-H/2)/(H/2));if(items.length>MAX)items=items.sort((a,b)=>score(b)-score(a)).slice(0,MAX);
     const left=items.filter(i=>i.x<W/2).sort((a,b)=>a.y-b.y),right=items.filter(i=>i.x>=W/2).sort((a,b)=>a.y-b.y);
     const layout=col=>{const gap=15;let ys=col.map(i=>i.y);for(let k=1;k<ys.length;k++)ys[k]=Math.max(ys[k],ys[k-1]+gap);const over=ys.length?ys[ys.length-1]-(H-8):0;if(over>0){for(let k=ys.length-1;k>=0;k--)ys[k]-=over;for(let k=1;k<ys.length;k++)ys[k]=Math.max(ys[k],ys[k-1]+gap);}return ys;};
